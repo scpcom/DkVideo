@@ -14,7 +14,7 @@ import sv2chisel.helpers.vecconvert._
 // `timescale100ps/100ps
 
 
-class DVI_TX_Top() extends RawModule {
+class DVI_TX_Top() extends BlackBox {
   val I_rst_n = IO(Input(Bool()))
   val I_serial_clk = IO(Input(Bool()))
   val I_rgb_clk = IO(Input(Bool()))
@@ -28,7 +28,7 @@ class DVI_TX_Top() extends RawModule {
   val O_tmds_clk_n = IO(Output(Bool()))
   val O_tmds_data_p = IO(Output(Vec(3, Bool())))
   val O_tmds_data_n = IO(Output(Vec(3, Bool())))
-  val VCC = Wire(Bool()) 
+  /*val VCC = Wire(Bool()) 
   val GND = Wire(Bool()) 
   val rgb2dvi_inst = Module(new \~rgb2dvi.DVI_TX_Top  )
   rgb2dvi_inst.I_rgb_clk := I_rgb_clk
@@ -49,5 +49,5 @@ class DVI_TX_Top() extends RawModule {
   val GND_cZ = Module(new GND)
   GND_cZ.G <> GND
   val GSR = Module(new GSR)
-  GSR.GSRI <> VCC
+  GSR.GSRI <> VCC*/
 } /* DVI_TX_Top */

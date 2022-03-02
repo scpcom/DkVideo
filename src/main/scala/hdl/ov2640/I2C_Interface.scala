@@ -83,13 +83,11 @@ class I2C_Interface(
 
     // Implement two-write data transmission of SCCB protocol
   } .otherwise {
-    when(Cat(busy_sr(31,29).asUInt, busy_sr(2,0).asUInt) ===  // Checking for the start and stop condition
+    when(Cat(busy_sr(31,29).asUInt, busy_sr(2,0).asUInt) === "b111_111".U(6.W)) { // Checking for the start and stop condition
     // For START condition
 
-    "b111_111".U(6.W)) { // bit 31th of data_sr is transmitted, SIOC must be high
-      when(divider(7,6).asUInt ===  // --> SIOD goes from tri-state to high             
-
-      "b00".U(2.W)) {
+    // bit 31th of data_sr is transmitted, SIOC must be high
+      when(divider(7,6).asUInt === "b00".U(2.W)) { // --> SIOD goes from tri-state to high             
         sioc_temp := true.B
       } .elsewhen (divider(7,6).asUInt === "b01".U(2.W)) {
         sioc_temp := true.B
@@ -113,9 +111,7 @@ class I2C_Interface(
       }
 
     } .elsewhen (Cat(busy_sr(31,29).asUInt, busy_sr(2,0).asUInt) === "b111_100".U(6.W)) { // bit 29th of data_sr is transmitted (don't care bit)
-      when(divider(7,6).asUInt ===  // --> SIOD goes from tri-state to high, then high to low 
-
-      "b00".U(2.W)) {
+      when(divider(7,6).asUInt === "b00".U(2.W)) { // --> SIOD goes from tri-state to high, then high to low 
         sioc_temp := false.B //     after SIOC goes from high to low 
       } .elsewhen (divider(7,6).asUInt === "b01".U(2.W)) {
         sioc_temp := false.B // --> Ready for first transmission from Master to Slave
@@ -140,9 +136,7 @@ class I2C_Interface(
       }
 
     } .elsewhen (Cat(busy_sr(31,29).asUInt, busy_sr(2,0).asUInt) === "b100_000".U(6.W)) { // bit 1st of data_sr is transmitted
-      when(divider(7,6).asUInt ===  // SIOD is low
-
-      "b00".U(2.W)) {
+      when(divider(7,6).asUInt === "b00".U(2.W)) { // SIOD is low
         sioc_temp := true.B // SIOC must be high
       } .elsewhen (divider(7,6).asUInt === "b01".U(2.W)) {
         sioc_temp := true.B
@@ -153,9 +147,7 @@ class I2C_Interface(
       }
 
     } .elsewhen (Cat(busy_sr(31,29).asUInt, busy_sr(2,0).asUInt) === "b000_000".U(6.W)) { // bit 0th of data_sr is transmitted
-      when(divider(7,6).asUInt ===  // SIOD is high
-
-      "b00".U(2.W)) {
+      when(divider(7,6).asUInt === "b00".U(2.W)) { // SIOD is high
         sioc_temp := true.B // --> SIOD goes from low to high while SIOC is high
       } .elsewhen (divider(7,6).asUInt === "b01".U(2.W)) {
         sioc_temp := true.B // --> complete STOP condition for SCCB protocol    

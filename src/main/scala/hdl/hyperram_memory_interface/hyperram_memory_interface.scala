@@ -14,7 +14,7 @@ import sv2chisel.helpers.vecconvert._
 // `timescale100ps/100ps
 
 
-class HyperRAM_Memory_Interface_Top() extends RawModule {
+class HyperRAM_Memory_Interface_Top() extends BlackBox {
   val clk = IO(Input(Bool()))
   val memory_clk = IO(Input(Bool()))
   val pll_lock = IO(Input(Bool()))
@@ -36,7 +36,7 @@ class HyperRAM_Memory_Interface_Top() extends RawModule {
   val data_mask = IO(Input(Vec(4, Bool())))
   val VCC = Wire(Bool()) 
   val GND = Wire(Bool()) 
-  val u_hpram_top = Module(new \~hpram_top.HyperRAM_Memory_Interface_Top  )
+  /*val u_hpram_top = Module(new \~hpram_top.HyperRAM_Memory_Interface_Top  )
   u_hpram_top.memory_clk := memory_clk
   u_hpram_top.rst_n := rst_n
   u_hpram_top.pll_lock := pll_lock
@@ -61,5 +61,5 @@ class HyperRAM_Memory_Interface_Top() extends RawModule {
   val GND_cZ = Module(new GND)
   GND_cZ.G <> GND
   val GSR = Module(new GSR)
-  GSR.GSRI <> VCC
+  GSR.GSRI <> VCC*/
 } /* HyperRAM_Memory_Interface_Top */

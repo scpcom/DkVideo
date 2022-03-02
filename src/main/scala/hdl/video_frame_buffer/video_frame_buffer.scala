@@ -14,7 +14,7 @@ import sv2chisel.helpers.vecconvert._
 // `timescale100ps/100ps
 
 
-class Video_Frame_Buffer_Top() extends RawModule {
+class Video_Frame_Buffer_Top() extends BlackBox {
   val I_rst_n = IO(Input(Bool()))
   val I_dma_clk = IO(Input(Bool()))
   val I_wr_halt = IO(Input(Vec(1, Bool())))
@@ -40,7 +40,7 @@ class Video_Frame_Buffer_Top() extends RawModule {
   val I_init_calib = IO(Input(Bool()))
   val VCC = Wire(Bool()) 
   val GND = Wire(Bool()) 
-  val vfb_hyperram_wrapper_inst = Module(new \~vfb_hyperram_wrapper.Video_Frame_Buffer_Top  )
+  /*val vfb_hyperram_wrapper_inst = Module(new \~vfb_hyperram_wrapper.Video_Frame_Buffer_Top  )
   vfb_hyperram_wrapper_inst.I_dma_clk := I_dma_clk
   vfb_hyperram_wrapper_inst.I_rst_n := I_rst_n
   vfb_hyperram_wrapper_inst.I_init_calib := I_init_calib
@@ -78,5 +78,5 @@ class Video_Frame_Buffer_Top() extends RawModule {
   O_data_mask(0) := GND
   O_data_mask(1) := GND
   O_data_mask(2) := GND
-  O_data_mask(3) := GND
+  O_data_mask(3) := GND*/
 } /* Video_Frame_Buffer_Top */

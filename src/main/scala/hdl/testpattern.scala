@@ -46,14 +46,14 @@ class testpattern() extends RawModule {
  //====================================================
   val N = 5 //delay N clocks
 
-  val WHITE = Cat(255.U(8.W), 255.U(8.W), 255.U(8.W)) //{B,G,R}
-  val YELLOW = Cat(0.U(8.W), 255.U(8.W), 255.U(8.W))
-  val CYAN = Cat(255.U(8.W), 255.U(8.W), 0.U(8.W))
-  val GREEN = Cat(0.U(8.W), 255.U(8.W), 0.U(8.W))
-  val MAGENTA = Cat(255.U(8.W), 0.U(8.W), 255.U(8.W))
-  val RED = Cat(0.U(8.W), 0.U(8.W), 255.U(8.W))
-  val BLUE = Cat(255.U(8.W), 0.U(8.W), 0.U(8.W))
-  val BLACK = Cat(0.U(8.W), 0.U(8.W), 0.U(8.W))
+  val WHITE   = Cat(255.U(8.W), 255.U(8.W), 255.U(8.W)) //{B,G,R}
+  val YELLOW  = Cat(0.U(8.W),   255.U(8.W), 255.U(8.W))
+  val CYAN    = Cat(255.U(8.W), 255.U(8.W), 0.U(8.W)  )
+  val GREEN   = Cat(0.U(8.W),   255.U(8.W), 0.U(8.W)  )
+  val MAGENTA = Cat(255.U(8.W), 0.U(8.W),   255.U(8.W))
+  val RED     = Cat(0.U(8.W),   0.U(8.W),   255.U(8.W))
+  val BLUE    = Cat(255.U(8.W), 0.U(8.W),   0.U(8.W)  )
+  val BLACK   = Cat(0.U(8.W),   0.U(8.W),   0.U(8.W)  )
 
   //====================================================
   val V_cnt = Wire(UInt(12.W)) 
@@ -214,26 +214,26 @@ class testpattern() extends RawModule {
     Color_bar := 0.U(24.W)
   } .elsewhen (Pout_de_dn(2) === true.B) {
     when(Color_cnt === 0.U(3.W)) {
-      Color_bar := WHITE.U(24.W)
+      Color_bar := WHITE/*.U(24.W)*/
     } .elsewhen (Color_cnt === 1.U(3.W)) {
-      Color_bar := YELLOW.U(24.W)
+      Color_bar := YELLOW/*.U(24.W)*/
     } .elsewhen (Color_cnt === 2.U(3.W)) {
-      Color_bar := CYAN.U(24.W)
+      Color_bar := CYAN/*.U(24.W)*/
     } .elsewhen (Color_cnt === 3.U(3.W)) {
-      Color_bar := GREEN.U(24.W)
+      Color_bar := GREEN/*.U(24.W)*/
     } .elsewhen (Color_cnt === 4.U(3.W)) {
-      Color_bar := MAGENTA.U(24.W)
+      Color_bar := MAGENTA/*.U(24.W)*/
     } .elsewhen (Color_cnt === 5.U(3.W)) {
-      Color_bar := RED.U(24.W)
+      Color_bar := RED/*.U(24.W)*/
     } .elsewhen (Color_cnt === 6.U(3.W)) {
-      Color_bar := BLUE.U(24.W)
+      Color_bar := BLUE/*.U(24.W)*/
     } .elsewhen (Color_cnt === 7.U(3.W)) {
-      Color_bar := BLACK.U(24.W)
+      Color_bar := BLACK/*.U(24.W)*/
     } .otherwise {
-      Color_bar := BLACK.U(24.W)
+      Color_bar := BLACK/*.U(24.W)*/
     }
   } .otherwise {
-    Color_bar := BLACK.U(24.W)
+    Color_bar := BLACK/*.U(24.W)*/
   }
 
   //---------------------------------------------------
@@ -259,18 +259,18 @@ class testpattern() extends RawModule {
     Net_grid := 0.U(24.W)
   } .elsewhen (Pout_de_dn(2) === true.B) {
     when(Net_pos === "b00".U(2.W)) {
-      Net_grid := BLACK.U(24.W)
+      Net_grid := BLACK/*.U(24.W)*/
     } .elsewhen (Net_pos === "b01".U(2.W)) {
-      Net_grid := RED.U(24.W)
+      Net_grid := RED/*.U(24.W)*/
     } .elsewhen (Net_pos === "b10".U(2.W)) {
-      Net_grid := RED.U(24.W)
+      Net_grid := RED/*.U(24.W)*/
     } .elsewhen (Net_pos === "b11".U(2.W)) {
-      Net_grid := RED.U(24.W)
+      Net_grid := RED/*.U(24.W)*/
     } .otherwise {
-      Net_grid := BLACK.U(24.W)
+      Net_grid := BLACK/*.U(24.W)*/
     }
   } .otherwise {
-    Net_grid := BLACK.U(24.W)
+    Net_grid := BLACK/*.U(24.W)*/
   }
 
   //---------------------------------------------------
@@ -294,7 +294,7 @@ class testpattern() extends RawModule {
   Single_color := Cat(I_single_b, I_single_g, I_single_r)
 
   //============================================================
-  Data_sel := Mux((I_mode(2,0).asUInt === "b000".U(3.W)), Color_bar, Mux((I_mode(2,0).asUInt === "b001".U(3.W)), Net_grid, Mux((I_mode(2,0).asUInt === "b010".U(3.W)), Gray_d1, Mux((I_mode(2,0).asUInt === "b011".U(3.W)), Single_color, GREEN.U(24.W)))))
+  Data_sel := Mux((I_mode(2,0).asUInt === "b000".U(3.W)), Color_bar, Mux((I_mode(2,0).asUInt === "b001".U(3.W)), Net_grid, Mux((I_mode(2,0).asUInt === "b010".U(3.W)), Gray_d1, Mux((I_mode(2,0).asUInt === "b011".U(3.W)), Single_color, GREEN))))
 
   //---------------------------------------------------
 
