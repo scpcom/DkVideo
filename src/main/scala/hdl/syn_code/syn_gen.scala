@@ -2,6 +2,8 @@ package hdl
 package syn_code
 
 import chisel3._
+import chisel3.util._
+import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 // ---------------------------------------------------------------------
 // File name         : syn_gen.v
 // Module name       : syn_gen
@@ -14,7 +16,7 @@ import chisel3._
 //   1.0   | 16-Jul-2019 | Caojie  |    initial
 // --------------------------------------------------------------------
 
-class syn_gen() extends RawModule {
+class syn_gen() extends Module {
   val I_pxl_clk = IO(Input(Clock())) //pixel clock
   val I_rst_n = IO(Input(Bool())) //low active 
   val I_h_total = IO(Input(UInt(16.W))) //hor total time 
@@ -35,8 +37,9 @@ class syn_gen() extends RawModule {
   val O_vs = IO(Output(Bool()))
 
   //====================================================
-  val V_cnt = Wire(UInt(16.W)) 
-  val H_cnt = Wire(UInt(16.W)) 
+  //withClockAndReset(I_pxl_clk, I_rst_n) {
+  val V_cnt = RegInit(0.U(16.W))
+  val H_cnt = RegInit(0.U(16.W))
 
 //-----------------------------------------              
   val Pout_de_w = Wire(Bool()) 
@@ -55,23 +58,17 @@ class syn_gen() extends RawModule {
 //==============================================================================
   //Generate HS, VS, DE signals
 
-  when( !I_rst_n) {
+  when((V_cnt >= (I_v_total-"b1".U(1.W))) && (H_cnt >= (I_h_total-"b1".U(1.W)))) {
     V_cnt := 0.U(16.W)
+  } .elsewhen (H_cnt >= (I_h_total-"b1".U(1.W))) {
+    V_cnt := V_cnt+"b1".U(1.W)
   } .otherwise {
-    when((V_cnt >= (I_v_total-"b1".U(1.W))) && (H_cnt >= (I_h_total-"b1".U(1.W)))) {
-      V_cnt := 0.U(16.W)
-    } .elsewhen (H_cnt >= (I_h_total-"b1".U(1.W))) {
-      V_cnt := V_cnt+"b1".U(1.W)
-    } .otherwise {
-      V_cnt := V_cnt
-    }
+    V_cnt := V_cnt
   }
 
 //-------------------------------------------------------------    
 
-  when( !I_rst_n) {
-    H_cnt := 0.U(16.W)
-  } .elsewhen (H_cnt >= (I_h_total-"b1".U(1.W))) {
+  when (H_cnt >= (I_h_total-"b1".U(1.W))) {
     H_cnt := 0.U(16.W)
   } .otherwise {
     H_cnt := H_cnt+"b1".U(1.W)
@@ -109,5 +106,5 @@ class syn_gen() extends RawModule {
     O_vs := Mux(I_vs_pol,  ~Pout_vs_dn, Pout_vs_dn)
     O_rden := Rden_dn
   }
-
+  //} // withClockAndReset(I_pxl_clk, I_rst_n)
 }

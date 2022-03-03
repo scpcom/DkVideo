@@ -19,7 +19,7 @@ import sv2chisel.helpers.vecconvert._
 //   1.0   | 24-Sep-2009 | Caojie  |    initial
 // --------------------------------------------------------------------
 
-class testpattern() extends RawModule {
+class testpattern() extends Module {
   val I_pxl_clk = IO(Input(Clock())) //pixel clock
   val I_rst_n = IO(Input(Bool())) //low active 
   val I_mode = IO(Input(Vec(3, Bool()))) //data select
@@ -56,33 +56,33 @@ class testpattern() extends RawModule {
   val BLACK   = Cat(0.U(8.W),   0.U(8.W),   0.U(8.W)  )
 
   //====================================================
-  val V_cnt = Wire(UInt(12.W)) 
-  val H_cnt = Wire(UInt(12.W)) 
+  val V_cnt = RegInit(0.U(12.W))
+  val H_cnt = RegInit(0.U(12.W))
 
   val Pout_de_w = Wire(Bool()) 
   val Pout_hs_w = Wire(Bool()) 
   val Pout_vs_w = Wire(Bool()) 
 
-  val Pout_de_dn = Wire(Vec(N, Bool())) 
-  val Pout_hs_dn = Wire(Vec(N, Bool())) 
-  val Pout_vs_dn = Wire(Vec(N, Bool())) 
+  val Pout_de_dn = Reg(UInt(N.W)) //Wire(Vec(N, Bool()))
+  val Pout_hs_dn = Reg(UInt(N.W)) //Wire(Vec(N, Bool()))
+  val Pout_vs_dn = Reg(UInt(N.W)) //Wire(Vec(N, Bool()))
 
   //----------------------------
   val De_pos = Wire(Bool()) 
   val De_neg = Wire(Bool()) 
   val Vs_pos = Wire(Bool()) 
 
-  val De_vcnt = Wire(UInt(12.W)) 
-  val De_hcnt = Wire(UInt(12.W)) 
-  val De_hcnt_d1 = Wire(UInt(12.W)) 
-  val De_hcnt_d2 = Wire(UInt(12.W)) 
+  val De_vcnt = RegInit(0.U(12.W))
+  val De_hcnt = RegInit(0.U(12.W))
+  /*val De_hcnt_d1 = Wire(UInt(12.W))
+  val De_hcnt_d2 = Wire(UInt(12.W))*/
 
   //-------------------------
   //Color bar //8ɫ����
-  val Color_trig_num = Wire(UInt(12.W)) 
-  val Color_trig = Wire(Bool()) 
-  val Color_cnt = Wire(UInt(4.W)) 
-  val Color_bar = Wire(UInt(24.W)) 
+  val Color_trig_num = RegInit(0.U(12.W))
+  val Color_trig = RegInit(false.B)
+  val Color_cnt = RegInit(0.U(4.W))
+  val Color_bar = RegInit(0.U(24.W))
 
   //----------------------------
   //Net grid //32����
@@ -108,23 +108,17 @@ class testpattern() extends RawModule {
   //==============================================================================
   //Generate HS, VS, DE signals
 
-  when( !I_rst_n) {
+  when((V_cnt >= (I_v_total-"b1".U(1.W))) && (H_cnt >= (I_h_total-"b1".U(1.W)))) {
     V_cnt := 0.U(12.W)
+  } .elsewhen (H_cnt >= (I_h_total-"b1".U(1.W))) {
+    V_cnt := V_cnt+"b1".U(1.W)
   } .otherwise {
-    when((V_cnt >= (I_v_total-"b1".U(1.W))) && (H_cnt >= (I_h_total-"b1".U(1.W)))) {
-      V_cnt := 0.U(12.W)
-    } .elsewhen (H_cnt >= (I_h_total-"b1".U(1.W))) {
-      V_cnt := V_cnt+"b1".U(1.W)
-    } .otherwise {
-      V_cnt := V_cnt
-    }
+    V_cnt := V_cnt
   }
 
   //-------------------------------------------------------------    
 
-  when( !I_rst_n) {
-    H_cnt := 0.U(12.W)
-  } .elsewhen (H_cnt >= (I_h_total-"b1".U(1.W))) {
+  when (H_cnt >= (I_h_total-"b1".U(1.W))) {
     H_cnt := 0.U(12.W)
   } .otherwise {
     H_cnt := H_cnt+"b1".U(1.W)
@@ -138,13 +132,13 @@ class testpattern() extends RawModule {
   //-------------------------------------------------------------
 
   when( !I_rst_n) {
-    Pout_de_dn := (VecInit.tabulate(N)(_ => false.B)).asTypeOf(Vec(N, Bool()))
-    Pout_hs_dn := (VecInit.tabulate(N)(_ => true.B)).asTypeOf(Vec(N, Bool()))
-    Pout_vs_dn := (VecInit.tabulate(N)(_ => true.B)).asTypeOf(Vec(N, Bool()))
+    Pout_de_dn := 0.U(N.W) // (VecInit.tabulate(N)(_ => false.B)).asTypeOf(Vec(N, Bool()))
+    Pout_hs_dn := 1.U(N.W) // (VecInit.tabulate(N)(_ => true.B)).asTypeOf(Vec(N, Bool()))
+    Pout_vs_dn := 1.U(N.W) // (VecInit.tabulate(N)(_ => true.B)).asTypeOf(Vec(N, Bool()))
   } .otherwise {
-    Pout_de_dn := Cat(Pout_de_dn(N-2,0).asUInt, Pout_de_w).asTypeOf(Vec(N, Bool()))
-    Pout_hs_dn := Cat(Pout_hs_dn(N-2,0).asUInt, Pout_hs_w).asTypeOf(Vec(N, Bool()))
-    Pout_vs_dn := Cat(Pout_vs_dn(N-2,0).asUInt, Pout_vs_w).asTypeOf(Vec(N, Bool()))
+    Pout_de_dn := Pout_de_dn(N-2,0) ## Pout_de_w
+    Pout_hs_dn := Pout_hs_dn(N-2,0) ## Pout_hs_w
+    Pout_vs_dn := Pout_vs_dn(N-2,0) ## Pout_vs_w
   }
   O_de := Pout_de_dn(4) //ע�������ݶ���
 
@@ -162,18 +156,14 @@ class testpattern() extends RawModule {
   De_neg := Pout_de_dn(1) && ( !Pout_de_dn(0)) //de falling edge
   Vs_pos := ( !Pout_vs_dn(1)) && Pout_vs_dn(0) //vs rising edge
 
-  when( !I_rst_n) {
-    De_hcnt := 0.U(12.W)
-  } .elsewhen (De_pos === true.B) {
+  when (De_pos === true.B) {
     De_hcnt := 0.U(12.W)
   } .elsewhen (Pout_de_dn(1) === true.B) {
     De_hcnt := De_hcnt+"b1".U(1.W)
   } .otherwise {
     De_hcnt := De_hcnt
   }
-  when( !I_rst_n) {
-    De_vcnt := 0.U(12.W)
-  } .elsewhen (Vs_pos === true.B) {
+  when (Vs_pos === true.B) {
     De_vcnt := 0.U(12.W)
   } .elsewhen (De_neg === true.B) {
     De_vcnt := De_vcnt+"b1".U(1.W)
@@ -185,34 +175,26 @@ class testpattern() extends RawModule {
   //Color bar
   //---------------------------------------------------
 
-  when( !I_rst_n) {
-    Color_trig_num := 0.U(12.W)
-  } .elsewhen (Pout_de_dn(1) === false.B) {
+  when (Pout_de_dn(1) === false.B) {
     Color_trig_num := I_h_res(11,3) //8ɫ�������
   } .elsewhen ((Color_trig === true.B) && (Pout_de_dn(1) === true.B)) {
     Color_trig_num := Color_trig_num+I_h_res(11,3)
   } .otherwise {
     Color_trig_num := Color_trig_num
   }
-  when( !I_rst_n) {
-    Color_trig := false.B
-  } .elsewhen (De_hcnt === (Color_trig_num-"b1".U(1.W))) {
+  when (De_hcnt === (Color_trig_num-"b1".U(1.W))) {
     Color_trig := true.B
   } .otherwise {
     Color_trig := false.B
   }
-  when( !I_rst_n) {
-    Color_cnt := 0.U(3.W)
-  } .elsewhen (Pout_de_dn(1) === false.B) {
+  when (Pout_de_dn(1) === false.B) {
     Color_cnt := 0.U(3.W)
   } .elsewhen ((Color_trig === true.B) && (Pout_de_dn(1) === true.B)) {
     Color_cnt := Color_cnt+"b1".U(1.W)
   } .otherwise {
     Color_cnt := Color_cnt
   }
-  when( !I_rst_n) {
-    Color_bar := 0.U(24.W)
-  } .elsewhen (Pout_de_dn(2) === true.B) {
+  when (Pout_de_dn(2) === true.B) {
     when(Color_cnt === 0.U(3.W)) {
       Color_bar := WHITE/*.U(24.W)*/
     } .elsewhen (Color_cnt === 1.U(3.W)) {

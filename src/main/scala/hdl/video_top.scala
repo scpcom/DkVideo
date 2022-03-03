@@ -2,6 +2,7 @@ package hdl
 
 import chisel3._
 import chisel3.util.Cat
+import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import sv2chisel.helpers.tools.VerilogPortWrapper
 import sv2chisel.helpers.vecconvert._
 
@@ -57,7 +58,6 @@ class video_top() extends RawModule {
   val O_tmds_data_n = IO(Output(UInt(3.W)))
 
   //==================================================
-  val run_cnt = Wire(UInt(32.W)) 
   val running = Wire(Bool()) 
 
   //--------------------------
@@ -68,11 +68,8 @@ class video_top() extends RawModule {
   val tp0_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
   val tp0_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
 
-  val cnt_vs = Wire(UInt(10.W)) 
-
   //--------------------------
   val pixdata_d1 = Wire(UInt(10.W)) 
-  val hcnt = Wire(Bool()) 
   val cam_data = Wire(UInt(16.W)) 
 
   //-------------------------
@@ -132,11 +129,11 @@ class video_top() extends RawModule {
   //I_clk
 
   withClockAndReset(I_clk, I_rst_n) {
+  val cnt_vs = RegInit(0.U(10.W))
+  val run_cnt = RegInit(0.U(32.W))
   val vs_r = Reg(Bool())
 
-  when( !I_rst_n) {
-    run_cnt := 0.U(32.W)
-  } .elsewhen (run_cnt >= "d27_000_000".U(32.W)) {
+  when (run_cnt >= "d27_000_000".U(32.W)) {
     run_cnt := 0.U(32.W)
   } .otherwise {
     run_cnt := run_cnt+"b1".U(1.W)
@@ -183,19 +180,18 @@ class video_top() extends RawModule {
   tp0_data_g := testpattern_inst.O_data_g
   tp0_data_b := testpattern_inst.O_data_b
   vs_r := tp0_vs_in
-  when( !I_rst_n) {
-    cnt_vs := 0.U
-  } .elsewhen (cnt_vs === "h3ff".U(10.W)) {
+  when (cnt_vs === "h3ff".U(10.W)) {
     cnt_vs := cnt_vs
   } .elsewhen (vs_r && ( !tp0_vs_in)) { //vs24 falling edge
     cnt_vs := cnt_vs+"b1".U(1.W)
   } .otherwise {
     cnt_vs := cnt_vs
   }
-  } // withClockAndReset(I_clk, I_rst_n)
 
  //==============================================================================
   withClockAndReset(PIXCLK, I_rst_n) {
+  val hcnt = RegInit(false.B)
+
   val u_OV2640_Controller = Module(new OV2640_Controller)
   u_OV2640_Controller.clock := clk_12M // 24Mhz clock signal
   u_OV2640_Controller.resend := "b0".U(1.W) // Reset signal
@@ -211,13 +207,12 @@ class video_top() extends RawModule {
     pixdata_d1 := PIXDATA.asUInt
   } //I_clk
 
-  when( !I_rst_n) {
-    hcnt := false.B
-  } .elsewhen (HREF) {
+  when (HREF) {
     hcnt :=  ~hcnt
   } .otherwise {
     hcnt := false.B
   }
+  } //withClockAndReset(PIXCLK, I_rst_n)
 
   // assign cam_data = {pixdata_d1[9:5],pixdata_d1[4:2],PIXDATA[9:7],PIXDATA[6:2]}; //RGB565
   // assign cam_data = {PIXDATA[9:5],PIXDATA[4:2],pixdata_d1[9:7],pixdata_d1[6:2]}; //RGB565
@@ -233,7 +228,7 @@ class video_top() extends RawModule {
   // assign ch0_vfb_clk_in  = PIXCLK;         // assign ch0_vfb_vs_in   = VSYNC;  //negative
   // assign ch0_vfb_de_in   = HREF;//hcnt;  
   // assign ch0_vfb_data_in = cam_data; // RGB565
-  } // withClockAndReset(PIXCLK, I_rst_n)
+  } // withClockAndReset(I_clk, I_rst_n)
 
 
   //=====================================================
@@ -294,6 +289,7 @@ class video_top() extends RawModule {
   init_calib := HyperRAM_Memory_Interface_Top_inst.io.init_calib
 
  //================================================
+  withClockAndReset(pix_clk, hdmi_rst_n) {
   val out_de = Wire(Bool()) 
   val syn_gen_inst = Module(new syn_gen)
   syn_gen_inst.I_pxl_clk := pix_clk //40MHz      //65MHz      //74.25MHz    
@@ -317,20 +313,12 @@ class video_top() extends RawModule {
 
   val N = 5 //delay N clocks
 
-  val Pout_hs_dn = Wire(UInt(N.W)) 
-  val Pout_vs_dn = Wire(UInt(N.W)) 
-  val Pout_de_dn = Wire(UInt(N.W)) 
-  withClockAndReset(pix_clk, hdmi_rst_n) {
-  when( !hdmi_rst_n) {
-    Pout_hs_dn := (VecInit.tabulate(N)(_ => true.B)).asUInt
-    Pout_vs_dn := (VecInit.tabulate(N)(_ => true.B)).asUInt
-    Pout_de_dn := (VecInit.tabulate(N)(_ => false.B)).asUInt
-  } .otherwise {
-    Pout_hs_dn := Cat(Pout_hs_dn(N-2,0), syn_off0_hs)
-    Pout_vs_dn := Cat(Pout_vs_dn(N-2,0), syn_off0_vs)
-    Pout_de_dn := Cat(Pout_de_dn(N-2,0), out_de)
-  }
-  }
+  val Pout_hs_dn = RegInit(1.U(N.W))
+  val Pout_vs_dn = RegInit(1.U(N.W))
+  val Pout_de_dn = RegInit(0.U(N.W))
+  Pout_hs_dn := Cat(Pout_hs_dn(N-2,0), syn_off0_hs)
+  Pout_vs_dn := Cat(Pout_vs_dn(N-2,0), syn_off0_vs)
+  Pout_de_dn := Cat(Pout_de_dn(N-2,0), out_de)
 
   //==============================================================================
   //TMDS TX
@@ -338,6 +326,7 @@ class video_top() extends RawModule {
   rgb_vs := Pout_vs_dn(4) //syn_off0_vs;
   rgb_hs := Pout_hs_dn(4) //syn_off0_hs;
   rgb_de := Pout_de_dn(4) //off0_syn_de;
+  } // withClockAndReset(pix_clk, hdmi_rst_n)
 
 
   val TMDS_PLLVR_inst = Module(new TMDS_PLLVR)
@@ -373,9 +362,11 @@ class video_top() extends RawModule {
 }
 
 object video_topGen extends App {
-  VerilogPortWrapper.emit(
+  /*VerilogPortWrapper.emit(
     () => new video_top(),
     forcePreset = true,
     args = args
-  )
+  )*/
+  (new ChiselStage).execute(args,
+    Seq(ChiselGeneratorAnnotation(() => new video_top())))
 }
