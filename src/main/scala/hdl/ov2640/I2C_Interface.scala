@@ -20,7 +20,8 @@ import sv2chisel.helpers.vecconvert._
 class I2C_Interface(
     val SID: UInt = "h42".U(8.W)
   ) extends Module { // 50Mhz clock signal
-  val siod = IO(Inout(Bool())) // Data signal for SCCB
+  val siod = IO(Input(Bool())) // Inout Data signal for SCCB
+  val O_siod = IO(Output(Bool()))
   val sioc = IO(Output(Bool())) // Clock signal for SCCB
   val taken = IO(Output(Bool())) // Flag to go to next address of LUT
   val send = IO(Input(Bool())) // Flag to indicate if configuration is finshed
@@ -40,7 +41,7 @@ class I2C_Interface(
   val id: UInt = SID //8'h42;
 
   // Assign value for outputs
-  siod := siod_temp
+  O_siod := siod_temp
   sioc := sioc_temp
   taken := taken_temp
   // when the bus is idle SIOD must be tri-state

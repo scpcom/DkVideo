@@ -15,28 +15,30 @@ import sv2chisel.helpers.vecconvert._
 
 
 class HyperRAM_Memory_Interface_Top() extends BlackBox {
-  val clk = IO(Input(Bool()))
-  val memory_clk = IO(Input(Bool()))
-  val pll_lock = IO(Input(Bool()))
-  val rst_n = IO(Input(Bool()))
-  val O_hpram_ck = IO(Output(Vec(1, Bool())))
-  val O_hpram_ck_n = IO(Output(Vec(1, Bool())))
-  val IO_hpram_dq = IO(Inout(Vec(8, Bool())))
-  val IO_hpram_rwds = IO(Inout(Vec(1, Bool())))
-  val O_hpram_cs_n = IO(Output(Vec(1, Bool())))
-  val O_hpram_reset_n = IO(Output(Vec(1, Bool())))
-  val wr_data = IO(Input(Vec(32, Bool())))
-  val rd_data = IO(Output(Vec(32, Bool())))
-  val rd_data_valid = IO(Output(Bool()))
-  val addr = IO(Input(Vec(22, Bool())))
-  val cmd = IO(Input(Bool()))
-  val cmd_en = IO(Input(Bool()))
-  val init_calib = IO(Output(Bool()))
-  val clk_out = IO(Output(Bool()))
-  val data_mask = IO(Input(Vec(4, Bool())))
-  val VCC = Wire(Bool()) 
+    val io = IO(new Bundle {
+        val clk = Input(Clock())
+        val memory_clk = Input(Bool())
+        val pll_lock = Input(Bool())
+        val rst_n = Input(Bool())
+        val O_hpram_ck = Output(Vec(1, Bool()))
+        val O_hpram_ck_n = Output(Vec(1, Bool()))
+        val IO_hpram_dq = Input(Vec(8, Bool())) // Inout
+        val IO_hpram_rwds = Input(Vec(1, Bool())) // Inout
+        val O_hpram_cs_n = Output(Vec(1, Bool()))
+        val O_hpram_reset_n = Output(Vec(1, Bool()))
+        val wr_data = Input(Vec(32, Bool()))
+        val rd_data = Output(Vec(32, Bool()))
+        val rd_data_valid = Output(Bool())
+        val addr = Input(Vec(22, Bool()))
+        val cmd = Input(Bool())
+        val cmd_en = Input(Bool())
+        val init_calib = Output(Bool())
+        val clk_out = Output(Bool())
+        val data_mask = Input(Vec(4, Bool()))
+    })
+  /*val VCC = Wire(Bool()) 
   val GND = Wire(Bool()) 
-  /*val u_hpram_top = Module(new \~hpram_top.HyperRAM_Memory_Interface_Top  )
+  val u_hpram_top = Module(new \~hpram_top.HyperRAM_Memory_Interface_Top  )
   u_hpram_top.memory_clk := memory_clk
   u_hpram_top.rst_n := rst_n
   u_hpram_top.pll_lock := pll_lock

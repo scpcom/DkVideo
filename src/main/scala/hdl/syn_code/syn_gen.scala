@@ -15,7 +15,7 @@ import chisel3._
 // --------------------------------------------------------------------
 
 class syn_gen() extends RawModule {
-  val I_pxl_clk = IO(Input(Bool())) //pixel clock
+  val I_pxl_clk = IO(Input(Clock())) //pixel clock
   val I_rst_n = IO(Input(Bool())) //low active 
   val I_h_total = IO(Input(UInt(16.W))) //hor total time 
   val I_h_sync = IO(Input(UInt(16.W))) //hor sync time

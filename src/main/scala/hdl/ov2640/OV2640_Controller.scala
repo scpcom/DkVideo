@@ -8,7 +8,7 @@ class OV2640_Controller() extends Module { // 50Mhz clock signal
   val resend = IO(Input(Bool())) // Reset signal
   val config_finished = IO(Output(Bool())) // Flag to indicate that the configuration is finished
   val sioc = IO(Output(Bool())) // SCCB interface - clock signal
-  val siod = IO(Inout(Bool())) // SCCB interface - data signal
+  val siod = IO(Input(Bool())) // Inout SCCB interface - data signal
   val ureset = IO(Output(Bool())) // RESET signal for OV2640
   val pwdn = IO(Output(Bool())) // PWDN signal for OV2640
 

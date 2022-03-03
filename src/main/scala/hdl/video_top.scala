@@ -35,22 +35,22 @@ import hdl.syn_code.syn_gen
 // ==============0ooo===================================================0ooo===========
 
 class video_top() extends RawModule {
-  val I_clk = IO(Input(Bool())) //27Mhz
+  val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(Vec(2, Bool())))
-  val SDA = IO(Inout(Bool()))
-  val SCL = IO(Inout(Bool()))
+  val SDA = IO(Input(Bool())) // Inout
+  val SCL = IO(Output(Bool())) // Inout
   val VSYNC = IO(Input(Bool()))
   val HREF = IO(Input(Bool()))
   val PIXDATA = IO(Input(Vec(10, Bool())))
-  val PIXCLK = IO(Input(Bool()))
-  val XCLK = IO(Output(Bool()))
+  val PIXCLK = IO(Input(Clock()))
+  val XCLK = IO(Output(Clock()))
   val O_hpram_ck = IO(Output(UInt(1.W)))
   val O_hpram_ck_n = IO(Output(UInt(1.W)))
   val O_hpram_cs_n = IO(Output(UInt(1.W)))
   val O_hpram_reset_n = IO(Output(UInt(1.W)))
-  val IO_hpram_dq = IO(Inout(UInt(8.W)))
-  val IO_hpram_rwds = IO(Inout(UInt(1.W)))
+  val IO_hpram_dq = IO(Input(UInt(8.W))) // Inout
+  val IO_hpram_rwds = IO(Input(UInt(1.W))) // Inout
   val O_tmds_clk_p = IO(Output(Bool()))
   val O_tmds_clk_n = IO(Output(Bool()))
   val O_tmds_data_p = IO(Output(UInt(3.W))) //{r,g,b}
@@ -68,7 +68,6 @@ class video_top() extends RawModule {
   val tp0_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
   val tp0_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
 
-  val vs_r = Reg(Bool()) 
   val cnt_vs = Wire(UInt(10.W)) 
 
   //--------------------------
@@ -78,7 +77,7 @@ class video_top() extends RawModule {
 
   //-------------------------
   //frame buffer in
-  val ch0_vfb_clk_in = Wire(Bool()) 
+  val ch0_vfb_clk_in = Wire(Clock()) 
   val ch0_vfb_vs_in = Wire(Bool()) 
   val ch0_vfb_de_in = Wire(Bool()) 
   val ch0_vfb_data_in = Wire(UInt(16.W)) 
@@ -119,18 +118,21 @@ class video_top() extends RawModule {
 
   //------------------------------------
   //HDMI TX
-  val serial_clk = Wire(Bool()) 
+  val serial_clk = Wire(Clock())
   val pll_lock = Wire(Bool()) 
 
   val hdmi_rst_n = Wire(Bool()) 
 
-  val pix_clk = Wire(Bool()) 
+  val pix_clk = Wire(Clock())
 
-  val clk_12M = Wire(Bool()) 
+  val clk_12M = Wire(Clock()) 
 
   //===================================================
   //LED test
   //I_clk
+
+  withClockAndReset(I_clk, I_rst_n) {
+  val vs_r = Reg(Bool())
 
   when( !I_rst_n) {
     run_cnt := 0.U(32.W)
@@ -190,8 +192,10 @@ class video_top() extends RawModule {
   } .otherwise {
     cnt_vs := cnt_vs
   }
+  } // withClockAndReset(I_clk, I_rst_n)
 
  //==============================================================================
+  withClockAndReset(PIXCLK, I_rst_n) {
   val u_OV2640_Controller = Module(new OV2640_Controller)
   u_OV2640_Controller.clock := clk_12M // 24Mhz clock signal
   u_OV2640_Controller.resend := "b0".U(1.W) // Reset signal
@@ -201,7 +205,6 @@ class video_top() extends RawModule {
   // RESET signal for OV7670
   // PWDN signal for OV7670
   //I_clk
-
   when( !I_rst_n) {
     pixdata_d1 := 0.U(10.W)
   } .otherwise {
@@ -230,35 +233,36 @@ class video_top() extends RawModule {
   // assign ch0_vfb_clk_in  = PIXCLK;         // assign ch0_vfb_vs_in   = VSYNC;  //negative
   // assign ch0_vfb_de_in   = HREF;//hcnt;  
   // assign ch0_vfb_data_in = cam_data; // RGB565
+  } // withClockAndReset(PIXCLK, I_rst_n)
 
 
   //=====================================================
   //SRAM 控制模块 
   val Video_Frame_Buffer_Top_inst = Module(new Video_Frame_Buffer_Top)
-  Video_Frame_Buffer_Top_inst.I_rst_n := init_calib //rst_n            ),
-  Video_Frame_Buffer_Top_inst.I_dma_clk := dma_clk //sram_clk         ),
-  Video_Frame_Buffer_Top_inst.I_wr_halt := 0.U(1.W) //1:halt,  0:no halt
-  Video_Frame_Buffer_Top_inst.I_rd_halt := 0.U(1.W) //1:halt,  0:no halt
+  Video_Frame_Buffer_Top_inst.io.I_rst_n := init_calib //rst_n            ),
+  Video_Frame_Buffer_Top_inst.io.I_dma_clk := dma_clk //sram_clk         ),
+  Video_Frame_Buffer_Top_inst.io.I_wr_halt := 0.U(1.W).asTypeOf(Vec(1, Bool())) //1:halt,  0:no halt
+  Video_Frame_Buffer_Top_inst.io.I_rd_halt := 0.U(1.W).asTypeOf(Vec(1, Bool())) //1:halt,  0:no halt
   // video data input           
-  Video_Frame_Buffer_Top_inst.I_vin0_clk := ch0_vfb_clk_in
-  Video_Frame_Buffer_Top_inst.I_vin0_vs_n := ch0_vfb_vs_in
-  Video_Frame_Buffer_Top_inst.I_vin0_de := ch0_vfb_de_in
-  Video_Frame_Buffer_Top_inst.I_vin0_data := ch0_vfb_data_in.asTypeOf(Video_Frame_Buffer_Top_inst.I_vin0_data)
+  Video_Frame_Buffer_Top_inst.io.I_vin0_clk := ch0_vfb_clk_in
+  Video_Frame_Buffer_Top_inst.io.I_vin0_vs_n := ch0_vfb_vs_in
+  Video_Frame_Buffer_Top_inst.io.I_vin0_de := ch0_vfb_de_in
+  Video_Frame_Buffer_Top_inst.io.I_vin0_data := ch0_vfb_data_in.asTypeOf(Video_Frame_Buffer_Top_inst.io.I_vin0_data)
   // video data output          
-  Video_Frame_Buffer_Top_inst.I_vout0_clk := pix_clk
-  Video_Frame_Buffer_Top_inst.I_vout0_vs_n :=  ~syn_off0_vs
-  Video_Frame_Buffer_Top_inst.I_vout0_de := syn_off0_re
-  off0_syn_de := Video_Frame_Buffer_Top_inst.O_vout0_den
-  off0_syn_data := Video_Frame_Buffer_Top_inst.O_vout0_data
+  Video_Frame_Buffer_Top_inst.io.I_vout0_clk := pix_clk
+  Video_Frame_Buffer_Top_inst.io.I_vout0_vs_n :=  ~syn_off0_vs
+  Video_Frame_Buffer_Top_inst.io.I_vout0_de := syn_off0_re
+  off0_syn_de := Video_Frame_Buffer_Top_inst.io.O_vout0_den
+  off0_syn_data := Video_Frame_Buffer_Top_inst.io.O_vout0_data
   // ddr write request
-  cmd := Video_Frame_Buffer_Top_inst.O_cmd
-  cmd_en := Video_Frame_Buffer_Top_inst.O_cmd_en
-  addr := Video_Frame_Buffer_Top_inst.O_addr.asTypeOf(addr) //[ADDR_WIDTH-1:0]
-  wr_data := Video_Frame_Buffer_Top_inst.O_wr_data.asTypeOf(wr_data) //[DATA_WIDTH-1:0]
-  data_mask := Video_Frame_Buffer_Top_inst.O_data_mask.asTypeOf(data_mask)
-  Video_Frame_Buffer_Top_inst.I_rd_data_valid := rd_data_valid
-  Video_Frame_Buffer_Top_inst.I_rd_data := rd_data.asTypeOf(Video_Frame_Buffer_Top_inst.I_rd_data) //[DATA_WIDTH-1:0]
-  Video_Frame_Buffer_Top_inst.I_init_calib := init_calib
+  cmd := Video_Frame_Buffer_Top_inst.io.O_cmd
+  cmd_en := Video_Frame_Buffer_Top_inst.io.O_cmd_en
+  addr := Video_Frame_Buffer_Top_inst.io.O_addr.asTypeOf(addr) //[ADDR_WIDTH-1:0]
+  wr_data := Video_Frame_Buffer_Top_inst.io.O_wr_data.asTypeOf(wr_data) //[DATA_WIDTH-1:0]
+  data_mask := Video_Frame_Buffer_Top_inst.io.O_data_mask.asTypeOf(data_mask)
+  Video_Frame_Buffer_Top_inst.io.I_rd_data_valid := rd_data_valid
+  Video_Frame_Buffer_Top_inst.io.I_rd_data := rd_data.asTypeOf(Video_Frame_Buffer_Top_inst.io.I_rd_data) //[DATA_WIDTH-1:0]
+  Video_Frame_Buffer_Top_inst.io.I_init_calib := init_calib
 
  //================================================
   //HyperRAM ip
@@ -269,25 +273,25 @@ class video_top() extends RawModule {
 
 
   val HyperRAM_Memory_Interface_Top_inst = Module(new HyperRAM_Memory_Interface_Top)
-  HyperRAM_Memory_Interface_Top_inst.clk := I_clk
-  HyperRAM_Memory_Interface_Top_inst.memory_clk := memory_clk
-  HyperRAM_Memory_Interface_Top_inst.pll_lock := mem_pll_lock
-  HyperRAM_Memory_Interface_Top_inst.rst_n := I_rst_n //rst_n
-  O_hpram_ck := HyperRAM_Memory_Interface_Top_inst.O_hpram_ck.asTypeOf(O_hpram_ck)
-  O_hpram_ck_n := HyperRAM_Memory_Interface_Top_inst.O_hpram_ck_n.asTypeOf(O_hpram_ck_n)
-  HyperRAM_Memory_Interface_Top_inst.IO_hpram_rwds := IO_hpram_rwds.asTypeOf(HyperRAM_Memory_Interface_Top_inst.IO_hpram_rwds)
-  HyperRAM_Memory_Interface_Top_inst.IO_hpram_dq := IO_hpram_dq.asTypeOf(HyperRAM_Memory_Interface_Top_inst.IO_hpram_dq)
-  O_hpram_reset_n := HyperRAM_Memory_Interface_Top_inst.O_hpram_reset_n.asTypeOf(O_hpram_reset_n)
-  O_hpram_cs_n := HyperRAM_Memory_Interface_Top_inst.O_hpram_cs_n.asTypeOf(O_hpram_cs_n)
-  HyperRAM_Memory_Interface_Top_inst.wr_data := wr_data.asTypeOf(HyperRAM_Memory_Interface_Top_inst.wr_data)
-  rd_data := HyperRAM_Memory_Interface_Top_inst.rd_data.asTypeOf(rd_data)
-  rd_data_valid := HyperRAM_Memory_Interface_Top_inst.rd_data_valid
-  HyperRAM_Memory_Interface_Top_inst.addr := addr.asTypeOf(HyperRAM_Memory_Interface_Top_inst.addr)
-  HyperRAM_Memory_Interface_Top_inst.cmd := cmd
-  HyperRAM_Memory_Interface_Top_inst.cmd_en := cmd_en
-  dma_clk := HyperRAM_Memory_Interface_Top_inst.clk_out
-  HyperRAM_Memory_Interface_Top_inst.data_mask := data_mask.asTypeOf(HyperRAM_Memory_Interface_Top_inst.data_mask)
-  init_calib := HyperRAM_Memory_Interface_Top_inst.init_calib
+  HyperRAM_Memory_Interface_Top_inst.io.clk := I_clk
+  HyperRAM_Memory_Interface_Top_inst.io.memory_clk := memory_clk
+  HyperRAM_Memory_Interface_Top_inst.io.pll_lock := mem_pll_lock
+  HyperRAM_Memory_Interface_Top_inst.io.rst_n := I_rst_n //rst_n
+  O_hpram_ck := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck.asTypeOf(O_hpram_ck)
+  O_hpram_ck_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck_n.asTypeOf(O_hpram_ck_n)
+  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds := IO_hpram_rwds.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds)
+  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq := IO_hpram_dq.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq)
+  O_hpram_reset_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_reset_n.asTypeOf(O_hpram_reset_n)
+  O_hpram_cs_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_cs_n.asTypeOf(O_hpram_cs_n)
+  HyperRAM_Memory_Interface_Top_inst.io.wr_data := wr_data.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.wr_data)
+  rd_data := HyperRAM_Memory_Interface_Top_inst.io.rd_data.asTypeOf(rd_data)
+  rd_data_valid := HyperRAM_Memory_Interface_Top_inst.io.rd_data_valid
+  HyperRAM_Memory_Interface_Top_inst.io.addr := addr.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.addr)
+  HyperRAM_Memory_Interface_Top_inst.io.cmd := cmd
+  HyperRAM_Memory_Interface_Top_inst.io.cmd_en := cmd_en
+  dma_clk := HyperRAM_Memory_Interface_Top_inst.io.clk_out
+  HyperRAM_Memory_Interface_Top_inst.io.data_mask := data_mask.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.data_mask)
+  init_calib := HyperRAM_Memory_Interface_Top_inst.io.init_calib
 
  //================================================
   val out_de = Wire(Bool()) 
@@ -316,6 +320,7 @@ class video_top() extends RawModule {
   val Pout_hs_dn = Wire(UInt(N.W)) 
   val Pout_vs_dn = Wire(UInt(N.W)) 
   val Pout_de_dn = Wire(UInt(N.W)) 
+  withClockAndReset(pix_clk, hdmi_rst_n) {
   when( !hdmi_rst_n) {
     Pout_hs_dn := (VecInit.tabulate(N)(_ => true.B)).asUInt
     Pout_vs_dn := (VecInit.tabulate(N)(_ => true.B)).asUInt
@@ -324,6 +329,7 @@ class video_top() extends RawModule {
     Pout_hs_dn := Cat(Pout_hs_dn(N-2,0), syn_off0_hs)
     Pout_vs_dn := Cat(Pout_vs_dn(N-2,0), syn_off0_vs)
     Pout_de_dn := Cat(Pout_de_dn(N-2,0), out_de)
+  }
   }
 
   //==============================================================================
@@ -348,19 +354,19 @@ class video_top() extends RawModule {
   u_clkdiv.io.CALIB := "b1".U(1.W)
 
   val DVI_TX_Top_inst = Module(new DVI_TX_Top)
-  DVI_TX_Top_inst.I_rst_n := hdmi_rst_n //asynchronous reset, low active
-  DVI_TX_Top_inst.I_serial_clk := serial_clk
-  DVI_TX_Top_inst.I_rgb_clk := pix_clk //pixel clock
-  DVI_TX_Top_inst.I_rgb_vs := rgb_vs
-  DVI_TX_Top_inst.I_rgb_hs := rgb_hs
-  DVI_TX_Top_inst.I_rgb_de := rgb_de
-  DVI_TX_Top_inst.I_rgb_r := rgb_data(23,16)
-  DVI_TX_Top_inst.I_rgb_g := rgb_data(15,8)
-  DVI_TX_Top_inst.I_rgb_b := rgb_data(7,0)
-  O_tmds_clk_p := DVI_TX_Top_inst.O_tmds_clk_p
-  O_tmds_clk_n := DVI_TX_Top_inst.O_tmds_clk_n
-  O_tmds_data_p := DVI_TX_Top_inst.O_tmds_data_p.asTypeOf(O_tmds_data_p) //{r,g,b}
-  O_tmds_data_n := DVI_TX_Top_inst.O_tmds_data_n.asTypeOf(O_tmds_data_n)
+  DVI_TX_Top_inst.io.I_rst_n := hdmi_rst_n //asynchronous reset, low active
+  DVI_TX_Top_inst.io.I_serial_clk := serial_clk
+  DVI_TX_Top_inst.io.I_rgb_clk := pix_clk //pixel clock
+  DVI_TX_Top_inst.io.I_rgb_vs := rgb_vs
+  DVI_TX_Top_inst.io.I_rgb_hs := rgb_hs
+  DVI_TX_Top_inst.io.I_rgb_de := rgb_de
+  DVI_TX_Top_inst.io.I_rgb_r := rgb_data(23,16)
+  DVI_TX_Top_inst.io.I_rgb_g := rgb_data(15,8)
+  DVI_TX_Top_inst.io.I_rgb_b := rgb_data(7,0)
+  O_tmds_clk_p := DVI_TX_Top_inst.io.O_tmds_clk_p
+  O_tmds_clk_n := DVI_TX_Top_inst.io.O_tmds_clk_n
+  O_tmds_data_p := DVI_TX_Top_inst.io.O_tmds_data_p.asTypeOf(O_tmds_data_p) //{r,g,b}
+  O_tmds_data_n := DVI_TX_Top_inst.io.O_tmds_data_n.asTypeOf(O_tmds_data_n)
 
 
 

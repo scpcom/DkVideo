@@ -20,7 +20,7 @@ import sv2chisel.helpers.vecconvert._
 // --------------------------------------------------------------------
 
 class testpattern() extends RawModule {
-  val I_pxl_clk = IO(Input(Bool())) //pixel clock
+  val I_pxl_clk = IO(Input(Clock())) //pixel clock
   val I_rst_n = IO(Input(Bool())) //low active 
   val I_mode = IO(Input(Vec(3, Bool()))) //data select
   val I_single_r = IO(Input(UInt(8.W)))
