@@ -38,12 +38,12 @@ import hdl.syn_code.syn_gen
 class video_top() extends RawModule {
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
-  val O_led = IO(Output(Vec(2, Bool())))
+  val O_led = IO(Output(UInt(2.W)))
   val SDA = IO(Input(Bool())) // Inout
   val SCL = IO(Output(Bool())) // Inout
   val VSYNC = IO(Input(Bool()))
   val HREF = IO(Input(Bool()))
-  val PIXDATA = IO(Input(Vec(10, Bool())))
+  val PIXDATA = IO(Input(UInt(10.W)))
   val PIXCLK = IO(Input(Clock()))
   val XCLK = IO(Output(Clock()))
   val O_hpram_ck = IO(Output(UInt(1.W)))
@@ -142,8 +142,7 @@ class video_top() extends RawModule {
     run_cnt := run_cnt+"b1".U(1.W)
   }
   running := (Mux((run_cnt < "d13_500_000".U(32.W)), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
-  O_led(0) := running
-  O_led(1) :=  ~init_calib
+  O_led := running ## ~init_calib
   XCLK := clk_12M
   // NOTE: The following statements are auto generated due to the use of concatenation in port-map of instance testpattern_inst
   //       This default translation is very verbose, you may hence want to refactor it by:
@@ -206,7 +205,7 @@ class video_top() extends RawModule {
   // RESET signal for OV7670
   // PWDN signal for OV7670
   //I_clk
-  pixdata_d1 := PIXDATA.asUInt
+  pixdata_d1 := PIXDATA //.asUInt
 
   when (HREF) {
     hcnt :=  ~hcnt
@@ -216,7 +215,7 @@ class video_top() extends RawModule {
 
   // assign cam_data = {pixdata_d1[9:5],pixdata_d1[4:2],PIXDATA[9:7],PIXDATA[6:2]}; //RGB565
   // assign cam_data = {PIXDATA[9:5],PIXDATA[4:2],pixdata_d1[9:7],pixdata_d1[6:2]}; //RGB565
-  cam_data := Cat(PIXDATA(9,5).asUInt, PIXDATA(9,4).asUInt, PIXDATA(9,5).asUInt) //RAW10
+  cam_data := Cat(PIXDATA(9,5), PIXDATA(9,4), PIXDATA(9,5)) //RAW10
   } //withClockAndReset(PIXCLK, I_rst_n)
 
   //==============================================
