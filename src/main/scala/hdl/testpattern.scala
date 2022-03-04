@@ -22,7 +22,7 @@ import sv2chisel.helpers.vecconvert._
 class testpattern() extends Module {
   val I_pxl_clk = IO(Input(Clock())) //pixel clock
   val I_rst_n = IO(Input(Bool())) //low active 
-  val I_mode = IO(Input(Vec(3, Bool()))) //data select
+  val I_mode = IO(Input(UInt(3.W))) //data select
   val I_single_r = IO(Input(UInt(8.W)))
   val I_single_g = IO(Input(UInt(8.W)))
   val I_single_b = IO(Input(UInt(8.W)))
@@ -103,7 +103,7 @@ class testpattern() extends Module {
   val Data_sel = Wire(UInt(24.W)) 
 
   //-------------------------------
-  val Data_tmp = Wire(Vec(24, Bool()))  /*synthesis syn_keep=1*/
+  val Data_tmp = Wire(UInt(24.W))  /*synthesis syn_keep=1*/
 
   //==============================================================================
   //Generate HS, VS, DE signals
@@ -276,17 +276,17 @@ class testpattern() extends Module {
   Single_color := Cat(I_single_b, I_single_g, I_single_r)
 
   //============================================================
-  Data_sel := Mux((I_mode(2,0).asUInt === "b000".U(3.W)), Color_bar, Mux((I_mode(2,0).asUInt === "b001".U(3.W)), Net_grid, Mux((I_mode(2,0).asUInt === "b010".U(3.W)), Gray_d1, Mux((I_mode(2,0).asUInt === "b011".U(3.W)), Single_color, GREEN))))
+  Data_sel := Mux((I_mode(2,0) === "b000".U(3.W)), Color_bar, Mux((I_mode(2,0) === "b001".U(3.W)), Net_grid, Mux((I_mode(2,0) === "b010".U(3.W)), Gray_d1, Mux((I_mode(2,0) === "b011".U(3.W)), Single_color, GREEN))))
 
   //---------------------------------------------------
 
   when( !I_rst_n) {
-    Data_tmp := 0.U(24.W).asBools
+    Data_tmp := 0.U(24.W)
   } .otherwise {
-    Data_tmp := Data_sel.asBools
+    Data_tmp := Data_sel
   }
-  O_data_r := Data_tmp(7,0).asUInt
-  O_data_g := Data_tmp(15,8).asTypeOf(UInt(8.W))
-  O_data_b := Data_tmp(23,16).asTypeOf(UInt(8.W))
+  O_data_r := Data_tmp(7,0)
+  O_data_g := Data_tmp(15,8)
+  O_data_b := Data_tmp(23,16)
 
 }

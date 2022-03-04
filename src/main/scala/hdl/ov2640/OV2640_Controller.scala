@@ -14,7 +14,7 @@ class OV2640_Controller() extends Module { // 50Mhz clock signal
 
 
   // Internal signals
-  val command = Wire(Vec(16, Bool())) 
+  val command = Wire(UInt(16.W))
   val finished = Wire(Bool()) 
   val taken = Wire(Bool()) 
   val send = WireDefault(Bool(), false.B) 
@@ -33,7 +33,7 @@ class OV2640_Controller() extends Module { // 50Mhz clock signal
   // Create an instance of a LUT table 
   val LUT = Module(new OV2640_Registers) // 50Mhz clock signal
   LUT.advance := taken // Flag to advance to next register
-  command := LUT.command.asTypeOf(command) // register value and data for OV2640
+  command := LUT.command //.asTypeOf(command) // register value and data for OV2640
   finished := LUT.finished // Flag to indicate the configuration is finshed
   LUT.resend := resend // Re-configure flag for OV2640
 
