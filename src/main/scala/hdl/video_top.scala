@@ -69,7 +69,6 @@ class video_top() extends RawModule {
   val tp0_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
 
   //--------------------------
-  val pixdata_d1 = Wire(UInt(10.W)) 
   val cam_data = Wire(UInt(16.W)) 
 
   //-------------------------
@@ -128,10 +127,14 @@ class video_top() extends RawModule {
   //LED test
   //I_clk
 
+  val g_cnt_vs = Wire(UInt(10.W))
+
   withClockAndReset(I_clk, I_rst_n) {
   val cnt_vs = RegInit(0.U(10.W))
   val run_cnt = RegInit(0.U(32.W))
   val vs_r = Reg(Bool())
+
+  g_cnt_vs := cnt_vs
 
   when (run_cnt >= "d27_000_000".U(32.W)) {
     run_cnt := 0.U(32.W)
@@ -187,9 +190,11 @@ class video_top() extends RawModule {
   } .otherwise {
     cnt_vs := cnt_vs
   }
+  } // withClockAndReset(I_clk, I_rst_n)
 
  //==============================================================================
   withClockAndReset(PIXCLK, I_rst_n) {
+  val pixdata_d1 = RegInit(0.U(10.W))
   val hcnt = RegInit(false.B)
 
   val u_OV2640_Controller = Module(new OV2640_Controller)
@@ -201,34 +206,29 @@ class video_top() extends RawModule {
   // RESET signal for OV7670
   // PWDN signal for OV7670
   //I_clk
-  when( !I_rst_n) {
-    pixdata_d1 := 0.U(10.W)
-  } .otherwise {
-    pixdata_d1 := PIXDATA.asUInt
-  } //I_clk
+  pixdata_d1 := PIXDATA.asUInt
 
   when (HREF) {
     hcnt :=  ~hcnt
   } .otherwise {
     hcnt := false.B
   }
-  } //withClockAndReset(PIXCLK, I_rst_n)
 
   // assign cam_data = {pixdata_d1[9:5],pixdata_d1[4:2],PIXDATA[9:7],PIXDATA[6:2]}; //RGB565
   // assign cam_data = {PIXDATA[9:5],PIXDATA[4:2],pixdata_d1[9:7],pixdata_d1[6:2]}; //RGB565
   cam_data := Cat(PIXDATA(9,5).asUInt, PIXDATA(9,4).asUInt, PIXDATA(9,5).asUInt) //RAW10
+  } //withClockAndReset(PIXCLK, I_rst_n)
 
   //==============================================
   //data width 16bit   
-  ch0_vfb_clk_in := Mux((cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
-  ch0_vfb_vs_in := Mux((cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, VSYNC) //negative
-  ch0_vfb_de_in := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_de_in, HREF) //hcnt;  
-  ch0_vfb_data_in := Mux((cnt_vs <= "h1ff".U(10.W)), Cat(tp0_data_r(7,3), tp0_data_g(7,2), tp0_data_b(7,3)), cam_data) // RGB565
+  ch0_vfb_clk_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
+  ch0_vfb_vs_in := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, VSYNC) //negative
+  ch0_vfb_de_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_de_in, HREF) //hcnt;
+  ch0_vfb_data_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), Cat(tp0_data_r(7,3), tp0_data_g(7,2), tp0_data_b(7,3)), cam_data) // RGB565
 
   // assign ch0_vfb_clk_in  = PIXCLK;         // assign ch0_vfb_vs_in   = VSYNC;  //negative
   // assign ch0_vfb_de_in   = HREF;//hcnt;  
   // assign ch0_vfb_data_in = cam_data; // RGB565
-  } // withClockAndReset(I_clk, I_rst_n)
 
 
   //=====================================================
