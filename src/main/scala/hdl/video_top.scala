@@ -89,9 +89,9 @@ class video_top() extends RawModule {
 
   //-------------------------------------
   //Hyperram
-  val dma_clk = Wire(Bool()) 
+  val dma_clk = Wire(Clock())
 
-  val memory_clk = Wire(Bool()) 
+  val memory_clk = Wire(Clock())
   val mem_pll_lock = Wire(Bool()) 
 
   //-------------------------------------------------
@@ -262,8 +262,8 @@ class video_top() extends RawModule {
  //================================================
   //HyperRAM ip
   val GW_PLLVR_inst = Module(new GW_PLLVR)
-  memory_clk := GW_PLLVR_inst.io.clkout.asTypeOf(memory_clk) //output clkout
-  mem_pll_lock := GW_PLLVR_inst.io.lock.asTypeOf(mem_pll_lock) //output lock
+  memory_clk := GW_PLLVR_inst.io.clkout //output clkout
+  mem_pll_lock := GW_PLLVR_inst.io.lock //output lock
   GW_PLLVR_inst.io.clkin := I_clk //input clkin
 
 
@@ -331,15 +331,15 @@ class video_top() extends RawModule {
 
   val TMDS_PLLVR_inst = Module(new TMDS_PLLVR)
   TMDS_PLLVR_inst.io.clkin := I_clk //input clk 
-  serial_clk := TMDS_PLLVR_inst.io.clkout.asTypeOf(serial_clk) //output clk 
-  clk_12M := TMDS_PLLVR_inst.io.clkoutd.asTypeOf(clk_12M) //output clkoutd
-  pll_lock := TMDS_PLLVR_inst.io.lock.asTypeOf(pll_lock) //output lock
+  serial_clk := TMDS_PLLVR_inst.io.clkout //output clk
+  clk_12M := TMDS_PLLVR_inst.io.clkoutd //output clkoutd
+  pll_lock := TMDS_PLLVR_inst.io.lock //output lock
   hdmi_rst_n := I_rst_n & pll_lock
 
   val u_clkdiv = Module(new CLKDIV)
   u_clkdiv.io.RESETN := hdmi_rst_n
   u_clkdiv.io.HCLKIN := serial_clk //clk  x5
-  pix_clk := u_clkdiv.io.CLKOUT.asTypeOf(pix_clk) //clk  x1
+  pix_clk := u_clkdiv.io.CLKOUT //clk  x1
   u_clkdiv.io.CALIB := "b1".U(1.W)
 
   val DVI_TX_Top_inst = Module(new DVI_TX_Top)

@@ -17,7 +17,7 @@ import sv2chisel.helpers.vecconvert._
 class Video_Frame_Buffer_Top() extends BlackBox {
     val io = IO(new Bundle {
         val I_rst_n = Input(Bool())
-        val I_dma_clk = Input(Bool())
+        val I_dma_clk = Input(Clock())
         val I_wr_halt = Input(Vec(1, Bool()))
         val I_rd_halt = Input(Vec(1, Bool()))
         val I_vin0_clk = Input(Clock())

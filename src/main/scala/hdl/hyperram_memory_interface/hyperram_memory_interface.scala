@@ -17,7 +17,7 @@ import sv2chisel.helpers.vecconvert._
 class HyperRAM_Memory_Interface_Top() extends BlackBox {
     val io = IO(new Bundle {
         val clk = Input(Clock())
-        val memory_clk = Input(Bool())
+        val memory_clk = Input(Clock())
         val pll_lock = Input(Bool())
         val rst_n = Input(Bool())
         val O_hpram_ck = Output(Vec(1, Bool()))
@@ -33,7 +33,7 @@ class HyperRAM_Memory_Interface_Top() extends BlackBox {
         val cmd = Input(Bool())
         val cmd_en = Input(Bool())
         val init_calib = Output(Bool())
-        val clk_out = Output(Bool())
+        val clk_out = Output(Clock())
         val data_mask = Input(Vec(4, Bool()))
     })
   /*val VCC = Wire(Bool()) 
