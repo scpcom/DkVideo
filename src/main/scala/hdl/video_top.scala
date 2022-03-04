@@ -85,7 +85,7 @@ class video_top() extends RawModule {
   val syn_off0_hs = Wire(Bool()) 
 
   val off0_syn_de = Wire(Bool()) 
-  val off0_syn_data = Wire(Vec(16, Bool())) 
+  val off0_syn_data = Wire(UInt(16.W))
 
   //-------------------------------------
   //Hyperram
@@ -110,7 +110,7 @@ class video_top() extends RawModule {
   val rgb_vs = Wire(Bool()) 
   val rgb_hs = Wire(Bool()) 
   val rgb_de = Wire(Bool()) 
-  val rgb_data = Wire(Vec(24, Bool())) 
+  val rgb_data = Wire(UInt(24.W))
 
   //------------------------------------
   //HDMI TX
@@ -236,13 +236,13 @@ class video_top() extends RawModule {
   val Video_Frame_Buffer_Top_inst = Module(new Video_Frame_Buffer_Top)
   Video_Frame_Buffer_Top_inst.io.I_rst_n := init_calib //rst_n            ),
   Video_Frame_Buffer_Top_inst.io.I_dma_clk := dma_clk //sram_clk         ),
-  Video_Frame_Buffer_Top_inst.io.I_wr_halt := 0.U(1.W).asTypeOf(Vec(1, Bool())) //1:halt,  0:no halt
-  Video_Frame_Buffer_Top_inst.io.I_rd_halt := 0.U(1.W).asTypeOf(Vec(1, Bool())) //1:halt,  0:no halt
+  Video_Frame_Buffer_Top_inst.io.I_wr_halt := 0.U(1.W) //.asTypeOf(Vec(1, Bool())) //1:halt,  0:no halt
+  Video_Frame_Buffer_Top_inst.io.I_rd_halt := 0.U(1.W) //.asTypeOf(Vec(1, Bool())) //1:halt,  0:no halt
   // video data input           
   Video_Frame_Buffer_Top_inst.io.I_vin0_clk := ch0_vfb_clk_in
   Video_Frame_Buffer_Top_inst.io.I_vin0_vs_n := ch0_vfb_vs_in
   Video_Frame_Buffer_Top_inst.io.I_vin0_de := ch0_vfb_de_in
-  Video_Frame_Buffer_Top_inst.io.I_vin0_data := ch0_vfb_data_in.asTypeOf(Video_Frame_Buffer_Top_inst.io.I_vin0_data)
+  Video_Frame_Buffer_Top_inst.io.I_vin0_data := ch0_vfb_data_in //.asTypeOf(Video_Frame_Buffer_Top_inst.io.I_vin0_data)
   // video data output          
   Video_Frame_Buffer_Top_inst.io.I_vout0_clk := pix_clk
   Video_Frame_Buffer_Top_inst.io.I_vout0_vs_n :=  ~syn_off0_vs
@@ -252,11 +252,11 @@ class video_top() extends RawModule {
   // ddr write request
   cmd := Video_Frame_Buffer_Top_inst.io.O_cmd
   cmd_en := Video_Frame_Buffer_Top_inst.io.O_cmd_en
-  addr := Video_Frame_Buffer_Top_inst.io.O_addr.asTypeOf(addr) //[ADDR_WIDTH-1:0]
-  wr_data := Video_Frame_Buffer_Top_inst.io.O_wr_data.asTypeOf(wr_data) //[DATA_WIDTH-1:0]
-  data_mask := Video_Frame_Buffer_Top_inst.io.O_data_mask.asTypeOf(data_mask)
+  addr := Video_Frame_Buffer_Top_inst.io.O_addr //.asTypeOf(addr) //[ADDR_WIDTH-1:0]
+  wr_data := Video_Frame_Buffer_Top_inst.io.O_wr_data //.asTypeOf(wr_data) //[DATA_WIDTH-1:0]
+  data_mask := Video_Frame_Buffer_Top_inst.io.O_data_mask //.asTypeOf(data_mask)
   Video_Frame_Buffer_Top_inst.io.I_rd_data_valid := rd_data_valid
-  Video_Frame_Buffer_Top_inst.io.I_rd_data := rd_data.asTypeOf(Video_Frame_Buffer_Top_inst.io.I_rd_data) //[DATA_WIDTH-1:0]
+  Video_Frame_Buffer_Top_inst.io.I_rd_data := rd_data //.asTypeOf(Video_Frame_Buffer_Top_inst.io.I_rd_data) //[DATA_WIDTH-1:0]
   Video_Frame_Buffer_Top_inst.io.I_init_calib := init_calib
 
  //================================================
@@ -272,20 +272,20 @@ class video_top() extends RawModule {
   HyperRAM_Memory_Interface_Top_inst.io.memory_clk := memory_clk
   HyperRAM_Memory_Interface_Top_inst.io.pll_lock := mem_pll_lock
   HyperRAM_Memory_Interface_Top_inst.io.rst_n := I_rst_n //rst_n
-  O_hpram_ck := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck.asTypeOf(O_hpram_ck)
-  O_hpram_ck_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck_n.asTypeOf(O_hpram_ck_n)
-  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds := IO_hpram_rwds.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds)
-  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq := IO_hpram_dq.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq)
-  O_hpram_reset_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_reset_n.asTypeOf(O_hpram_reset_n)
-  O_hpram_cs_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_cs_n.asTypeOf(O_hpram_cs_n)
-  HyperRAM_Memory_Interface_Top_inst.io.wr_data := wr_data.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.wr_data)
-  rd_data := HyperRAM_Memory_Interface_Top_inst.io.rd_data.asTypeOf(rd_data)
+  O_hpram_ck := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck //.asTypeOf(O_hpram_ck)
+  O_hpram_ck_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck_n //.asTypeOf(O_hpram_ck_n)
+  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds := IO_hpram_rwds //.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds)
+  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq := IO_hpram_dq //.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq)
+  O_hpram_reset_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_reset_n //.asTypeOf(O_hpram_reset_n)
+  O_hpram_cs_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_cs_n //.asTypeOf(O_hpram_cs_n)
+  HyperRAM_Memory_Interface_Top_inst.io.wr_data := wr_data //.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.wr_data)
+  rd_data := HyperRAM_Memory_Interface_Top_inst.io.rd_data //.asTypeOf(rd_data)
   rd_data_valid := HyperRAM_Memory_Interface_Top_inst.io.rd_data_valid
-  HyperRAM_Memory_Interface_Top_inst.io.addr := addr.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.addr)
+  HyperRAM_Memory_Interface_Top_inst.io.addr := addr //.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.addr)
   HyperRAM_Memory_Interface_Top_inst.io.cmd := cmd
   HyperRAM_Memory_Interface_Top_inst.io.cmd_en := cmd_en
   dma_clk := HyperRAM_Memory_Interface_Top_inst.io.clk_out
-  HyperRAM_Memory_Interface_Top_inst.io.data_mask := data_mask.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.data_mask)
+  HyperRAM_Memory_Interface_Top_inst.io.data_mask := data_mask //.asTypeOf(HyperRAM_Memory_Interface_Top_inst.io.data_mask)
   init_calib := HyperRAM_Memory_Interface_Top_inst.io.init_calib
 
  //================================================
@@ -322,7 +322,7 @@ class video_top() extends RawModule {
 
   //==============================================================================
   //TMDS TX
-  rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11).asUInt, 0.U(3.W), off0_syn_data(10,5).asUInt, 0.U(2.W), off0_syn_data(4,0).asUInt, 0.U(3.W)).asTypeOf(Vec(24, Bool())), "h0000ff".U(24.W).asTypeOf(Vec(24, Bool()))) //{r,g,b}
+  rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11).asUInt, 0.U(3.W), off0_syn_data(10,5).asUInt, 0.U(2.W), off0_syn_data(4,0).asUInt, 0.U(3.W)), "h0000ff".U(24.W)) //.asTypeOf(Vec(24, Bool()))) //{r,g,b}
   rgb_vs := Pout_vs_dn(4) //syn_off0_vs;
   rgb_hs := Pout_hs_dn(4) //syn_off0_hs;
   rgb_de := Pout_de_dn(4) //off0_syn_de;
