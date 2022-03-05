@@ -86,15 +86,15 @@ class testpattern() extends Module {
 
   //----------------------------
   //Net grid //32����
-  val Net_h_trig = Wire(Bool()) 
-  val Net_v_trig = Wire(Bool()) 
-  val Net_pos = Wire(UInt(2.W)) 
-  val Net_grid = Wire(UInt(24.W)) 
+  val Net_h_trig = RegInit(false.B)
+  val Net_v_trig = RegInit(false.B)
+  val Net_pos = Wire(UInt(2.W))
+  val Net_grid = RegInit(0.U(24.W))
 
   //----------------------------
   //Gray  //�ڰ׻ҽ�
-  val Gray = Wire(UInt(24.W)) 
-  val Gray_d1 = Wire(UInt(24.W)) 
+  val Gray = RegInit(0.U(24.W))
+  val Gray_d1 = RegInit(0.U(24.W))
 
   //-----------------------------
   val Single_color = Wire(UInt(24.W)) 
@@ -103,7 +103,7 @@ class testpattern() extends Module {
   val Data_sel = Wire(UInt(24.W)) 
 
   //-------------------------------
-  val Data_tmp = Wire(UInt(24.W))  /*synthesis syn_keep=1*/
+  val Data_tmp = RegInit(0.U(24.W))  /*synthesis syn_keep=1*/
 
   //==============================================================================
   //Generate HS, VS, DE signals
@@ -222,24 +222,18 @@ class testpattern() extends Module {
   //Net grid
   //---------------------------------------------------
 
-  when( !I_rst_n) {
-    Net_h_trig := false.B
-  } .elsewhen (((De_hcnt(4,0) === 0.U(5.W)) || (De_hcnt === (I_h_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
+  when (((De_hcnt(4,0) === 0.U(5.W)) || (De_hcnt === (I_h_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
     Net_h_trig := true.B
   } .otherwise {
     Net_h_trig := false.B
   }
-  when( !I_rst_n) {
-    Net_v_trig := false.B
-  } .elsewhen (((De_vcnt(4,0) === 0.U(5.W)) || (De_vcnt === (I_v_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
+  when (((De_vcnt(4,0) === 0.U(5.W)) || (De_vcnt === (I_v_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
     Net_v_trig := true.B
   } .otherwise {
     Net_v_trig := false.B
   }
   Net_pos := Cat(Net_v_trig, Net_h_trig)
-  when( !I_rst_n) {
-    Net_grid := 0.U(24.W)
-  } .elsewhen (Pout_de_dn(2) === true.B) {
+  when (Pout_de_dn(2) === true.B) {
     when(Net_pos === "b00".U(2.W)) {
       Net_grid := BLACK/*.U(24.W)*/
     } .elsewhen (Net_pos === "b01".U(2.W)) {
@@ -259,16 +253,8 @@ class testpattern() extends Module {
   //Gray
   //---------------------------------------------------
 
-  when( !I_rst_n) {
-    Gray := 0.U(24.W)
-  } .otherwise {
-    Gray := Cat(De_hcnt(7,0), De_hcnt(7,0), De_hcnt(7,0))
-  }
-  when( !I_rst_n) {
-    Gray_d1 := 0.U(24.W)
-  } .otherwise {
-    Gray_d1 := Gray
-  }
+  Gray := Cat(De_hcnt(7,0), De_hcnt(7,0), De_hcnt(7,0))
+  Gray_d1 := Gray
 
   //---------------------------------------------------
   //Single color
@@ -280,11 +266,7 @@ class testpattern() extends Module {
 
   //---------------------------------------------------
 
-  when( !I_rst_n) {
-    Data_tmp := 0.U(24.W)
-  } .otherwise {
-    Data_tmp := Data_sel
-  }
+  Data_tmp := Data_sel
   O_data_r := Data_tmp(7,0)
   O_data_g := Data_tmp(15,8)
   O_data_b := Data_tmp(23,16)
