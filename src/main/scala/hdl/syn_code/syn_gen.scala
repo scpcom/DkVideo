@@ -46,14 +46,14 @@ class syn_gen() extends Module {
   val Pout_hs_w = Wire(Bool()) 
   val Pout_vs_w = Wire(Bool()) 
 
-  val Pout_de_dn = Wire(Bool()) 
-  val Pout_hs_dn = Wire(Bool()) 
-  val Pout_vs_dn = Wire(Bool()) 
+  val Pout_de_dn = RegInit(false.B)
+  val Pout_hs_dn = RegInit(true.B)
+  val Pout_vs_dn = RegInit(true.B)
 
 //-----------------------------------------
   val Rden_w = Wire(Bool()) 
 
-  val Rden_dn = Wire(Bool()) 
+  val Rden_dn = RegInit(false.B)
 
 //==============================================================================
   //Generate HS, VS, DE signals
@@ -84,17 +84,10 @@ class syn_gen() extends Module {
 
 //-------------------------------------------------------------
 
-  when( !I_rst_n) {
-    Pout_de_dn := false.B
-    Pout_hs_dn := true.B
-    Pout_vs_dn := true.B
-    Rden_dn := false.B
-  } .otherwise {
-    Pout_de_dn := Pout_de_w
-    Pout_hs_dn := Pout_hs_w
-    Pout_vs_dn := Pout_vs_w
-    Rden_dn := Rden_w
-  }
+  Pout_de_dn := Pout_de_w
+  Pout_hs_dn := Pout_hs_w
+  Pout_vs_dn := Pout_vs_w
+  Rden_dn := Rden_w
   when( !I_rst_n) {
     O_de := false.B
     O_hs := true.B
