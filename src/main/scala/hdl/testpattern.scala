@@ -63,9 +63,9 @@ class testpattern() extends Module {
   val Pout_hs_w = Wire(Bool()) 
   val Pout_vs_w = Wire(Bool()) 
 
-  val Pout_de_dn = Reg(UInt(N.W)) //Wire(Vec(N, Bool()))
-  val Pout_hs_dn = Reg(UInt(N.W)) //Wire(Vec(N, Bool()))
-  val Pout_vs_dn = Reg(UInt(N.W)) //Wire(Vec(N, Bool()))
+  val Pout_de_dn = RegInit(0.U(N.W))
+  val Pout_hs_dn = RegInit(1.U(N.W))
+  val Pout_vs_dn = RegInit(1.U(N.W))
 
   //----------------------------
   val De_pos = Wire(Bool()) 
@@ -131,15 +131,9 @@ class testpattern() extends Module {
 
   //-------------------------------------------------------------
 
-  when( !I_rst_n) {
-    Pout_de_dn := 0.U(N.W) // (VecInit.tabulate(N)(_ => false.B)).asTypeOf(Vec(N, Bool()))
-    Pout_hs_dn := 1.U(N.W) // (VecInit.tabulate(N)(_ => true.B)).asTypeOf(Vec(N, Bool()))
-    Pout_vs_dn := 1.U(N.W) // (VecInit.tabulate(N)(_ => true.B)).asTypeOf(Vec(N, Bool()))
-  } .otherwise {
-    Pout_de_dn := Pout_de_dn(N-2,0) ## Pout_de_w
-    Pout_hs_dn := Pout_hs_dn(N-2,0) ## Pout_hs_w
-    Pout_vs_dn := Pout_vs_dn(N-2,0) ## Pout_vs_w
-  }
+  Pout_de_dn := Pout_de_dn(N-2,0) ## Pout_de_w
+  Pout_hs_dn := Pout_hs_dn(N-2,0) ## Pout_hs_w
+  Pout_vs_dn := Pout_vs_dn(N-2,0) ## Pout_vs_w
   O_de := Pout_de_dn(4) //ע�������ݶ���
 
   when( !I_rst_n) {
