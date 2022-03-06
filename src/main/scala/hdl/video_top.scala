@@ -221,7 +221,7 @@ class video_top() extends RawModule {
 
   //==============================================
   //data width 16bit   
-  ch0_vfb_clk_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
+  ch0_vfb_clk_in := I_clk // Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
   ch0_vfb_vs_in := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, VSYNC) //negative
   ch0_vfb_de_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_de_in, HREF) //hcnt;
   ch0_vfb_data_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), Cat(tp0_data_r(7,3), tp0_data_g(7,2), tp0_data_b(7,3)), cam_data) // RGB565
