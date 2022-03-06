@@ -129,7 +129,7 @@ class video_top() extends RawModule {
 
   val g_cnt_vs = Wire(UInt(10.W))
 
-  withClockAndReset(I_clk, I_rst_n) {
+  withClockAndReset(I_clk, ~I_rst_n) {
   val cnt_vs = RegInit(0.U(10.W))
   val run_cnt = RegInit(0.U(32.W))
   val vs_r = Reg(Bool())
@@ -189,10 +189,10 @@ class video_top() extends RawModule {
   } .otherwise {
     cnt_vs := cnt_vs
   }
-  } // withClockAndReset(I_clk, I_rst_n)
+  } // withClockAndReset(I_clk, ~I_rst_n)
 
  //==============================================================================
-  withClockAndReset(PIXCLK, I_rst_n) {
+  withClockAndReset(PIXCLK, ~I_rst_n) {
   val pixdata_d1 = RegInit(0.U(10.W))
   val hcnt = RegInit(false.B)
 
@@ -217,7 +217,7 @@ class video_top() extends RawModule {
   // assign cam_data = {pixdata_d1[9:5],pixdata_d1[4:2],PIXDATA[9:7],PIXDATA[6:2]}; //RGB565
   // assign cam_data = {PIXDATA[9:5],PIXDATA[4:2],pixdata_d1[9:7],pixdata_d1[6:2]}; //RGB565
   cam_data := Cat(PIXDATA(9,5), PIXDATA(9,4), PIXDATA(9,5)) //RAW10
-  } //withClockAndReset(PIXCLK, I_rst_n)
+  } //withClockAndReset(PIXCLK, ~I_rst_n)
 
   //==============================================
   //data width 16bit   
@@ -289,7 +289,7 @@ class video_top() extends RawModule {
   init_calib := HyperRAM_Memory_Interface_Top_inst.io.init_calib
 
  //================================================
-  withClockAndReset(pix_clk, hdmi_rst_n) {
+  withClockAndReset(pix_clk, ~hdmi_rst_n) {
   val out_de = Wire(Bool()) 
   val syn_gen_inst = Module(new syn_gen)
   syn_gen_inst.I_pxl_clk := pix_clk //40MHz      //65MHz      //74.25MHz    
@@ -326,7 +326,7 @@ class video_top() extends RawModule {
   rgb_vs := Pout_vs_dn(4) //syn_off0_vs;
   rgb_hs := Pout_hs_dn(4) //syn_off0_hs;
   rgb_de := Pout_de_dn(4) //off0_syn_de;
-  } // withClockAndReset(pix_clk, hdmi_rst_n)
+  } // withClockAndReset(pix_clk, ~hdmi_rst_n)
 
 
   val TMDS_PLLVR_inst = Module(new TMDS_PLLVR)
