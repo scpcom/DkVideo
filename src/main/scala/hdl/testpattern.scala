@@ -2,7 +2,7 @@ package hdl
 
 import chisel3._
 import chisel3.util.Cat
-import sv2chisel.helpers.vecconvert._
+
 // ---------------------------------------------------------------------
 // File name         : testpattern.v
 // Module name       : testpattern
@@ -135,14 +135,8 @@ class testpattern() extends Module {
   Pout_hs_dn := Pout_hs_dn(N-2,0) ## Pout_hs_w
   Pout_vs_dn := Pout_vs_dn(N-2,0) ## Pout_vs_w
   O_de := Pout_de_dn(4) //ע�������ݶ���
-
-  when( !I_rst_n) {
-    O_hs := true.B
-    O_vs := true.B
-  } .otherwise {
-    O_hs := Mux(I_hs_pol,  ~Pout_hs_dn(3), Pout_hs_dn(3))
-    O_vs := Mux(I_vs_pol,  ~Pout_vs_dn(3), Pout_vs_dn(3))
-  }
+  O_hs := Mux(I_hs_pol,  ~Pout_hs_dn(3), Pout_hs_dn(3))
+  O_vs := Mux(I_vs_pol,  ~Pout_vs_dn(3), Pout_vs_dn(3))
 
   //=================================================================================
   //Test Pattern
