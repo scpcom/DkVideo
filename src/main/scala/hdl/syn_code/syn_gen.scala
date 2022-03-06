@@ -88,16 +88,9 @@ class syn_gen() extends Module {
   Pout_hs_dn := Pout_hs_w
   Pout_vs_dn := Pout_vs_w
   Rden_dn := Rden_w
-  when( !I_rst_n) {
-    O_de := false.B
-    O_hs := true.B
-    O_vs := true.B
-    O_rden := false.B
-  } .otherwise {
-    O_de := Pout_de_dn
-    O_hs := Mux(I_hs_pol,  ~Pout_hs_dn, Pout_hs_dn)
-    O_vs := Mux(I_vs_pol,  ~Pout_vs_dn, Pout_vs_dn)
-    O_rden := Rden_dn
-  }
+  O_de := Pout_de_dn
+  O_hs := Mux(I_hs_pol,  ~Pout_hs_dn, Pout_hs_dn)
+  O_vs := Mux(I_vs_pol,  ~Pout_vs_dn, Pout_vs_dn)
+  O_rden := Rden_dn
   //} // withClockAndReset(I_pxl_clk, I_rst_n)
 }
