@@ -10,7 +10,7 @@ class OV2640_Controller() extends Module {
     val config_finished = Output(Bool()) // Flag to indicate that the configuration is finished
     val sioc = Output(Bool()) // SCCB interface - clock signal
     val siod = Output(Bool()) // Inout SCCB interface - data signal
-    val ureset = Output(Bool()) // RESET signal for OV2640
+    val reset = Output(Bool()) // RESET signal for OV2640
     val pwdn = Output(Bool()) // PWDN signal for OV2640
   })
 
@@ -24,7 +24,7 @@ class OV2640_Controller() extends Module {
   io.config_finished := finished
 
   // Signals for RESET and PWDN OV2640
-  io.ureset := true.B
+  io.reset := true.B
   io.pwdn := false.B
 
   // Signal to indicate that the configuration is finshied
