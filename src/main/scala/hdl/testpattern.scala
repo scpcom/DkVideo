@@ -20,28 +20,30 @@ import chisel3.util.Cat
 // --------------------------------------------------------------------
 
 class testpattern() extends Module {
-  val I_pxl_clk = IO(Input(Clock())) //pixel clock
-  val I_rst_n = IO(Input(Bool())) //low active 
-  val I_mode = IO(Input(UInt(3.W))) //data select
-  val I_single_r = IO(Input(UInt(8.W)))
-  val I_single_g = IO(Input(UInt(8.W)))
-  val I_single_b = IO(Input(UInt(8.W)))
-  val I_h_total = IO(Input(UInt(12.W))) //hor total time 
-  val I_h_sync = IO(Input(UInt(12.W))) //hor sync time
-  val I_h_bporch = IO(Input(UInt(12.W))) //hor back porch
-  val I_h_res = IO(Input(UInt(12.W))) //hor resolution
-  val I_v_total = IO(Input(UInt(12.W))) //ver total time 
-  val I_v_sync = IO(Input(UInt(12.W))) //ver sync time  
-  val I_v_bporch = IO(Input(UInt(12.W))) //ver back porch  
-  val I_v_res = IO(Input(UInt(12.W))) //ver resolution 
-  val I_hs_pol = IO(Input(Bool())) //HS polarity , 0:�����ԣ�1��������
-  val I_vs_pol = IO(Input(Bool())) //VS polarity , 0:�����ԣ�1��������
-  val O_de = IO(Output(Bool()))
-  val O_hs = IO(Output(Bool())) //������
-  val O_vs = IO(Output(Bool())) //������
-  val O_data_r = IO(Output(UInt(8.W)))
-  val O_data_g = IO(Output(UInt(8.W)))
-  val O_data_b = IO(Output(UInt(8.W)))
+  val io = IO(new Bundle {
+    val I_pxl_clk = Input(Clock()) //pixel clock
+    val I_rst_n = Input(Bool()) //low active
+    val I_mode = Input(UInt(3.W)) //data select
+    val I_single_r = Input(UInt(8.W))
+    val I_single_g = Input(UInt(8.W))
+    val I_single_b = Input(UInt(8.W))
+    val I_h_total = Input(UInt(12.W)) //hor total time
+    val I_h_sync = Input(UInt(12.W)) //hor sync time
+    val I_h_bporch = Input(UInt(12.W)) //hor back porch
+    val I_h_res = Input(UInt(12.W)) //hor resolution
+    val I_v_total = Input(UInt(12.W)) //ver total time
+    val I_v_sync = Input(UInt(12.W)) //ver sync time
+    val I_v_bporch = Input(UInt(12.W)) //ver back porch
+    val I_v_res = Input(UInt(12.W)) //ver resolution
+    val I_hs_pol = Input(Bool()) //HS polarity , 0:�����ԣ�1��������
+    val I_vs_pol = Input(Bool()) //VS polarity , 0:�����ԣ�1��������
+    val O_de = Output(Bool())
+    val O_hs = Output(Bool()) //������
+    val O_vs = Output(Bool()) //������
+    val O_data_r = Output(UInt(8.W))
+    val O_data_g = Output(UInt(8.W))
+    val O_data_b = Output(UInt(8.W))
+  })
 
  //====================================================
   val N = 5 //delay N clocks
@@ -108,9 +110,9 @@ class testpattern() extends Module {
   //==============================================================================
   //Generate HS, VS, DE signals
 
-  when((V_cnt >= (I_v_total-"b1".U(1.W))) && (H_cnt >= (I_h_total-"b1".U(1.W)))) {
+  when((V_cnt >= (io.I_v_total-"b1".U(1.W))) && (H_cnt >= (io.I_h_total-"b1".U(1.W)))) {
     V_cnt := 0.U(12.W)
-  } .elsewhen (H_cnt >= (I_h_total-"b1".U(1.W))) {
+  } .elsewhen (H_cnt >= (io.I_h_total-"b1".U(1.W))) {
     V_cnt := V_cnt+"b1".U(1.W)
   } .otherwise {
     V_cnt := V_cnt
@@ -118,25 +120,25 @@ class testpattern() extends Module {
 
   //-------------------------------------------------------------    
 
-  when (H_cnt >= (I_h_total-"b1".U(1.W))) {
+  when (H_cnt >= (io.I_h_total-"b1".U(1.W))) {
     H_cnt := 0.U(12.W)
   } .otherwise {
     H_cnt := H_cnt+"b1".U(1.W)
   }
 
   //-------------------------------------------------------------
-  Pout_de_w := ((H_cnt >= (I_h_sync+I_h_bporch))&(H_cnt <= (((I_h_sync+I_h_bporch)+I_h_res)-"b1".U(1.W))))&((V_cnt >= (I_v_sync+I_v_bporch))&(V_cnt <= (((I_v_sync+I_v_bporch)+I_v_res)-"b1".U(1.W))))
-  Pout_hs_w :=  ~((H_cnt >= 0.U(12.W))&(H_cnt <= (I_h_sync-"b1".U(1.W))))
-  Pout_vs_w :=  ~((V_cnt >= 0.U(12.W))&(V_cnt <= (I_v_sync-"b1".U(1.W))))
+  Pout_de_w := ((H_cnt >= (io.I_h_sync+io.I_h_bporch))&(H_cnt <= (((io.I_h_sync+io.I_h_bporch)+io.I_h_res)-"b1".U(1.W))))&((V_cnt >= (io.I_v_sync+io.I_v_bporch))&(V_cnt <= (((io.I_v_sync+io.I_v_bporch)+io.I_v_res)-"b1".U(1.W))))
+  Pout_hs_w :=  ~((H_cnt >= 0.U(12.W))&(H_cnt <= (io.I_h_sync-"b1".U(1.W))))
+  Pout_vs_w :=  ~((V_cnt >= 0.U(12.W))&(V_cnt <= (io.I_v_sync-"b1".U(1.W))))
 
   //-------------------------------------------------------------
 
   Pout_de_dn := Pout_de_dn(N-2,0) ## Pout_de_w
   Pout_hs_dn := Pout_hs_dn(N-2,0) ## Pout_hs_w
   Pout_vs_dn := Pout_vs_dn(N-2,0) ## Pout_vs_w
-  O_de := Pout_de_dn(4) //ע�������ݶ���
-  O_hs := Mux(I_hs_pol,  ~Pout_hs_dn(3), Pout_hs_dn(3))
-  O_vs := Mux(I_vs_pol,  ~Pout_vs_dn(3), Pout_vs_dn(3))
+  io.O_de := Pout_de_dn(4) //ע�������ݶ���
+  io.O_hs := Mux(io.I_hs_pol,  ~Pout_hs_dn(3), Pout_hs_dn(3))
+  io.O_vs := Mux(io.I_vs_pol,  ~Pout_vs_dn(3), Pout_vs_dn(3))
 
   //=================================================================================
   //Test Pattern
@@ -164,9 +166,9 @@ class testpattern() extends Module {
   //---------------------------------------------------
 
   when (Pout_de_dn(1) === false.B) {
-    Color_trig_num := I_h_res(11,3) //8ɫ�������
+    Color_trig_num := io.I_h_res(11,3) //8ɫ�������
   } .elsewhen ((Color_trig === true.B) && (Pout_de_dn(1) === true.B)) {
-    Color_trig_num := Color_trig_num+I_h_res(11,3)
+    Color_trig_num := Color_trig_num+io.I_h_res(11,3)
   } .otherwise {
     Color_trig_num := Color_trig_num
   }
@@ -210,12 +212,12 @@ class testpattern() extends Module {
   //Net grid
   //---------------------------------------------------
 
-  when (((De_hcnt(4,0) === 0.U(5.W)) || (De_hcnt === (I_h_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
+  when (((De_hcnt(4,0) === 0.U(5.W)) || (De_hcnt === (io.I_h_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
     Net_h_trig := true.B
   } .otherwise {
     Net_h_trig := false.B
   }
-  when (((De_vcnt(4,0) === 0.U(5.W)) || (De_vcnt === (I_v_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
+  when (((De_vcnt(4,0) === 0.U(5.W)) || (De_vcnt === (io.I_v_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
     Net_v_trig := true.B
   } .otherwise {
     Net_v_trig := false.B
@@ -247,16 +249,16 @@ class testpattern() extends Module {
   //---------------------------------------------------
   //Single color
   //---------------------------------------------------
-  Single_color := Cat(I_single_b, I_single_g, I_single_r)
+  Single_color := Cat(io.I_single_b, io.I_single_g, io.I_single_r)
 
   //============================================================
-  Data_sel := Mux((I_mode(2,0) === "b000".U(3.W)), Color_bar, Mux((I_mode(2,0) === "b001".U(3.W)), Net_grid, Mux((I_mode(2,0) === "b010".U(3.W)), Gray_d1, Mux((I_mode(2,0) === "b011".U(3.W)), Single_color, GREEN))))
+  Data_sel := Mux((io.I_mode(2,0) === "b000".U(3.W)), Color_bar, Mux((io.I_mode(2,0) === "b001".U(3.W)), Net_grid, Mux((io.I_mode(2,0) === "b010".U(3.W)), Gray_d1, Mux((io.I_mode(2,0) === "b011".U(3.W)), Single_color, GREEN))))
 
   //---------------------------------------------------
 
   Data_tmp := Data_sel
-  O_data_r := Data_tmp(7,0)
-  O_data_g := Data_tmp(15,8)
-  O_data_b := Data_tmp(23,16)
+  io.O_data_r := Data_tmp(7,0)
+  io.O_data_g := Data_tmp(15,8)
+  io.O_data_b := Data_tmp(23,16)
 
 }
