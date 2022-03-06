@@ -292,24 +292,24 @@ class video_top() extends RawModule {
   withClockAndReset(pix_clk, ~hdmi_rst_n) {
   val out_de = Wire(Bool()) 
   val syn_gen_inst = Module(new syn_gen)
-  syn_gen_inst.I_pxl_clk := pix_clk //40MHz      //65MHz      //74.25MHz    
-  syn_gen_inst.I_rst_n := hdmi_rst_n //800x600    //1024x768   //1280x720       
-  syn_gen_inst.I_h_total := 1650.U(16.W) // 16'd1056  // 16'd1344  // 16'd1650    
-  syn_gen_inst.I_h_sync := 40.U(16.W) // 16'd128   // 16'd136   // 16'd40     
-  syn_gen_inst.I_h_bporch := 220.U(16.W) // 16'd88    // 16'd160   // 16'd220     
-  syn_gen_inst.I_h_res := 1280.U(16.W) // 16'd800   // 16'd1024  // 16'd1280    
-  syn_gen_inst.I_v_total := 750.U(16.W) // 16'd628   // 16'd806   // 16'd750      
-  syn_gen_inst.I_v_sync := 5.U(16.W) // 16'd4     // 16'd6     // 16'd5        
-  syn_gen_inst.I_v_bporch := 20.U(16.W) // 16'd23    // 16'd29    // 16'd20        
-  syn_gen_inst.I_v_res := 720.U(16.W) // 16'd600   // 16'd768   // 16'd720      
-  syn_gen_inst.I_rd_hres := 800.U(16.W)
-  syn_gen_inst.I_rd_vres := 600.U(16.W)
-  syn_gen_inst.I_hs_pol := "b1".U(1.W) //HS polarity , 0:负极性，1：正极性
-  syn_gen_inst.I_vs_pol := "b1".U(1.W) //VS polarity , 0:负极性，1：正极性
-  syn_off0_re := syn_gen_inst.O_rden
-  out_de := syn_gen_inst.O_de
-  syn_off0_hs := syn_gen_inst.O_hs
-  syn_off0_vs := syn_gen_inst.O_vs
+  syn_gen_inst.io.I_pxl_clk := pix_clk      //40MHz      //65MHz      //74.25MHz
+  syn_gen_inst.io.I_rst_n := hdmi_rst_n     //800x600    //1024x768   //1280x720
+  syn_gen_inst.io.I_h_total := 1650.U(16.W) // 16'd1056  // 16'd1344  // 16'd1650
+  syn_gen_inst.io.I_h_sync := 40.U(16.W)    // 16'd128   // 16'd136   // 16'd40
+  syn_gen_inst.io.I_h_bporch := 220.U(16.W) // 16'd88    // 16'd160   // 16'd220
+  syn_gen_inst.io.I_h_res := 1280.U(16.W)   // 16'd800   // 16'd1024  // 16'd1280
+  syn_gen_inst.io.I_v_total := 750.U(16.W)  // 16'd628   // 16'd806   // 16'd750
+  syn_gen_inst.io.I_v_sync := 5.U(16.W)     // 16'd4     // 16'd6     // 16'd5
+  syn_gen_inst.io.I_v_bporch := 20.U(16.W)  // 16'd23    // 16'd29    // 16'd20
+  syn_gen_inst.io.I_v_res := 720.U(16.W)    // 16'd600   // 16'd768   // 16'd720
+  syn_gen_inst.io.I_rd_hres := 800.U(16.W)
+  syn_gen_inst.io.I_rd_vres := 600.U(16.W)
+  syn_gen_inst.io.I_hs_pol := "b1".U(1.W)   //HS polarity , 0:负极性，1：正极性
+  syn_gen_inst.io.I_vs_pol := "b1".U(1.W)   //VS polarity , 0:负极性，1：正极性
+  syn_off0_re := syn_gen_inst.io.O_rden
+  out_de := syn_gen_inst.io.O_de
+  syn_off0_hs := syn_gen_inst.io.O_hs
+  syn_off0_vs := syn_gen_inst.io.O_vs
 
   val N = 5 //delay N clocks
 
