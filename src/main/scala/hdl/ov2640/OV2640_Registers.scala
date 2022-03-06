@@ -4,10 +4,13 @@ package ov2640
 import chisel3._
 
 class OV2640_Registers() extends Module {
-  val resend = IO(Input(Bool()))
-  val advance = IO(Input(Bool()))
-  val command = IO(Output(UInt(16.W)))
-  val finished = IO(Output(Bool()))
+  val io = IO(new Bundle {
+    val clk = Input(Clock())
+    val resend = Input(Bool())
+    val advance = Input(Bool())
+    val command = Output(UInt(16.W))
+    val finished = Output(Bool())
+  })
 
   // Internal signals
   val sreg = Reg(UInt(16.W)) 
@@ -15,8 +18,8 @@ class OV2640_Registers() extends Module {
   val address = RegInit(UInt(9.W), (VecInit.tabulate(9)(_ => false.B)).asUInt) 
 
   // Assign values to outputs
-  command := sreg
-  finished := finished_temp
+  io.command := sreg
+  io.finished := finished_temp
 
   // When register and value is FFFF
   // a flag is asserted indicating the configuration is finished
@@ -30,211 +33,211 @@ class OV2640_Registers() extends Module {
 
   // Get value out of the LUT
 
-  when(resend === true.B) { // reset the configuration
+  when(io.resend === true.B) { // reset the configuration
     address := (VecInit.tabulate(8)(_ => false.B)).asTypeOf(UInt(9.W))
-  } .elsewhen (advance === true.B) { // Get the next value
+  } .elsewhen (io.advance === true.B) { // Get the next value
     address := address+"b1".U(1.W)
   }
 
-  when(address === 000.U) {
+  when(address === 0.U) {
     sreg := "hFF_01".U(16.W)
-  } .elsewhen (address === 001.U) {
+  } .elsewhen (address === 1.U) {
     sreg := "h12_80".U(16.W)
-  } .elsewhen (address === 002.U) {
+  } .elsewhen (address === 2.U) {
     sreg := "hFF_00".U(16.W)
-  } .elsewhen (address === 003.U) {
+  } .elsewhen (address === 3.U) {
     sreg := "h2c_ff".U(16.W)
-  } .elsewhen (address === 004.U) {
+  } .elsewhen (address === 4.U) {
     sreg := "h2e_df".U(16.W)
-  } .elsewhen (address === 005.U) {
+  } .elsewhen (address === 5.U) {
     sreg := "hFF_01".U(16.W)
-  } .elsewhen (address === 006.U) {
+  } .elsewhen (address === 6.U) {
     sreg := "h3c_32".U(16.W)
-  } .elsewhen (address === 007.U) {
+  } .elsewhen (address === 7.U) {
     sreg := "h11_80".U(16.W) /* Set PCLK divider */
-  } .elsewhen (address === 008.U) {
+  } .elsewhen (address === 8.U) {
     sreg := "h09_02".U(16.W) /* Output drive x2 */
-  } .elsewhen (address === 009.U) {
+  } .elsewhen (address === 9.U) {
     sreg := "h04_28".U(16.W)
-  } .elsewhen (address === 010.U) {
+  } .elsewhen (address === 10.U) {
     sreg := "h13_E5".U(16.W)
-  } .elsewhen (address === 011.U) {
+  } .elsewhen (address === 11.U) {
     sreg := "h14_48".U(16.W)
-  } .elsewhen (address === 012.U) {
+  } .elsewhen (address === 12.U) {
     sreg := "h15_00".U(16.W) //Invert VSYNC
-  } .elsewhen (address === 013.U) {
+  } .elsewhen (address === 13.U) {
     sreg := "h2c_0c".U(16.W)
-  } .elsewhen (address === 014.U) {
+  } .elsewhen (address === 14.U) {
     sreg := "h33_78".U(16.W)
-  } .elsewhen (address === 015.U) {
+  } .elsewhen (address === 15.U) {
     sreg := "h3a_33".U(16.W)
-  } .elsewhen (address === 016.U) {
+  } .elsewhen (address === 16.U) {
     sreg := "h3b_fb".U(16.W)
-  } .elsewhen (address === 017.U) {
+  } .elsewhen (address === 17.U) {
     sreg := "h3e_00".U(16.W)
-  } .elsewhen (address === 018.U) {
+  } .elsewhen (address === 18.U) {
     sreg := "h43_11".U(16.W)
-  } .elsewhen (address === 019.U) {
+  } .elsewhen (address === 19.U) {
     sreg := "h16_10".U(16.W)
-  } .elsewhen (address === 020.U) {
+  } .elsewhen (address === 20.U) {
     sreg := "h39_02".U(16.W)
-  } .elsewhen (address === 021.U) {
+  } .elsewhen (address === 21.U) {
     sreg := "h35_88".U(16.W)
-  } .elsewhen (address === 022.U) {
+  } .elsewhen (address === 22.U) {
     sreg := "h22_0a".U(16.W)
-  } .elsewhen (address === 023.U) {
+  } .elsewhen (address === 23.U) {
     sreg := "h37_40".U(16.W)
-  } .elsewhen (address === 024.U) {
+  } .elsewhen (address === 24.U) {
     sreg := "h23_00".U(16.W)
-  } .elsewhen (address === 025.U) {
+  } .elsewhen (address === 25.U) {
     sreg := "h34_a0".U(16.W)
-  } .elsewhen (address === 026.U) {
+  } .elsewhen (address === 26.U) {
     sreg := "h06_02".U(16.W)
-  } .elsewhen (address === 027.U) {
+  } .elsewhen (address === 27.U) {
     sreg := "h06_88".U(16.W)
-  } .elsewhen (address === 028.U) {
+  } .elsewhen (address === 28.U) {
     sreg := "h07_c0".U(16.W)
-  } .elsewhen (address === 029.U) {
+  } .elsewhen (address === 29.U) {
     sreg := "h0d_b7".U(16.W)
-  } .elsewhen (address === 030.U) {
+  } .elsewhen (address === 30.U) {
     sreg := "h0e_01".U(16.W)
-  } .elsewhen (address === 031.U) {
+  } .elsewhen (address === 31.U) {
     sreg := "h4c_00".U(16.W)
-  } .elsewhen (address === 032.U) {
+  } .elsewhen (address === 32.U) {
     sreg := "h4a_81".U(16.W)
-  } .elsewhen (address === 033.U) {
+  } .elsewhen (address === 33.U) {
     sreg := "h21_99".U(16.W)
-  } .elsewhen (address === 034.U) {
+  } .elsewhen (address === 34.U) {
     sreg := "h24_40".U(16.W)
-  } .elsewhen (address === 035.U) {
+  } .elsewhen (address === 35.U) {
     sreg := "h25_38".U(16.W)
-  } .elsewhen (address === 036.U) {
+  } .elsewhen (address === 36.U) {
     sreg := "h26_82".U(16.W) /* AGC/AEC fast mode operating region */
-  } .elsewhen (address === 037.U) {
+  } .elsewhen (address === 37.U) {
     sreg := "h48_00".U(16.W) /* Zoom control 2 MSBs */
-  } .elsewhen (address === 038.U) {
+  } .elsewhen (address === 38.U) {
     sreg := "h49_00".U(16.W) /* Zoom control 8 MSBs */
-  } .elsewhen (address === 039.U) {
+  } .elsewhen (address === 39.U) {
     sreg := "h5c_00".U(16.W)
-  } .elsewhen (address === 040.U) {
+  } .elsewhen (address === 40.U) {
     sreg := "h63_00".U(16.W)
-  } .elsewhen (address === 041.U) {
+  } .elsewhen (address === 41.U) {
     sreg := "h46_00".U(16.W)
-  } .elsewhen (address === 042.U) {
+  } .elsewhen (address === 42.U) {
     sreg := "h47_00".U(16.W)
-  } .elsewhen (address === 043.U) {
+  } .elsewhen (address === 43.U) {
     sreg := "h0C_3A".U(16.W) /* Set banding filter */
-  } .elsewhen (address === 044.U) {
+  } .elsewhen (address === 44.U) {
     sreg := "h5D_55".U(16.W)
-  } .elsewhen (address === 045.U) {
+  } .elsewhen (address === 45.U) {
     sreg := "h5E_7d".U(16.W)
-  } .elsewhen (address === 046.U) {
+  } .elsewhen (address === 46.U) {
     sreg := "h5F_7d".U(16.W)
-  } .elsewhen (address === 047.U) {
+  } .elsewhen (address === 47.U) {
     sreg := "h60_55".U(16.W)
-  } .elsewhen (address === 048.U) {
+  } .elsewhen (address === 48.U) {
     sreg := "h61_70".U(16.W)
-  } .elsewhen (address === 049.U) {
+  } .elsewhen (address === 49.U) {
     sreg := "h62_80".U(16.W)
-  } .elsewhen (address === 050.U) {
+  } .elsewhen (address === 50.U) {
     sreg := "h7c_05".U(16.W)
-  } .elsewhen (address === 051.U) {
+  } .elsewhen (address === 51.U) {
     sreg := "h20_80".U(16.W)
-  } .elsewhen (address === 052.U) {
+  } .elsewhen (address === 52.U) {
     sreg := "h28_30".U(16.W)
-  } .elsewhen (address === 053.U) {
+  } .elsewhen (address === 53.U) {
     sreg := "h6c_00".U(16.W)
-  } .elsewhen (address === 054.U) {
+  } .elsewhen (address === 54.U) {
     sreg := "h6d_80".U(16.W)
-  } .elsewhen (address === 055.U) {
+  } .elsewhen (address === 55.U) {
     sreg := "h6e_00".U(16.W)
-  } .elsewhen (address === 056.U) {
+  } .elsewhen (address === 56.U) {
     sreg := "h70_02".U(16.W)
-  } .elsewhen (address === 057.U) {
+  } .elsewhen (address === 57.U) {
     sreg := "h71_94".U(16.W)
-  } .elsewhen (address === 058.U) {
+  } .elsewhen (address === 58.U) {
     sreg := "h73_c1".U(16.W)
-  } .elsewhen (address === 059.U) {
+  } .elsewhen (address === 59.U) {
     sreg := "h3d_34".U(16.W)
-  } .elsewhen (address === 060.U) {
+  } .elsewhen (address === 60.U) {
     sreg := "h5a_57".U(16.W)
-  } .elsewhen (address === 061.U) {
+  } .elsewhen (address === 61.U) {
     sreg := "h4F_bb".U(16.W)
-  } .elsewhen (address === 062.U) {
+  } .elsewhen (address === 62.U) {
     sreg := "h50_9c".U(16.W)
-  } .elsewhen (address === 063.U) {
+  } .elsewhen (address === 63.U) {
     sreg := "hFF_00".U(16.W)
-  } .elsewhen (address === 064.U) {
+  } .elsewhen (address === 64.U) {
     sreg := "he5_7f".U(16.W)
-  } .elsewhen (address === 065.U) {
+  } .elsewhen (address === 65.U) {
     sreg := "hF9_C0".U(16.W)
-  } .elsewhen (address === 066.U) {
+  } .elsewhen (address === 66.U) {
     sreg := "h41_24".U(16.W)
-  } .elsewhen (address === 067.U) {
+  } .elsewhen (address === 67.U) {
     sreg := "hE0_14".U(16.W)
-  } .elsewhen (address === 068.U) {
+  } .elsewhen (address === 68.U) {
     sreg := "h76_ff".U(16.W)
-  } .elsewhen (address === 069.U) {
+  } .elsewhen (address === 69.U) {
     sreg := "h33_a0".U(16.W)
-  } .elsewhen (address === 070.U) {
+  } .elsewhen (address === 70.U) {
     sreg := "h42_20".U(16.W)
-  } .elsewhen (address === 071.U) {
+  } .elsewhen (address === 71.U) {
     sreg := "h43_18".U(16.W)
-  } .elsewhen (address === 072.U) {
+  } .elsewhen (address === 72.U) {
     sreg := "h4c_00".U(16.W)
-  } .elsewhen (address === 073.U) {
+  } .elsewhen (address === 73.U) {
     sreg := "h87_D0".U(16.W)
-  } .elsewhen (address === 074.U) {
+  } .elsewhen (address === 74.U) {
     sreg := "h88_3f".U(16.W)
-  } .elsewhen (address === 075.U) {
+  } .elsewhen (address === 75.U) {
     sreg := "hd7_03".U(16.W)
-  } .elsewhen (address === 076.U) {
+  } .elsewhen (address === 76.U) {
     sreg := "hd9_10".U(16.W)
-  } .elsewhen (address === 077.U) {
+  } .elsewhen (address === 77.U) {
     sreg := "hD3_82".U(16.W)
-  } .elsewhen (address === 078.U) {
+  } .elsewhen (address === 78.U) {
     sreg := "hc8_08".U(16.W)
-  } .elsewhen (address === 079.U) {
+  } .elsewhen (address === 79.U) {
     sreg := "hc9_80".U(16.W)
-  } .elsewhen (address === 080.U) {
+  } .elsewhen (address === 80.U) {
     sreg := "h7C_00".U(16.W)
-  } .elsewhen (address === 081.U) {
+  } .elsewhen (address === 81.U) {
     sreg := "h7D_00".U(16.W)
-  } .elsewhen (address === 082.U) {
+  } .elsewhen (address === 82.U) {
     sreg := "h7C_03".U(16.W)
-  } .elsewhen (address === 083.U) {
+  } .elsewhen (address === 83.U) {
     sreg := "h7D_48".U(16.W)
-  } .elsewhen (address === 084.U) {
+  } .elsewhen (address === 84.U) {
     sreg := "h7D_48".U(16.W)
-  } .elsewhen (address === 085.U) {
+  } .elsewhen (address === 85.U) {
     sreg := "h7C_08".U(16.W)
-  } .elsewhen (address === 086.U) {
+  } .elsewhen (address === 86.U) {
     sreg := "h7D_20".U(16.W)
-  } .elsewhen (address === 087.U) {
+  } .elsewhen (address === 87.U) {
     sreg := "h7D_10".U(16.W)
-  } .elsewhen (address === 088.U) {
+  } .elsewhen (address === 88.U) {
     sreg := "h7D_0e".U(16.W)
-  } .elsewhen (address === 089.U) {
+  } .elsewhen (address === 89.U) {
     sreg := "h90_00".U(16.W)
-  } .elsewhen (address === 090.U) {
+  } .elsewhen (address === 90.U) {
     sreg := "h91_0e".U(16.W)
-  } .elsewhen (address === 091.U) {
+  } .elsewhen (address === 91.U) {
     sreg := "h91_1a".U(16.W)
-  } .elsewhen (address === 092.U) {
+  } .elsewhen (address === 92.U) {
     sreg := "h91_31".U(16.W)
-  } .elsewhen (address === 093.U) {
+  } .elsewhen (address === 93.U) {
     sreg := "h91_5a".U(16.W)
-  } .elsewhen (address === 094.U) {
+  } .elsewhen (address === 94.U) {
     sreg := "h91_69".U(16.W)
-  } .elsewhen (address === 095.U) {
+  } .elsewhen (address === 95.U) {
     sreg := "h91_75".U(16.W)
-  } .elsewhen (address === 096.U) {
+  } .elsewhen (address === 96.U) {
     sreg := "h91_7e".U(16.W)
-  } .elsewhen (address === 097.U) {
+  } .elsewhen (address === 97.U) {
     sreg := "h91_88".U(16.W)
-  } .elsewhen (address === 098.U) {
+  } .elsewhen (address === 98.U) {
     sreg := "h91_8f".U(16.W)
-  } .elsewhen (address === 099.U) {
+  } .elsewhen (address === 99.U) {
     sreg := "h91_96".U(16.W)
   } .elsewhen (address === 100.U) {
     sreg := "h91_a3".U(16.W)
@@ -507,7 +510,7 @@ class OV2640_Registers() extends Module {
        if(resend == 1) begin           // reset the configuration
            address <= {8{1'b0}};
        end
-       else if(advance == 1) begin     // Get the next value
+       else if(io.advance == 1) begin     // Get the next value
            address <= address+1'b1;
        end
           

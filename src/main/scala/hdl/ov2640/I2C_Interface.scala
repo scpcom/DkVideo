@@ -3,7 +3,7 @@ package ov2640
 
 import chisel3._
 import chisel3.util.Cat
-import sv2chisel.helpers.vecconvert._
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // I2C_Interface.v
 //
@@ -19,21 +19,23 @@ import sv2chisel.helpers.vecconvert._
 
 class I2C_Interface(
     val SID: UInt = "h42".U(8.W)
-  ) extends Module { // 50Mhz clock signal
-  val siod = IO(Input(Bool())) // Inout Data signal for SCCB
-  val O_siod = IO(Output(Bool()))
-  val sioc = IO(Output(Bool())) // Clock signal for SCCB
-  val taken = IO(Output(Bool())) // Flag to go to next address of LUT
-  val send = IO(Input(Bool())) // Flag to indicate if configuration is finshed
-  val rega = IO(Input(UInt(8.W))) // Resgister address
-  val value = IO(Input(UInt(8.W))) // Data to write into a regsiter address
+  ) extends Module {
+  val io = IO(new Bundle {
+    val clk = Input(Clock()) // 50Mhz clock signal
+    val siod = Output(Bool()) // Inout Data signal for SCCB
+    val sioc = Output(Bool()) // Clock signal for SCCB
+    val taken = Output(Bool()) // Flag to go to next address of LUT
+    val send = Input(Bool()) // Flag to indicate if configuration is finshed
+    val rega = Input(UInt(8.W)) // Resgister address
+    val value = Input(UInt(8.W)) // Data to write into a regsiter address
+  })
 
 
   // Internal signals
   val divider = RegInit(UInt(8.W), "b00000001".U(8.W))
   val busy_sr = RegInit(UInt(32.W), (VecInit.tabulate(32)(_ => false.B)).asUInt)
   val data_sr = RegInit(UInt(32.W), (VecInit.tabulate(32)(_ => true.B)).asUInt)
-  val sioc_temp = Reg(Bool()) 
+  val sioc_temp = RegInit(false.B)
   val taken_temp = Reg(Bool()) 
   val siod_temp = Wire(Bool()) 
 
@@ -41,9 +43,9 @@ class I2C_Interface(
   val id: UInt = SID //8'h42;
 
   // Assign value for outputs
-  O_siod := siod_temp
-  sioc := sioc_temp
-  taken := taken_temp
+  io.siod := siod_temp
+  io.sioc := sioc_temp
+  io.taken := taken_temp
   // when the bus is idle SIOD must be tri-state
   when(((busy_sr(11,10) === "b10".U(2.W)) || (busy_sr(20,19) === "b10".U(2.W))) || (busy_sr(29,28) === "b10".U(2.W))) {
     siod_temp := false.B
@@ -59,7 +61,7 @@ class I2C_Interface(
     sioc_temp := true.B
 
       // If New data is arrived from LUT 
-    when(send === true.B) {
+    when(io.send === true.B) {
       when(divider === "b00000000".U(8.W)) {
         // Create an data to send through the data signal of the SCCB        // The data is created using 3-phase write transmission cycle of SCCB protocol
         //
@@ -74,7 +76,7 @@ class I2C_Interface(
         // 1'b0   --> don't care bit to seperate phases
         // 2'b01  --> SIOD will go from 0 to 1 to indicate a stop tranmission
 
-        data_sr := Cat("b100".U(3.W), id, "b0".U(1.W), rega, "b0".U(1.W), value, "b0".U(1.W), "b01".U(2.W))
+        data_sr := Cat("b100".U(3.W), id, "b0".U(1.W), io.rega, "b0".U(1.W), io.value, "b0".U(1.W), "b01".U(2.W))
         busy_sr := Cat("b111".U(3.W), "b111111111".U(9.W), "b111111111".U(9.W), "b111111111".U(9.W), "b11".U(2.W))
         taken_temp := true.B
       } .otherwise {

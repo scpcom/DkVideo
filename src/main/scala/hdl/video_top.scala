@@ -39,7 +39,7 @@ class video_top() extends RawModule {
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
-  val SDA = IO(Input(Bool())) // Inout
+  val SDA = IO(Output(Bool())) // Inout
   val SCL = IO(Output(Bool())) // Inout
   val VSYNC = IO(Input(Bool()))
   val HREF = IO(Input(Bool()))
@@ -197,11 +197,12 @@ class video_top() extends RawModule {
   val hcnt = RegInit(false.B)
 
   val u_OV2640_Controller = Module(new OV2640_Controller)
-  u_OV2640_Controller.clock := clk_12M // 24Mhz clock signal
-  u_OV2640_Controller.resend := "b0".U(1.W) // Reset signal
+  u_OV2640_Controller.clock := clk_12M
+  u_OV2640_Controller.io.clk := clk_12M // 24Mhz clock signal
+  u_OV2640_Controller.io.resend := "b0".U(1.W) // Reset signal
   // Flag to indicate that the configuration is finished
-  SCL := u_OV2640_Controller.sioc // SCCB interface - clock signal
-  u_OV2640_Controller.siod := SDA // SCCB interface - data signal
+  SCL := u_OV2640_Controller.io.sioc // SCCB interface - clock signal
+  SDA := u_OV2640_Controller.io.siod // SCCB interface - data signal
   // RESET signal for OV7670
   // PWDN signal for OV7670
   //I_clk
