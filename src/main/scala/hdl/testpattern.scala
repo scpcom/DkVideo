@@ -186,26 +186,26 @@ class testpattern() extends Module {
   }
   when (Pout_de_dn(2) === true.B) {
     when(Color_cnt === 0.U(3.W)) {
-      Color_bar := WHITE/*.U(24.W)*/
+      Color_bar := WHITE
     } .elsewhen (Color_cnt === 1.U(3.W)) {
-      Color_bar := YELLOW/*.U(24.W)*/
+      Color_bar := YELLOW
     } .elsewhen (Color_cnt === 2.U(3.W)) {
-      Color_bar := CYAN/*.U(24.W)*/
+      Color_bar := CYAN
     } .elsewhen (Color_cnt === 3.U(3.W)) {
-      Color_bar := GREEN/*.U(24.W)*/
+      Color_bar := GREEN
     } .elsewhen (Color_cnt === 4.U(3.W)) {
-      Color_bar := MAGENTA/*.U(24.W)*/
+      Color_bar := MAGENTA
     } .elsewhen (Color_cnt === 5.U(3.W)) {
-      Color_bar := RED/*.U(24.W)*/
+      Color_bar := RED
     } .elsewhen (Color_cnt === 6.U(3.W)) {
-      Color_bar := BLUE/*.U(24.W)*/
+      Color_bar := BLUE
     } .elsewhen (Color_cnt === 7.U(3.W)) {
-      Color_bar := BLACK/*.U(24.W)*/
+      Color_bar := BLACK
     } .otherwise {
-      Color_bar := BLACK/*.U(24.W)*/
+      Color_bar := BLACK
     }
   } .otherwise {
-    Color_bar := BLACK/*.U(24.W)*/
+    Color_bar := BLACK
   }
 
   //---------------------------------------------------
@@ -225,18 +225,18 @@ class testpattern() extends Module {
   Net_pos := Cat(Net_v_trig, Net_h_trig)
   when (Pout_de_dn(2) === true.B) {
     when(Net_pos === "b00".U(2.W)) {
-      Net_grid := BLACK/*.U(24.W)*/
+      Net_grid := BLACK
     } .elsewhen (Net_pos === "b01".U(2.W)) {
-      Net_grid := RED/*.U(24.W)*/
+      Net_grid := RED
     } .elsewhen (Net_pos === "b10".U(2.W)) {
-      Net_grid := RED/*.U(24.W)*/
+      Net_grid := RED
     } .elsewhen (Net_pos === "b11".U(2.W)) {
-      Net_grid := RED/*.U(24.W)*/
+      Net_grid := RED
     } .otherwise {
-      Net_grid := BLACK/*.U(24.W)*/
+      Net_grid := BLACK
     }
   } .otherwise {
-    Net_grid := BLACK/*.U(24.W)*/
+    Net_grid := BLACK
   }
 
   //---------------------------------------------------
