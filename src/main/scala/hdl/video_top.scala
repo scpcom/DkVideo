@@ -5,6 +5,7 @@ import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 
 import fpgamacro.gowin.{CLKDIV, TMDS_PLLVR, TLVDS_OBUF}
+import hdmicore.video.{VideoParams, HVSync}
 import hdl.dvi_tx.DVI_TX_Top
 import hdl.ov2640.OV2640_Controller
 import hdl.video_frame_buffer.Video_Frame_Buffer_Top
@@ -56,6 +57,17 @@ class video_top() extends RawModule {
   val O_tmds_data_n = IO(Output(UInt(3.W)))
 
   //==================================================
+  val vp = VideoParams(
+      H_DISPLAY = 1280, H_FRONT = 110,
+      H_SYNC = 40, H_BACK = 220,
+      V_SYNC = 5,  V_BACK = 20,
+      V_TOP = 5, V_DISPLAY = 720,
+      V_BOTTOM = 20)
+  val vp_H_TOTAL = vp.H_DISPLAY+vp.H_FRONT+vp.H_SYNC+vp.H_BACK
+  val vp_V_TOTAL = vp.V_DISPLAY+vp.V_TOP+vp.V_SYNC+vp.V_BOTTOM
+  val rd_hres = 800
+  val rd_vres = 600
+
   val running = Wire(Bool()) 
 
   //--------------------------
@@ -162,15 +174,15 @@ class video_top() extends RawModule {
   testpattern_inst.io.I_mode := testpattern_inst_I_mode //data select
   testpattern_inst.io.I_single_r := 0.U(8.W)
   testpattern_inst.io.I_single_g := 255.U(8.W)
-  testpattern_inst.io.I_single_b := 0.U(8.W)    //800x600    //1024x768   //1280x720
-  testpattern_inst.io.I_h_total := 1650.U(12.W) //hor total time  // 16'd1056  // 16'd1344  // 16'd1650
-  testpattern_inst.io.I_h_sync := 40.U(12.W)    //hor sync time   // 16'd128   // 16'd136   // 16'd40
-  testpattern_inst.io.I_h_bporch := 220.U(12.W) //hor back porch  // 16'd88    // 16'd160   // 16'd220
-  testpattern_inst.io.I_h_res := 800.U(12.W)    //hor resolution  // 16'd800   // 16'd1024  // 16'd1280
-  testpattern_inst.io.I_v_total := 750.U(12.W)  //ver total time  // 16'd628   // 16'd806   // 16'd750
-  testpattern_inst.io.I_v_sync := 5.U(12.W)     //ver sync time   // 16'd4     // 16'd6     // 16'd5
-  testpattern_inst.io.I_v_bporch := 20.U(12.W)  //ver back porch  // 16'd23    // 16'd29    // 16'd20
-  testpattern_inst.io.I_v_res := 600.U(12.W)    //ver resolution  // 16'd600   // 16'd768   // 16'd720
+  testpattern_inst.io.I_single_b := 0.U(8.W)                             //800x600    //1024x768   //1280x720
+  testpattern_inst.io.I_h_total := vp_H_TOTAL.U(12.W)  //hor total time  // 16'd1056  // 16'd1344  // 16'd1650
+  testpattern_inst.io.I_h_sync := vp.H_SYNC.U(12.W)    //hor sync time   // 16'd128   // 16'd136   // 16'd40
+  testpattern_inst.io.I_h_bporch := vp.H_BACK.U(12.W)  //hor back porch  // 16'd88    // 16'd160   // 16'd220
+  testpattern_inst.io.I_h_res := rd_hres.U(12.W)       //hor resolution  // 16'd800   // 16'd1024  // 16'd1280
+  testpattern_inst.io.I_v_total := vp_V_TOTAL.U(12.W)  //ver total time  // 16'd628   // 16'd806   // 16'd750
+  testpattern_inst.io.I_v_sync := vp.V_SYNC.U(12.W)    //ver sync time   // 16'd4     // 16'd6     // 16'd5
+  testpattern_inst.io.I_v_bporch := vp.V_BACK.U(12.W)  //ver back porch  // 16'd23    // 16'd29    // 16'd20
+  testpattern_inst.io.I_v_res := rd_vres.U(12.W)       //ver resolution  // 16'd600   // 16'd768   // 16'd720
   testpattern_inst.io.I_hs_pol := "b1".U(1.W)   //HS polarity , 0:negetive ploarity，1：positive polarity
   testpattern_inst.io.I_vs_pol := "b1".U(1.W)   //VS polarity , 0:negetive ploarity，1：positive polarity
   tp0_de_in := testpattern_inst.io.O_de
@@ -290,18 +302,18 @@ class video_top() extends RawModule {
   withClockAndReset(pix_clk, ~hdmi_rst_n) {
   val out_de = Wire(Bool()) 
   val syn_gen_inst = Module(new syn_gen)
-  syn_gen_inst.io.I_pxl_clk := pix_clk      //40MHz      //65MHz      //74.25MHz
-  syn_gen_inst.io.I_rst_n := hdmi_rst_n     //800x600    //1024x768   //1280x720
-  syn_gen_inst.io.I_h_total := 1650.U(16.W) // 16'd1056  // 16'd1344  // 16'd1650
-  syn_gen_inst.io.I_h_sync := 40.U(16.W)    // 16'd128   // 16'd136   // 16'd40
-  syn_gen_inst.io.I_h_bporch := 220.U(16.W) // 16'd88    // 16'd160   // 16'd220
-  syn_gen_inst.io.I_h_res := 1280.U(16.W)   // 16'd800   // 16'd1024  // 16'd1280
-  syn_gen_inst.io.I_v_total := 750.U(16.W)  // 16'd628   // 16'd806   // 16'd750
-  syn_gen_inst.io.I_v_sync := 5.U(16.W)     // 16'd4     // 16'd6     // 16'd5
-  syn_gen_inst.io.I_v_bporch := 20.U(16.W)  // 16'd23    // 16'd29    // 16'd20
-  syn_gen_inst.io.I_v_res := 720.U(16.W)    // 16'd600   // 16'd768   // 16'd720
-  syn_gen_inst.io.I_rd_hres := 800.U(16.W)
-  syn_gen_inst.io.I_rd_vres := 600.U(16.W)
+  syn_gen_inst.io.I_pxl_clk := pix_clk             //40MHz      //65MHz      //74.25MHz
+  syn_gen_inst.io.I_rst_n := hdmi_rst_n            //800x600    //1024x768   //1280x720
+  syn_gen_inst.io.I_h_total := vp_H_TOTAL.U(16.W)  // 16'd1056  // 16'd1344  // 16'd1650
+  syn_gen_inst.io.I_h_sync := vp.H_SYNC.U(16.W)    // 16'd128   // 16'd136   // 16'd40
+  syn_gen_inst.io.I_h_bporch := vp.H_BACK.U(16.W)  // 16'd88    // 16'd160   // 16'd220
+  syn_gen_inst.io.I_h_res := vp.H_DISPLAY.U(16.W)  // 16'd800   // 16'd1024  // 16'd1280
+  syn_gen_inst.io.I_v_total := vp_V_TOTAL.U(16.W)  // 16'd628   // 16'd806   // 16'd750
+  syn_gen_inst.io.I_v_sync := vp.V_SYNC.U(16.W)    // 16'd4     // 16'd6     // 16'd5
+  syn_gen_inst.io.I_v_bporch := vp.V_BACK.U(16.W)  // 16'd23    // 16'd29    // 16'd20
+  syn_gen_inst.io.I_v_res := vp.V_DISPLAY.U(16.W)  // 16'd600   // 16'd768   // 16'd720
+  syn_gen_inst.io.I_rd_hres := rd_hres.U(16.W)
+  syn_gen_inst.io.I_rd_vres := rd_vres.U(16.W)
   syn_gen_inst.io.I_hs_pol := "b1".U(1.W)   //HS polarity , 0:负极性，1：正极性
   syn_gen_inst.io.I_vs_pol := "b1".U(1.W)   //VS polarity , 0:负极性，1：正极性
   syn_off0_re := syn_gen_inst.io.O_rden
