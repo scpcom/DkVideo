@@ -1,4 +1,4 @@
-package hdl
+package dkvideo
 
 import chisel3._
 import chisel3.util.Cat
@@ -9,11 +9,11 @@ import fpgamacro.gowin.{Oser10Module}
 import hdmicore.video.{VideoParams, HVSync}
 import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair}
 import hdl.dvi_tx.DVI_TX_Top
-import hdl.ov2640.OV2640_Controller
 import hdl.video_frame_buffer.Video_Frame_Buffer_Top
 import hdl.gowin_pllvr.GW_PLLVR
 import hdl.hyperram_memory_interface.HyperRAM_Memory_Interface_Top
-import hdl.syn_code.syn_gen
+import ov2640.OV2640_Controller
+import syn_code.syn_gen
 
 // ==============0ooo===================================================0ooo===========
 // =  Copyright (C) 2014-2020 Gowin Semiconductor Technology Co.,Ltd.

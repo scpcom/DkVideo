@@ -1,4 +1,4 @@
-package hdl
+package dkvideo
 package ov2640
 
 import chisel3._

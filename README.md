@@ -29,13 +29,13 @@ cd DkVideo
 
 To generate core with gowin DviTx encrypted ip do:
 ```sh
-sbt "runMain hdl.video_topGen"
+sbt "runMain dkvideo.video_topGen"
 sh src/scripts/fix-verilog.sh
 ```
 
 To use opensource HdmiCore:
 ```sh
-sbt "runMain hdl.video_topGen noGowinDviTx"
+sbt "runMain dkvideo.video_topGen noGowinDviTx"
 sh src/scripts/fix-verilog.sh
 ```
 

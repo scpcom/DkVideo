@@ -1,4 +1,4 @@
-package hdl
+package dkvideo
 
 import chisel3._
 import chisel3.util.Cat

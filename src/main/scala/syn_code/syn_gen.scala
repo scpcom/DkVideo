@@ -1,4 +1,4 @@
-package hdl
+package dkvideo
 package syn_code
 
 import chisel3._
