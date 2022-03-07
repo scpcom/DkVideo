@@ -27,8 +27,15 @@ cd DkVideo
 
 #### Build the project
 
+To generate core with gowin DviTx encrypted ip do:
 ```sh
 sbt "runMain hdl.video_topGen"
+sh src/scripts/fix-verilog.sh
+```
+
+To use opensource HdmiCore:
+```sh
+sbt "runMain hdl.video_topGen noGowinDviTx"
 sh src/scripts/fix-verilog.sh
 ```
 
@@ -39,6 +46,7 @@ Currently the fix-verilog.sh is used as workaround for clock mux and inout until
 Since the project still uses HyperRAM, VFB and PLL IP you can not use open source tools to build the binary.  
 Only DVI_TX can be replaced with open source HdmiCore at this moment.  
 Open the project in GOWIN FPGA Designer.  
+If you use use opensource HdmiCore disable the file src/verilog/dvi_tx.v.  
 Push the "Run All" button
 
 #### Upload to the device

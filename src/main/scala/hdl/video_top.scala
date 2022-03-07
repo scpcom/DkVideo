@@ -5,7 +5,9 @@ import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 
 import fpgamacro.gowin.{CLKDIV, TMDS_PLLVR, TLVDS_OBUF}
+import fpgamacro.gowin.{Oser10Module}
 import hdmicore.video.{VideoParams, HVSync}
+import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair}
 import hdl.dvi_tx.DVI_TX_Top
 import hdl.ov2640.OV2640_Controller
 import hdl.video_frame_buffer.Video_Frame_Buffer_Top
@@ -34,7 +36,7 @@ import hdl.syn_code.syn_gen
 // ----------------------------------------------------------------------------------
 // ==============0ooo===================================================0ooo===========
 
-class video_top() extends RawModule {
+class video_top(gowinDviTx: Boolean = true) extends RawModule {
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
@@ -51,10 +53,7 @@ class video_top() extends RawModule {
   val O_hpram_reset_n = IO(Output(UInt(1.W)))
   val IO_hpram_dq = IO(Input(UInt(8.W))) // Inout
   val IO_hpram_rwds = IO(Input(UInt(1.W))) // Inout
-  val O_tmds_clk_p = IO(Output(Bool()))
-  val O_tmds_clk_n = IO(Output(Bool()))
-  val O_tmds_data_p = IO(Output(UInt(3.W))) //{r,g,b}
-  val O_tmds_data_n = IO(Output(UInt(3.W)))
+  val O_tmds = IO(Output(new TMDSDiff()))
 
   //==================================================
   val vp = VideoParams(
@@ -336,7 +335,6 @@ class video_top() extends RawModule {
   rgb_vs := Pout_vs_dn(4) //syn_off0_vs;
   rgb_hs := Pout_hs_dn(4) //syn_off0_hs;
   rgb_de := Pout_de_dn(4) //off0_syn_de;
-  } // withClockAndReset(pix_clk, ~hdmi_rst_n)
 
 
   val TMDS_PLLVR_inst = Module(new TMDS_PLLVR)
@@ -352,26 +350,100 @@ class video_top() extends RawModule {
   pix_clk := u_clkdiv.io.CLKOUT //clk  x1
   u_clkdiv.io.CALIB := "b1".U(1.W)
 
-  val DVI_TX_Top_inst = Module(new DVI_TX_Top)
-  DVI_TX_Top_inst.io.I_rst_n := hdmi_rst_n //asynchronous reset, low active
-  DVI_TX_Top_inst.io.I_serial_clk := serial_clk
-  DVI_TX_Top_inst.io.I_rgb_clk := pix_clk //pixel clock
-  DVI_TX_Top_inst.io.I_rgb_vs := rgb_vs
-  DVI_TX_Top_inst.io.I_rgb_hs := rgb_hs
-  DVI_TX_Top_inst.io.I_rgb_de := rgb_de
-  DVI_TX_Top_inst.io.I_rgb_r := rgb_data(23,16)
-  DVI_TX_Top_inst.io.I_rgb_g := rgb_data(15,8)
-  DVI_TX_Top_inst.io.I_rgb_b := rgb_data(7,0)
-  O_tmds_clk_p := DVI_TX_Top_inst.io.O_tmds_clk_p
-  O_tmds_clk_n := DVI_TX_Top_inst.io.O_tmds_clk_n
-  O_tmds_data_p := DVI_TX_Top_inst.io.O_tmds_data_p //{r,g,b}
-  O_tmds_data_n := DVI_TX_Top_inst.io.O_tmds_data_n
+    /* HDMI interface */
+    if(gowinDviTx){
+      val DVI_TX_Top_inst = Module(new DVI_TX_Top())
 
+      /* Clocks and reset */
+      DVI_TX_Top_inst.io.I_rst_n := hdmi_rst_n
+      DVI_TX_Top_inst.io.I_serial_clk := serial_clk
+      DVI_TX_Top_inst.io.I_rgb_clk := pix_clk
 
+      /* video signals connexions */
+      DVI_TX_Top_inst.io.I_rgb_vs := rgb_vs
+      DVI_TX_Top_inst.io.I_rgb_hs := rgb_hs
+      DVI_TX_Top_inst.io.I_rgb_de := rgb_de
+      DVI_TX_Top_inst.io.I_rgb_r := rgb_data(23,16)
+      DVI_TX_Top_inst.io.I_rgb_g := rgb_data(15,8)
+      DVI_TX_Top_inst.io.I_rgb_b := rgb_data(7,0)
 
+      /* tmds connexions */
+      O_tmds.data(0).p := DVI_TX_Top_inst.io.O_tmds_data_p(0)
+      O_tmds.data(0).n := DVI_TX_Top_inst.io.O_tmds_data_n(0)
+      O_tmds.data(1).p := DVI_TX_Top_inst.io.O_tmds_data_p(1)
+      O_tmds.data(1).n := DVI_TX_Top_inst.io.O_tmds_data_n(1)
+      O_tmds.data(2).p := DVI_TX_Top_inst.io.O_tmds_data_p(2)
+      O_tmds.data(2).n := DVI_TX_Top_inst.io.O_tmds_data_n(2)
+      O_tmds.clk.p := DVI_TX_Top_inst.io.O_tmds_clk_p
+      O_tmds.clk.n := DVI_TX_Top_inst.io.O_tmds_clk_n
+    } else {
+      val rgb2tmds = Module(new Rgb2Tmds())
+      rgb2tmds.io.videoSig.de := rgb_de
+      rgb2tmds.io.videoSig.hsync := rgb_hs
+      rgb2tmds.io.videoSig.vsync := rgb_vs
+      rgb2tmds.io.videoSig.pixel.red   := rgb_data(23,16)
+      rgb2tmds.io.videoSig.pixel.green := rgb_data(15,8)
+      rgb2tmds.io.videoSig.pixel.blue  := rgb_data(7,0)
+
+      /* serdes */
+      // Blue -> data 0
+      val serdesBlue = Module(new Oser10Module())
+      serdesBlue.io.data := rgb2tmds.io.tmds_blue
+      serdesBlue.io.fclk := serial_clk
+      val buffDiffBlue = Module(new TLVDS_OBUF())
+      buffDiffBlue.io.I := serdesBlue.io.q
+      /*io.tmds.data(0).p := buffDiffBlue.io.O
+      io.tmds.data(0).n := buffDiffBlue.io.OB*/
+
+      // Green -> data 1
+      val serdesGreen = Module(new Oser10Module())
+      serdesGreen.io.data := rgb2tmds.io.tmds_green
+      serdesGreen.io.fclk := serial_clk
+      val buffDiffGreen = Module(new TLVDS_OBUF())
+      buffDiffGreen.io.I := serdesGreen.io.q
+      /*io.tmds.data(1).p := buffDiffGreen.io.O
+      io.tmds.data(1).n := buffDiffGreen.io.OB*/
+
+      // Red -> data 2
+      val serdesRed = Module(new Oser10Module())
+      serdesRed.io.data := rgb2tmds.io.tmds_red
+      serdesRed.io.fclk := serial_clk
+      val buffDiffRed = Module(new TLVDS_OBUF())
+      buffDiffRed.io.I := serdesRed.io.q
+      /*io.tmds.data(2).p := buffDiffRed.io.O
+      io.tmds.data(2).n := buffDiffRed.io.OB*/
+
+      // clock
+      val serdesClk = Module(new Oser10Module())
+      serdesClk.io.data := "b1111100000".U(10.W)
+      serdesClk.io.fclk := serial_clk
+      val buffDiffClk = Module(new TLVDS_OBUF())
+      buffDiffClk.io.I := serdesClk.io.q
+      /*O_tmds_clk_p := buffDiffClk.io.O
+      O_tmds_clk_n := buffDiffClk.io.OB*/
+
+      O_tmds.data(0).p := buffDiffBlue.io.O
+      O_tmds.data(0).n := buffDiffBlue.io.OB
+      O_tmds.data(1).p := buffDiffGreen.io.O
+      O_tmds.data(1).n := buffDiffGreen.io.OB
+      O_tmds.data(2).p := buffDiffRed.io.O
+      O_tmds.data(2).n := buffDiffRed.io.OB
+      O_tmds.clk.p := buffDiffClk.io.O
+      O_tmds.clk.n := buffDiffClk.io.OB
+    }
+  } // withClockAndReset(pix_clk, ~hdmi_rst_n)
 }
 
 object video_topGen extends App {
+  var gowinDviTx = true
+  for(arg <- args){
+    if(arg == "noGowinDviTx")
+      gowinDviTx = false
+  }
+  if(gowinDviTx)
+    println("Generate DkVideo with encrypted Gowin DviTx core")
+  else
+    println("Generate DkVideo with open source HdmiCore core")
   (new ChiselStage).execute(args,
-    Seq(ChiselGeneratorAnnotation(() => new video_top())))
+    Seq(ChiselGeneratorAnnotation(() => new video_top(gowinDviTx))))
 }
