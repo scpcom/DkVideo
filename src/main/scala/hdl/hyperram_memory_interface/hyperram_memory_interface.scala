@@ -2,7 +2,7 @@ package hdl
 package hyperram_memory_interface
 
 import chisel3._
-import sv2chisel.helpers.vecconvert._
+
 //
 //Written by GowinSynthesis
 //Product Version "GowinSynthesis V1.9.8.03"

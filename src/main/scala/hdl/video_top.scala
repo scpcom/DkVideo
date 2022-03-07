@@ -3,8 +3,6 @@ package hdl
 import chisel3._
 import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
-import sv2chisel.helpers.tools.VerilogPortWrapper
-import sv2chisel.helpers.vecconvert._
 
 import fpgamacro.gowin.{CLKDIV, TMDS_PLLVR, TLVDS_OBUF}
 import hdl.dvi_tx.DVI_TX_Top
@@ -362,11 +360,6 @@ class video_top() extends RawModule {
 }
 
 object video_topGen extends App {
-  /*VerilogPortWrapper.emit(
-    () => new video_top(),
-    forcePreset = true,
-    args = args
-  )*/
   (new ChiselStage).execute(args,
     Seq(ChiselGeneratorAnnotation(() => new video_top())))
 }

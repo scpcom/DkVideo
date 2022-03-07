@@ -36,9 +36,9 @@ Currently the fix-verilog.sh is used as workaround for clock mux and inout until
 
 #### Generate the binary fs
 
-Since the project still uses HyperRAM, VFB and PLL IP you can not use open source tools to build the binary.
-Only DVI_TX can be replaced with open source HdmiCore at this moment.
-Open the project in GOWIN FPGA Designer.
+Since the project still uses HyperRAM, VFB and PLL IP you can not use open source tools to build the binary.  
+Only DVI_TX can be replaced with open source HdmiCore at this moment.  
+Open the project in GOWIN FPGA Designer.  
 Push the "Run All" button
 
 #### Upload to the device
