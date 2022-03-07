@@ -29,12 +29,16 @@ cd DkVideo
 
 ```sh
 sbt "runMain hdl.video_topGen"
+sh src/scripts/fix-verilog.sh
 ```
+
+Currently the fix-verilog.sh is used as workaround for clock mux and inout until a real solution is found.
 
 #### Generate the binary fs
 
-Create new project in GOWIN FPGA Designer, select GW1NSR-LV4CQN48PC7/I6 as target device.
-Add video_top.v and all files from src/constraints and src/verilog to the project.
+Since the project still uses HyperRAM, VFB and PLL IP you can not use open source tools to build the binary.
+Only DVI_TX can be replaced with open source HdmiCore at this moment.
+Open the project in GOWIN FPGA Designer.
 Push the "Run All" button
 
 #### Upload to the device
