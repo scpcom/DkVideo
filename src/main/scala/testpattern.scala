@@ -2,6 +2,7 @@ package dkvideo
 
 import chisel3._
 import chisel3.util.Cat
+import hdmicore.video.{VideoParams, HVSync}
 
 // ---------------------------------------------------------------------
 // File name         : testpattern.v
@@ -19,7 +20,7 @@ import chisel3.util.Cat
 //   1.0   | 24-Sep-2009 | Caojie  |    initial
 // --------------------------------------------------------------------
 
-class testpattern() extends Module {
+class testpattern(vp: VideoParams) extends Module {
   val io = IO(new Bundle {
     val I_pxl_clk = Input(Clock()) //pixel clock
     val I_rst_n = Input(Bool()) //low active
@@ -27,14 +28,8 @@ class testpattern() extends Module {
     val I_single_r = Input(UInt(8.W))
     val I_single_g = Input(UInt(8.W))
     val I_single_b = Input(UInt(8.W))
-    val I_h_total = Input(UInt(12.W)) //hor total time
-    val I_h_sync = Input(UInt(12.W)) //hor sync time
-    val I_h_bporch = Input(UInt(12.W)) //hor back porch
-    val I_h_res = Input(UInt(12.W)) //hor resolution
-    val I_v_total = Input(UInt(12.W)) //ver total time
-    val I_v_sync = Input(UInt(12.W)) //ver sync time
-    val I_v_bporch = Input(UInt(12.W)) //ver back porch
-    val I_v_res = Input(UInt(12.W)) //ver resolution
+    val I_rd_hres = Input(UInt(12.W)) //hor resolution
+    val I_rd_vres = Input(UInt(12.W)) //ver resolution
     val I_hs_pol = Input(Bool()) //HS polarity , 0:�����ԣ�1��������
     val I_vs_pol = Input(Bool()) //VS polarity , 0:�����ԣ�1��������
     val O_de = Output(Bool())
@@ -110,26 +105,10 @@ class testpattern() extends Module {
   //==============================================================================
   //Generate HS, VS, DE signals
 
-  when((V_cnt >= (io.I_v_total-"b1".U(1.W))) && (H_cnt >= (io.I_h_total-"b1".U(1.W)))) {
-    V_cnt := 0.U(12.W)
-  } .elsewhen (H_cnt >= (io.I_h_total-"b1".U(1.W))) {
-    V_cnt := V_cnt+"b1".U(1.W)
-  } .otherwise {
-    V_cnt := V_cnt
-  }
-
-  //-------------------------------------------------------------    
-
-  when (H_cnt >= (io.I_h_total-"b1".U(1.W))) {
-    H_cnt := 0.U(12.W)
-  } .otherwise {
-    H_cnt := H_cnt+"b1".U(1.W)
-  }
-
-  //-------------------------------------------------------------
-  Pout_de_w := ((H_cnt >= (io.I_h_sync+io.I_h_bporch))&(H_cnt <= (((io.I_h_sync+io.I_h_bporch)+io.I_h_res)-"b1".U(1.W))))&((V_cnt >= (io.I_v_sync+io.I_v_bporch))&(V_cnt <= (((io.I_v_sync+io.I_v_bporch)+io.I_v_res)-"b1".U(1.W))))
-  Pout_hs_w :=  ~((H_cnt >= 0.U(12.W))&(H_cnt <= (io.I_h_sync-"b1".U(1.W))))
-  Pout_vs_w :=  ~((V_cnt >= 0.U(12.W))&(V_cnt <= (io.I_v_sync-"b1".U(1.W))))
+  val hv_sync = Module(new HVSync(vp))
+  Pout_de_w := ((hv_sync.io.hpos >= 0.U)&(hv_sync.io.hpos <= (io.I_rd_hres-"b1".U(1.W))))&((hv_sync.io.vpos >= 0.U)&(hv_sync.io.vpos <= (io.I_rd_vres-"b1".U(1.W))))
+  Pout_hs_w :=  hv_sync.io.hsync
+  Pout_vs_w :=  hv_sync.io.vsync
 
   //-------------------------------------------------------------
 
@@ -166,9 +145,9 @@ class testpattern() extends Module {
   //---------------------------------------------------
 
   when (Pout_de_dn(1) === false.B) {
-    Color_trig_num := io.I_h_res(11,3) //8ɫ�������
+    Color_trig_num := io.I_rd_hres(11,3) //8ɫ�������
   } .elsewhen ((Color_trig === true.B) && (Pout_de_dn(1) === true.B)) {
-    Color_trig_num := Color_trig_num+io.I_h_res(11,3)
+    Color_trig_num := Color_trig_num+io.I_rd_hres(11,3)
   } .otherwise {
     Color_trig_num := Color_trig_num
   }
@@ -212,12 +191,12 @@ class testpattern() extends Module {
   //Net grid
   //---------------------------------------------------
 
-  when (((De_hcnt(4,0) === 0.U(5.W)) || (De_hcnt === (io.I_h_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
+  when (((De_hcnt(4,0) === 0.U(5.W)) || (De_hcnt === (io.I_rd_hres-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
     Net_h_trig := true.B
   } .otherwise {
     Net_h_trig := false.B
   }
-  when (((De_vcnt(4,0) === 0.U(5.W)) || (De_vcnt === (io.I_v_res-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
+  when (((De_vcnt(4,0) === 0.U(5.W)) || (De_vcnt === (io.I_rd_vres-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
     Net_v_trig := true.B
   } .otherwise {
     Net_v_trig := false.B
