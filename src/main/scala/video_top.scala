@@ -284,8 +284,6 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
 
  //================================================
   withClockAndReset(pix_clk, ~hdmi_rst_n) {
-    val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
-    val syn_vs_pol = 1   //VS polarity , 0:负极性，1：正极性
     val hv_sync = Module(new HVSync(vp))
     val out_de = Wire(Bool())
     val Rden_w = Wire(Bool())
