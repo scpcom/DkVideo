@@ -13,7 +13,6 @@ import hdl.video_frame_buffer.Video_Frame_Buffer_Top
 import hdl.gowin_pllvr.GW_PLLVR
 import hdl.hyperram_memory_interface.HyperRAM_Memory_Interface_Top
 import ov2640.OV2640_Controller
-import syn_code.syn_gen
 
 // ==============0ooo===================================================0ooo===========
 // =  Copyright (C) 2014-2020 Gowin Semiconductor Technology Co.,Ltd.
@@ -300,26 +299,18 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
 
  //================================================
   withClockAndReset(pix_clk, ~hdmi_rst_n) {
-  val out_de = Wire(Bool()) 
-  val syn_gen_inst = Module(new syn_gen)
-  syn_gen_inst.io.I_pxl_clk := pix_clk             //40MHz      //65MHz      //74.25MHz
-  syn_gen_inst.io.I_rst_n := hdmi_rst_n            //800x600    //1024x768   //1280x720
-  syn_gen_inst.io.I_h_total := vp_H_TOTAL.U(16.W)  // 16'd1056  // 16'd1344  // 16'd1650
-  syn_gen_inst.io.I_h_sync := vp.H_SYNC.U(16.W)    // 16'd128   // 16'd136   // 16'd40
-  syn_gen_inst.io.I_h_bporch := vp.H_BACK.U(16.W)  // 16'd88    // 16'd160   // 16'd220
-  syn_gen_inst.io.I_h_res := vp.H_DISPLAY.U(16.W)  // 16'd800   // 16'd1024  // 16'd1280
-  syn_gen_inst.io.I_v_total := vp_V_TOTAL.U(16.W)  // 16'd628   // 16'd806   // 16'd750
-  syn_gen_inst.io.I_v_sync := vp.V_SYNC.U(16.W)    // 16'd4     // 16'd6     // 16'd5
-  syn_gen_inst.io.I_v_bporch := vp.V_BACK.U(16.W)  // 16'd23    // 16'd29    // 16'd20
-  syn_gen_inst.io.I_v_res := vp.V_DISPLAY.U(16.W)  // 16'd600   // 16'd768   // 16'd720
-  syn_gen_inst.io.I_rd_hres := rd_hres.U(16.W)
-  syn_gen_inst.io.I_rd_vres := rd_vres.U(16.W)
-  syn_gen_inst.io.I_hs_pol := "b1".U(1.W)   //HS polarity , 0:负极性，1：正极性
-  syn_gen_inst.io.I_vs_pol := "b1".U(1.W)   //VS polarity , 0:负极性，1：正极性
-  syn_off0_re := syn_gen_inst.io.O_rden
-  out_de := syn_gen_inst.io.O_de
-  syn_off0_hs := syn_gen_inst.io.O_hs
-  syn_off0_vs := syn_gen_inst.io.O_vs
+    val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
+    val syn_vs_pol = 1   //VS polarity , 0:负极性，1：正极性
+    val hv_sync = Module(new HVSync(vp))
+    val out_de = Wire(Bool())
+    val Rden_w = Wire(Bool())
+    val Rden_dn = RegInit(false.B)
+    Rden_w := ((hv_sync.io.hpos >= 0.U)&(hv_sync.io.hpos <= (rd_hres.U(16.W)-"b1".U(1.W))))&((hv_sync.io.vpos >= 0.U)&(hv_sync.io.vpos <= (rd_vres.U(16.W)-"b1".U(1.W))))
+    Rden_dn := Rden_w
+    syn_off0_re := Rden_dn
+    out_de := hv_sync.io.display_on
+    syn_off0_hs := Mux(syn_hs_pol.B,  ~hv_sync.io.hsync, hv_sync.io.hsync)
+    syn_off0_vs := Mux(syn_vs_pol.B,  ~hv_sync.io.vsync, hv_sync.io.vsync)
 
   val N = 5 //delay N clocks
 
