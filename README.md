@@ -39,7 +39,7 @@ sbt "runMain dkvideo.video_topGen noGowinDviTx"
 sh src/scripts/fix-verilog.sh
 ```
 
-Currently the fix-verilog.sh is used as workaround for clock mux and inout until a real solution is found.
+Currently the fix-verilog.sh is used as workaround for inout until a real solution is found.
 
 #### Generate the binary fs
 

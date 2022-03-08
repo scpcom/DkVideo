@@ -137,8 +137,9 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   //I_clk
 
   val g_cnt_vs = Wire(UInt(10.W))
+  val tp_pxl_clk = PIXCLK
 
-  withClockAndReset(I_clk, ~I_rst_n) {
+  withClockAndReset(tp_pxl_clk, ~I_rst_n) {
   val cnt_vs = RegInit(0.U(10.W))
   val run_cnt = RegInit(0.U(32.W))
   val vs_r = Reg(Bool())
@@ -168,7 +169,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   //===========================================================================
   //testpattern
   val testpattern_inst = Module(new testpattern)
-  testpattern_inst.io.I_pxl_clk := I_clk //pixel clock
+  testpattern_inst.io.I_pxl_clk := tp_pxl_clk //pixel clock
   testpattern_inst.io.I_rst_n := I_rst_n //low active
   testpattern_inst.io.I_mode := testpattern_inst_I_mode //data select
   testpattern_inst.io.I_single_r := 0.U(8.W)
@@ -198,7 +199,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   } .otherwise {
     cnt_vs := cnt_vs
   }
-  } // withClockAndReset(I_clk, ~I_rst_n)
+  } // withClockAndReset(tp_pxl_clk, ~I_rst_n)
 
  //==============================================================================
   withClockAndReset(PIXCLK, ~I_rst_n) {
@@ -230,7 +231,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
 
   //==============================================
   //data width 16bit   
-  ch0_vfb_clk_in := I_clk // Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
+  ch0_vfb_clk_in := tp_pxl_clk // Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
   ch0_vfb_vs_in := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, VSYNC) //negative
   ch0_vfb_de_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_de_in, HREF) //hcnt;
   ch0_vfb_data_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), Cat(tp0_data_r(7,3), tp0_data_g(7,2), tp0_data_b(7,3)), cam_data) // RGB565
