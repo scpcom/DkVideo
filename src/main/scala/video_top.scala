@@ -152,7 +152,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
     run_cnt := run_cnt+"b1".U(1.W)
   }
   running := (Mux((run_cnt < "d13_500_000".U(32.W)), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
-  O_led := running ## ~init_calib
+  O_led := ~init_calib ## running
   XCLK := clk_12M
   // NOTE: The following statements are auto generated due to the use of concatenation in port-map of instance testpattern_inst
   //       This default translation is very verbose, you may hence want to refactor it by:
