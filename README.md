@@ -16,6 +16,27 @@ We recommend LTS releases Java 8 and Java 11. You can install the JDK as recomme
 SBT is the most common built tool in the Scala community. You can download it [here](https://www.scala-sbt.org/download.html).  
 mill is another Scala/Java build tool without obscure DSL like SBT. You can download it [here](https://github.com/com-lihaoyi/mill/releases)
 
+#### Libraries
+
+To generate the core some additionnal Chisel libraries are required to be
+published locally:
+
+- [fpgamacro](https://github.com/Martoni/fpgamacro):
+
+```Shell
+$ git clone https://github.com/Martoni/fpgamacro
+$ cd fpgamacro
+$ sbt publishLocal
+```
+
+- [HdmiCore](https://github.com/Martoni/HdmiCore):
+
+```Shell
+$ git clone https://github.com/Martoni/HdmiCore
+$ cd HdmiCore
+$ sbt publishLocal
+```
+
 ### How to get started
 
 #### Clone this repository
