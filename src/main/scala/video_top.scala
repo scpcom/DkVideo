@@ -133,6 +133,19 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
 
   val clk_12M = Wire(Clock()) 
 
+  val TMDS_PLLVR_inst = Module(new TMDS_PLLVR)
+  TMDS_PLLVR_inst.io.clkin := I_clk //input clk
+  serial_clk := TMDS_PLLVR_inst.io.clkout //output clk
+  clk_12M := TMDS_PLLVR_inst.io.clkoutd //output clkoutd
+  pll_lock := TMDS_PLLVR_inst.io.lock //output lock
+  hdmi_rst_n := I_rst_n & pll_lock
+
+  val u_clkdiv = Module(new CLKDIV)
+  u_clkdiv.io.RESETN := hdmi_rst_n
+  u_clkdiv.io.HCLKIN := serial_clk //clk  x5
+  pix_clk := u_clkdiv.io.CLKOUT //clk  x1
+  u_clkdiv.io.CALIB := "b1".U(1.W)
+
   //===================================================
   //LED test
   //I_clk
@@ -140,7 +153,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   val g_cnt_vs = Wire(UInt(10.W))
   val tp_pxl_clk = PIXCLK
 
-  withClockAndReset(tp_pxl_clk, ~I_rst_n) {
+  withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
   val cnt_vs = RegInit(0.U(10.W))
   val run_cnt = RegInit(0.U(32.W))
   val vs_r = Reg(Bool())
@@ -186,7 +199,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   } // withClockAndReset(tp_pxl_clk, ~I_rst_n)
 
  //==============================================================================
-  withClockAndReset(PIXCLK, ~I_rst_n) {
+  withClockAndReset(PIXCLK, ~hdmi_rst_n) {
   val pixdata_d1 = RegInit(0.U(10.W))
   val hcnt = RegInit(false.B)
 
@@ -310,20 +323,6 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   rgb_vs := Pout_vs_dn(4) //syn_off0_vs;
   rgb_hs := Pout_hs_dn(4) //syn_off0_hs;
   rgb_de := Pout_de_dn(4) //off0_syn_de;
-
-
-  val TMDS_PLLVR_inst = Module(new TMDS_PLLVR)
-  TMDS_PLLVR_inst.io.clkin := I_clk //input clk 
-  serial_clk := TMDS_PLLVR_inst.io.clkout //output clk
-  clk_12M := TMDS_PLLVR_inst.io.clkoutd //output clkoutd
-  pll_lock := TMDS_PLLVR_inst.io.lock //output lock
-  hdmi_rst_n := I_rst_n & pll_lock
-
-  val u_clkdiv = Module(new CLKDIV)
-  u_clkdiv.io.RESETN := hdmi_rst_n
-  u_clkdiv.io.HCLKIN := serial_clk //clk  x5
-  pix_clk := u_clkdiv.io.CLKOUT //clk  x1
-  u_clkdiv.io.CALIB := "b1".U(1.W)
 
     /* HDMI interface */
     if(gowinDviTx){
