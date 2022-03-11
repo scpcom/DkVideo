@@ -2,8 +2,11 @@ package dkvideo
 package ov2640
 
 import chisel3._
+import chisel3.util.Cat
+import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
+import hdmicore.video.VideoParams
 
-class OV2640_Registers() extends Module {
+class OV2640_Registers(vp: VideoParams) extends Module {
   val io = IO(new Bundle {
     val clk = Input(Clock())
     val resend = Input(Bool())
@@ -16,6 +19,9 @@ class OV2640_Registers() extends Module {
   val sreg = Reg(UInt(16.W)) 
   val finished_temp = Wire(Bool()) 
   val address = RegInit(UInt(9.W), (VecInit.tabulate(9)(_ => false.B)).asUInt) 
+
+  val rd_hres = vp.H_DISPLAY.U(12.W) // 800.U(12.W)
+  val rd_vres = vp.V_DISPLAY.U(12.W) // 600.U(12.W)
 
   // Assign values to outputs
   io.command := sreg
@@ -408,11 +414,11 @@ class OV2640_Registers() extends Module {
   } .elsewhen (address === 183.U) {
     sreg := "h05_01".U(16.W)
   } .elsewhen (address === 184.U) {
-    sreg := "h5A_C8".U(16.W) //(w>>2)&0xFF	//28:w=160 //A0:w=640 //C8:w=800
+    sreg := Cat("h5A".U(8.W), rd_hres(9,2)) //(w>>2)&0xFF	//28:w=160 //A0:w=640 //C8:w=800
   } .elsewhen (address === 185.U) {
-    sreg := "h5B_96".U(16.W) //(h>>2)&0xFF	//1E:h=120 //78:h=480 //96:h=600
+    sreg := Cat("h5B".U(8.W), rd_vres(9,2)) //(h>>2)&0xFF	//1E:h=120 //78:h=480 //96:h=600
   } .elsewhen (address === 186.U) {
-    sreg := "h5C_00".U(16.W) //((h>>8)&0x04)|((w>>10)&0x03)		
+    sreg := Cat("h5C".U(8.W), 0.U(5.W) ## rd_vres(10) ## rd_hres(11,10)) //((h>>8)&0x04)|((w>>10)&0x03)
   } .elsewhen (address === 187.U) {
     sreg := "hFF_01".U(16.W)
   } .elsewhen (address === 188.U) {
@@ -458,19 +464,19 @@ class OV2640_Registers() extends Module {
   } .elsewhen (address === 208.U) {
     sreg := "hE0_04".U(16.W)
   } .elsewhen (address === 209.U) {
-    sreg := "hC0_64".U(16.W) /* Image Horizontal Size 0x51[10:3] */ //11_0010_0000 = 800
+    sreg := Cat("hC0".U(8.W), rd_hres(10,3)) /* Image Horizontal Size 0x51[10:3] */ //11_0010_0000 = 800
   } .elsewhen (address === 210.U) {
-    sreg := "hC1_4B".U(16.W) /* Image Vertiacl Size 0x52[10:3] */ //10_0101_1000 = 600   
+    sreg := Cat("hC1".U(8.W), rd_vres(10,3)) /* Image Vertiacl Size 0x52[10:3] */ //10_0101_1000 = 600
   } .elsewhen (address === 211.U) {
-    sreg := "h8C_00".U(16.W) /* {0x51[11], 0x51[2:0], 0x52[2:0]} */
+    sreg := Cat("h8C".U(8.W), 0.U(1.W) ## rd_hres(11) ## rd_hres(2,0) ## rd_vres(2,0)) /* {0x51[11], 0x51[2:0], 0x52[2:0]} */
   } .elsewhen (address === 212.U) {
     sreg := "h53_00".U(16.W) /* OFFSET_X[7:0] */
   } .elsewhen (address === 213.U) {
     sreg := "h54_00".U(16.W) /* OFFSET_Y[7:0] */
   } .elsewhen (address === 214.U) {
-    sreg := "h51_C8".U(16.W) /* H_SIZE[7:0]= 0x51/4 */ //200
+    sreg := Cat("h51".U(8.W), rd_hres(9,2)) /* H_SIZE[7:0]= 0x51/4 */ //200
   } .elsewhen (address === 215.U) {
-    sreg := "h52_96".U(16.W) /* V_SIZE[7:0]= 0x52/4 */ //150       
+    sreg := Cat("h52".U(8.W), rd_vres(9,2)) /* V_SIZE[7:0]= 0x52/4 */ //150
   } .elsewhen (address === 216.U) {
     sreg := "h55_00".U(16.W) /* V_SIZE[8]/OFFSET_Y[10:8]/H_SIZE[8]/OFFSET_X[10:8] */
   } .elsewhen (address === 217.U) {

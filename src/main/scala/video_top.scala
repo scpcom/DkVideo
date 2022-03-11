@@ -63,8 +63,14 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
       V_BOTTOM = 20)
   val vp_H_TOTAL = vp.H_DISPLAY+vp.H_FRONT+vp.H_SYNC+vp.H_BACK
   val vp_V_TOTAL = vp.V_DISPLAY+vp.V_TOP+vp.V_SYNC+vp.V_BOTTOM
-  val rd_hres = 800
-  val rd_vres = 600
+  val rd_vp = VideoParams(
+      H_DISPLAY = 800, H_FRONT = 110,
+      H_SYNC = 40, H_BACK = 220,
+      V_SYNC = 5,  V_BACK = 20,
+      V_TOP = 5, V_DISPLAY = 600,
+      V_BOTTOM = 20)
+  val rd_hres = rd_vp.H_DISPLAY // 800
+  val rd_vres = rd_vp.V_DISPLAY // 600
   val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
   val syn_vs_pol = 1   //VS polarity , 0:负极性，1：正极性
 
@@ -203,7 +209,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   val pixdata_d1 = RegInit(0.U(10.W))
   val hcnt = RegInit(false.B)
 
-  val u_OV2640_Controller = Module(new OV2640_Controller)
+  val u_OV2640_Controller = Module(new OV2640_Controller(rd_vp))
   u_OV2640_Controller.clock := clk_12M
   u_OV2640_Controller.io.clk := clk_12M // 24Mhz clock signal
   u_OV2640_Controller.io.resend := "b0".U(1.W) // Reset signal

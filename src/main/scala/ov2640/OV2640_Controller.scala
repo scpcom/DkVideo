@@ -2,8 +2,9 @@ package dkvideo
 package ov2640
 
 import chisel3._
+import hdmicore.video.VideoParams
 
-class OV2640_Controller() extends Module {
+class OV2640_Controller(vp: VideoParams) extends Module {
   val io = IO(new Bundle {
     val clk = Input(Clock()) // 50Mhz clock signal
     val resend = Input(Bool()) // Reset signal
@@ -32,8 +33,8 @@ class OV2640_Controller() extends Module {
   send :=  ~finished
 
   // Create an instance of a LUT table 
-  val LUT = Module(new OV2640_Registers) // 50Mhz clock signal
-  LUT.io.clk := io.clk
+  val LUT = Module(new OV2640_Registers(vp))
+  LUT.io.clk := io.clk // 50Mhz clock signal
   LUT.io.advance := taken // Flag to advance to next register
   command := LUT.io.command // register value and data for OV2640
   finished := LUT.io.finished // Flag to indicate the configuration is finshed
