@@ -301,7 +301,10 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
     val out_de = Wire(Bool())
     val Rden_w = Wire(Bool())
     val Rden_dn = RegInit(false.B)
-    Rden_w := ((hv_sync.io.hpos >= 0.U)&(hv_sync.io.hpos <= (rd_hres.U(16.W)-"b1".U(1.W))))&((hv_sync.io.vpos >= 0.U)&(hv_sync.io.vpos <= (rd_vres.U(16.W)-"b1".U(1.W))))
+    val rd_hofs = ((vp.H_DISPLAY-rd_hres)/2).U(12.W)
+    val rd_vofs = 0.U
+    Rden_w := (hv_sync.io.hpos >= rd_hofs) && (hv_sync.io.hpos < (rd_hofs+rd_hres.U(12.W))) &&
+              (hv_sync.io.vpos >= rd_vofs) && (hv_sync.io.vpos < (rd_vofs+rd_vres.U(12.W)))
     Rden_dn := Rden_w
     syn_off0_re := Rden_dn
     out_de := hv_sync.io.display_on
