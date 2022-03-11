@@ -106,9 +106,9 @@ class testpattern(vp: VideoParams) extends Module {
   //Generate HS, VS, DE signals
 
   val hv_sync = Module(new HVSync(vp))
-  Pout_de_w := ((hv_sync.io.hpos >= 0.U)&(hv_sync.io.hpos <= (io.I_rd_hres-"b1".U(1.W))))&((hv_sync.io.vpos >= 0.U)&(hv_sync.io.vpos <= (io.I_rd_vres-"b1".U(1.W))))
-  Pout_hs_w :=  hv_sync.io.hsync
-  Pout_vs_w :=  hv_sync.io.vsync
+  Pout_de_w := (hv_sync.io.hpos < io.I_rd_hres)&(hv_sync.io.vpos < io.I_rd_vres)
+  Pout_hs_w := hv_sync.io.hsync
+  Pout_vs_w := hv_sync.io.vsync
 
   //-------------------------------------------------------------
 
