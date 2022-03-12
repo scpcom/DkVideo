@@ -8,10 +8,10 @@ import hdmicore.video.{VideoParams, HVSync}
 // File name         : testpattern.v
 // Module name       : testpattern
 // Created by        : Caojie
-// Module Description: 
-//						I_mode[2:0] = "000" : color bar     
-//						I_mode[2:0] = "001" : net grid     
-//						I_mode[2:0] = "010" : gray         
+// Module Description:
+//						I_mode[2:0] = "000" : color bar
+//						I_mode[2:0] = "001" : net grid
+//						I_mode[2:0] = "010" : gray
 //						I_mode[2:0] = "011" : single color
 // ---------------------------------------------------------------------
 // Release history
@@ -56,18 +56,18 @@ class testpattern(vp: VideoParams) extends Module {
   val V_cnt = RegInit(0.U(12.W))
   val H_cnt = RegInit(0.U(12.W))
 
-  val Pout_de_w = Wire(Bool()) 
-  val Pout_hs_w = Wire(Bool()) 
-  val Pout_vs_w = Wire(Bool()) 
+  val Pout_de_w = Wire(Bool())
+  val Pout_hs_w = Wire(Bool())
+  val Pout_vs_w = Wire(Bool())
 
   val Pout_de_dn = RegInit(0.U(N.W))
   val Pout_hs_dn = RegInit(1.U(N.W))
   val Pout_vs_dn = RegInit(1.U(N.W))
 
   //----------------------------
-  val De_pos = Wire(Bool()) 
-  val De_neg = Wire(Bool()) 
-  val Vs_pos = Wire(Bool()) 
+  val De_pos = Wire(Bool())
+  val De_neg = Wire(Bool())
+  val Vs_pos = Wire(Bool())
 
   val De_vcnt = RegInit(0.U(12.W))
   val De_hcnt = RegInit(0.U(12.W))
@@ -94,10 +94,10 @@ class testpattern(vp: VideoParams) extends Module {
   val Gray_d1 = RegInit(0.U(24.W))
 
   //-----------------------------
-  val Single_color = Wire(UInt(24.W)) 
+  val Single_color = Wire(UInt(24.W))
 
   //-------------------------------
-  val Data_sel = Wire(UInt(24.W)) 
+  val Data_sel = Wire(UInt(24.W))
 
   //-------------------------------
   val Data_tmp = RegInit(0.U(24.W))  /*synthesis syn_keep=1*/
