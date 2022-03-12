@@ -63,6 +63,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
       V_BOTTOM = 20)
   val vp_H_TOTAL = vp.H_DISPLAY+vp.H_FRONT+vp.H_SYNC+vp.H_BACK
   val vp_V_TOTAL = vp.V_DISPLAY+vp.V_TOP+vp.V_SYNC+vp.V_BOTTOM
+  /* set val rd_vp = vp for full screen */
   val rd_vp = VideoParams(
       H_DISPLAY = 800, H_FRONT = 110,
       H_SYNC = 40, H_BACK = 220,
@@ -213,6 +214,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   u_OV2640_Controller.clock := clk_12M
   u_OV2640_Controller.io.clk := clk_12M // 24Mhz clock signal
   u_OV2640_Controller.io.resend := "b0".U(1.W) // Reset signal
+  u_OV2640_Controller.io.mode := "h04".U(8.W) // 08:RGB565  04:RAW10
   // Flag to indicate that the configuration is finished
   SCL := u_OV2640_Controller.io.sioc // SCCB interface - clock signal
   SDA := u_OV2640_Controller.io.siod // SCCB interface - data signal

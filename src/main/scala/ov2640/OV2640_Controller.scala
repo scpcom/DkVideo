@@ -8,6 +8,7 @@ class OV2640_Controller(vp: VideoParams) extends Module {
   val io = IO(new Bundle {
     val clk = Input(Clock()) // 50Mhz clock signal
     val resend = Input(Bool()) // Reset signal
+    val mode = Input(UInt(8.W))
     val config_finished = Output(Bool()) // Flag to indicate that the configuration is finished
     val sioc = Output(Bool()) // SCCB interface - clock signal
     val siod = Output(Bool()) // Inout SCCB interface - data signal
@@ -36,6 +37,7 @@ class OV2640_Controller(vp: VideoParams) extends Module {
   val LUT = Module(new OV2640_Registers(vp))
   LUT.io.clk := io.clk // 50Mhz clock signal
   LUT.io.advance := taken // Flag to advance to next register
+  LUT.io.mode := io.mode
   command := LUT.io.command // register value and data for OV2640
   finished := LUT.io.finished // Flag to indicate the configuration is finshed
   LUT.io.resend := io.resend // Re-configure flag for OV2640
