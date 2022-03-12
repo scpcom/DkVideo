@@ -209,8 +209,9 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
  //==============================================================================
   withClockAndReset(PIXCLK, ~hdmi_rst_n) {
   val pixdata_d1 = RegInit(0.U(10.W))
+  val pixdata_d2 = RegInit(0.U(10.W))
   val hcnt = RegInit(false.B)
-  val cam_mode = "h04".U(8.W) // 08:RGB565  04:RAW10
+  val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
   val u_OV2640_Controller = Module(new OV2640_Controller(rd_vp))
   u_OV2640_Controller.clock := clk_12M
@@ -223,9 +224,13 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   // RESET signal for OV7670
   // PWDN signal for OV7670
   //I_clk
-  pixdata_d1 := PIXDATA
-
   when (HREF) {
+    when (!hcnt) {
+      pixdata_d1 := PIXDATA
+    } .otherwise {
+      pixdata_d2 := PIXDATA
+    }
+
     hcnt :=  ~hcnt
   } .otherwise {
     hcnt := false.B
@@ -233,7 +238,8 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
 
     when (cam_mode === "h08".U(8.W)) {
       //cam_data := Cat(pixdata_d1(9,5),pixdata_d1(4,2),PIXDATA(9,7),PIXDATA(6,2)) //RGB565
-      cam_data := Cat(PIXDATA(9,5),PIXDATA(4,2),pixdata_d1(9,7),pixdata_d1(6,2)) //RGB565
+      //cam_data := Cat(PIXDATA(9,5),PIXDATA(4,2),pixdata_d1(9,7),pixdata_d1(6,2)) //RGB565
+      cam_data := Cat(pixdata_d1(9,5), pixdata_d1(4,2) ## pixdata_d2(9,7), pixdata_d2(6,2))
       cam_de_in := hcnt
     } .otherwise {
       cam_data := Cat(PIXDATA(9,5), PIXDATA(9,4), PIXDATA(9,5)) //RAW10
