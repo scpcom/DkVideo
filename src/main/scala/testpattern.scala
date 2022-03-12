@@ -71,8 +71,6 @@ class testpattern(vp: VideoParams) extends Module {
 
   val De_vcnt = RegInit(0.U(12.W))
   val De_hcnt = RegInit(0.U(12.W))
-  /*val De_hcnt_d1 = Wire(UInt(12.W))
-  val De_hcnt_d2 = Wire(UInt(12.W))*/
 
   //-------------------------
   //Color bar //8ɫ����
