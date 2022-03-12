@@ -18,7 +18,7 @@ import ov2640.OV2640_Controller
 // =  Copyright (C) 2014-2020 Gowin Semiconductor Technology Co.,Ltd.
 // =                     All rights reserved.
 // ====================================================================================
-// 
+//
 //  __      __      __
 //  \ \    /  \    / /   [File name   ] video_top.v
 //   \ \  / /\ \  / /    [Description ] Video demo
@@ -31,7 +31,7 @@ import ov2640.OV2640_Controller
 // ----------------------------------------------------------------------------------
 // Ver:    |  Author    | Mod. Date    | Changes Made:
 // ----------------------------------------------------------------------------------
-// V1.0    | Caojie     | 11/22/19     | Initial version 
+// V1.0    | Caojie     | 11/22/19     | Initial version
 // ----------------------------------------------------------------------------------
 // ==============0ooo===================================================0ooo===========
 
@@ -75,34 +75,34 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
   val syn_vs_pol = 1   //VS polarity , 0:负极性，1：正极性
 
-  val running = Wire(Bool()) 
+  val running = Wire(Bool())
 
   //--------------------------
-  val tp0_vs_in = Wire(Bool()) 
-  val tp0_hs_in = Wire(Bool()) 
-  val tp0_de_in = Wire(Bool()) 
+  val tp0_vs_in = Wire(Bool())
+  val tp0_hs_in = Wire(Bool())
+  val tp0_de_in = Wire(Bool())
   val tp0_data_r = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
   val tp0_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
   val tp0_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
 
   //--------------------------
-  val cam_data = Wire(UInt(16.W)) 
+  val cam_data = Wire(UInt(16.W))
   val cam_de_in = Wire(Bool())
 
   //-------------------------
   //frame buffer in
-  val ch0_vfb_clk_in = Wire(Clock()) 
-  val ch0_vfb_vs_in = Wire(Bool()) 
-  val ch0_vfb_de_in = Wire(Bool()) 
-  val ch0_vfb_data_in = Wire(UInt(16.W)) 
+  val ch0_vfb_clk_in = Wire(Clock())
+  val ch0_vfb_vs_in = Wire(Bool())
+  val ch0_vfb_de_in = Wire(Bool())
+  val ch0_vfb_data_in = Wire(UInt(16.W))
 
   //-------------------
   //syn_code
   val syn_off0_re = Wire(Bool())  // ofifo read enable signal
-  val syn_off0_vs = Wire(Bool()) 
-  val syn_off0_hs = Wire(Bool()) 
+  val syn_off0_vs = Wire(Bool())
+  val syn_off0_hs = Wire(Bool())
 
-  val off0_syn_de = Wire(Bool()) 
+  val off0_syn_de = Wire(Bool())
   val off0_syn_data = Wire(UInt(16.W))
 
   //-------------------------------------
@@ -110,36 +110,36 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   val dma_clk = Wire(Clock())
 
   val memory_clk = Wire(Clock())
-  val mem_pll_lock = Wire(Bool()) 
+  val mem_pll_lock = Wire(Bool())
 
   //-------------------------------------------------
   //memory interface
-  val cmd = Wire(Bool()) 
-  val cmd_en = Wire(Bool()) 
+  val cmd = Wire(Bool())
+  val cmd_en = Wire(Bool())
   val addr = Wire(UInt(22.W))  //[ADDR_WIDTH-1:0]
   val wr_data = Wire(UInt(32.W))  //[DATA_WIDTH-1:0]
-  val data_mask = Wire(UInt(4.W)) 
-  val rd_data_valid = Wire(Bool()) 
+  val data_mask = Wire(UInt(4.W))
+  val rd_data_valid = Wire(Bool())
   val rd_data = Wire(UInt(32.W))  //[DATA_WIDTH-1:0]
-  val init_calib = Wire(Bool()) 
+  val init_calib = Wire(Bool())
 
   //------------------------------------------
   //rgb data
-  val rgb_vs = Wire(Bool()) 
-  val rgb_hs = Wire(Bool()) 
-  val rgb_de = Wire(Bool()) 
+  val rgb_vs = Wire(Bool())
+  val rgb_hs = Wire(Bool())
+  val rgb_de = Wire(Bool())
   val rgb_data = Wire(UInt(24.W))
 
   //------------------------------------
   //HDMI TX
   val serial_clk = Wire(Clock())
-  val pll_lock = Wire(Bool()) 
+  val pll_lock = Wire(Bool())
 
-  val hdmi_rst_n = Wire(Bool()) 
+  val hdmi_rst_n = Wire(Bool())
 
   val pix_clk = Wire(Clock())
 
-  val clk_12M = Wire(Clock()) 
+  val clk_12M = Wire(Clock())
 
   val TMDS_PLLVR_inst = Module(new TMDS_PLLVR)
   TMDS_PLLVR_inst.io.clkin := I_clk //input clk
@@ -248,7 +248,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   } //withClockAndReset(PIXCLK, ~I_rst_n)
 
   //==============================================
-  //data width 16bit   
+  //data width 16bit
   ch0_vfb_clk_in := tp_pxl_clk // Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
   ch0_vfb_vs_in := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, VSYNC) //negative
   ch0_vfb_de_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_de_in, cam_de_in) //HREF or hcnt
@@ -256,23 +256,23 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
 
   // assign ch0_vfb_clk_in  = PIXCLK;
   // assign ch0_vfb_vs_in   = VSYNC;  //negative
-  // assign ch0_vfb_de_in   = HREF;//hcnt;  
+  // assign ch0_vfb_de_in   = HREF;//hcnt;
   // assign ch0_vfb_data_in = cam_data; // RGB565
 
 
   //=====================================================
-  //SRAM 控制模块 
+  //SRAM 控制模块
   val Video_Frame_Buffer_Top_inst = Module(new Video_Frame_Buffer_Top)
   Video_Frame_Buffer_Top_inst.io.I_rst_n := init_calib //rst_n            ),
   Video_Frame_Buffer_Top_inst.io.I_dma_clk := dma_clk //sram_clk         ),
   Video_Frame_Buffer_Top_inst.io.I_wr_halt := 0.U(1.W) //1:halt,  0:no halt
   Video_Frame_Buffer_Top_inst.io.I_rd_halt := 0.U(1.W) //1:halt,  0:no halt
-  // video data input           
+  // video data input
   Video_Frame_Buffer_Top_inst.io.I_vin0_clk := ch0_vfb_clk_in
   Video_Frame_Buffer_Top_inst.io.I_vin0_vs_n := ch0_vfb_vs_in
   Video_Frame_Buffer_Top_inst.io.I_vin0_de := ch0_vfb_de_in
   Video_Frame_Buffer_Top_inst.io.I_vin0_data := ch0_vfb_data_in
-  // video data output          
+  // video data output
   Video_Frame_Buffer_Top_inst.io.I_vout0_clk := pix_clk
   Video_Frame_Buffer_Top_inst.io.I_vout0_vs_n :=  ~syn_off0_vs
   Video_Frame_Buffer_Top_inst.io.I_vout0_de := syn_off0_re
