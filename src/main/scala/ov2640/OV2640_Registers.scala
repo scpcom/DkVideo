@@ -17,9 +17,9 @@ class OV2640_Registers(vp: VideoParams) extends Module {
   })
 
   // Internal signals
-  val sreg = Reg(UInt(16.W)) 
-  val finished_temp = Wire(Bool()) 
-  val address = RegInit(UInt(9.W), (VecInit.tabulate(9)(_ => false.B)).asUInt) 
+  val sreg = Reg(UInt(16.W))
+  val finished_temp = Wire(Bool())
+  val address = RegInit(UInt(9.W), (VecInit.tabulate(9)(_ => false.B)).asUInt)
 
   val rd_hres = vp.H_DISPLAY.U(12.W) // 800.U(12.W)
   val rd_vres = vp.V_DISPLAY.U(12.W) // 600.U(12.W)
@@ -513,7 +513,7 @@ class OV2640_Registers(vp: VideoParams) extends Module {
   } .otherwise {
     sreg := "hFF_FF".U(16.W) // End configuration
   }
-/*   
+/*
    // Get value out of the LUT
    always @ (posedge clk) begin
        if(resend == 1) begin           // reset the configuration
@@ -522,8 +522,8 @@ class OV2640_Registers(vp: VideoParams) extends Module {
        else if(io.advance == 1) begin     // Get the next value
            address <= address+1'b1;
        end
-          
-       case (address) 
+
+       case (address)
          000 : sreg <= 16'hFF_01;
          001 : sreg <= 16'hFF_01;
          002 : sreg <= 16'h12_80;
@@ -790,8 +790,8 @@ class OV2640_Registers(vp: VideoParams) extends Module {
 		  261 : sreg <= 16'hE1_77;
 		  262 : sreg <= 16'hE0_00;
          default : sreg <= 16'hFF_FF;    // End configuration
-       endcase         
-                       
-   end 
+       endcase
+
+   end
 */
 }

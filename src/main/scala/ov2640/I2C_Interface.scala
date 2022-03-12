@@ -36,8 +36,8 @@ class I2C_Interface(
   val busy_sr = RegInit(UInt(32.W), (VecInit.tabulate(32)(_ => false.B)).asUInt)
   val data_sr = RegInit(UInt(32.W), (VecInit.tabulate(32)(_ => true.B)).asUInt)
   val sioc_temp = RegInit(false.B)
-  val taken_temp = Reg(Bool()) 
-  val siod_temp = Wire(Bool()) 
+  val taken_temp = Reg(Bool())
+  val siod_temp = Wire(Bool())
 
   // ID of an OV7670 for SCCB protocol
   val id: UInt = SID //8'h42;
@@ -55,17 +55,17 @@ class I2C_Interface(
   }
   taken_temp := false.B
 
-    // If all 31 bits are transmitted 
+    // If all 31 bits are transmitted
   when(busy_sr(31) === false.B) {
     // Assert SIOC high for starting new transmission
     sioc_temp := true.B
 
-      // If New data is arrived from LUT 
+      // If New data is arrived from LUT
     when(io.send === true.B) {
       when(divider === "b00000000".U(8.W)) {
         // Create an data to send through the data signal of the SCCB        // The data is created using 3-phase write transmission cycle of SCCB protocol
         //
-        // Data:  
+        // Data:
         // 3'b100 --> SIOD will go from 1 to 0 to indicate a start transmission
         //            the last bit is an don't care bit
         // id     --> the ID of a slave (8'h42). The last bit of the slave is 0 inidicate a write transaction
@@ -113,7 +113,7 @@ class I2C_Interface(
 
     } .elsewhen (Cat(busy_sr(31,29), busy_sr(2,0)) === "b111_100".U(6.W)) { // bit 29th of data_sr is transmitted (don't care bit)
       when(divider(7,6) === "b00".U(2.W)) { // --> SIOD goes from tri-state to high, then high to low
-        sioc_temp := false.B //     after SIOC goes from high to low 
+        sioc_temp := false.B //     after SIOC goes from high to low
       } .elsewhen (divider(7,6) === "b01".U(2.W)) {
         sioc_temp := false.B // --> Ready for first transmission from Master to Slave
       } .elsewhen (divider(7,6) === "b10".U(2.W)) {
@@ -149,7 +149,7 @@ class I2C_Interface(
       when(divider(7,6) === "b00".U(2.W)) { // SIOD is high
         sioc_temp := true.B // --> SIOD goes from low to high while SIOC is high
       } .elsewhen (divider(7,6) === "b01".U(2.W)) {
-        sioc_temp := true.B // --> complete STOP condition for SCCB protocol    
+        sioc_temp := true.B // --> complete STOP condition for SCCB protocol
       } .elsewhen (divider(7,6) === "b10".U(2.W)) {
         sioc_temp := true.B
       } .otherwise {

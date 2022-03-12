@@ -18,9 +18,9 @@ class OV2640_Controller(vp: VideoParams) extends Module {
 
   // Internal signals
   val command = Wire(UInt(16.W))
-  val finished = Wire(Bool()) 
-  val taken = Wire(Bool()) 
-  val send = WireDefault(Bool(), false.B) 
+  val finished = Wire(Bool())
+  val taken = Wire(Bool())
+  val send = WireDefault(Bool(), false.B)
 
   // Signal for testing
   io.config_finished := finished
@@ -33,7 +33,7 @@ class OV2640_Controller(vp: VideoParams) extends Module {
 
   send :=  ~finished
 
-  // Create an instance of a LUT table 
+  // Create an instance of a LUT table
   val LUT = Module(new OV2640_Registers(vp))
   LUT.io.clk := io.clk // 50Mhz clock signal
   LUT.io.advance := taken // Flag to advance to next register
