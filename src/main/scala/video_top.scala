@@ -154,88 +154,90 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   pix_clk := u_clkdiv.io.CLKOUT //clk  x1
   u_clkdiv.io.CALIB := "b1".U(1.W)
 
-  //===================================================
-  //LED test
+  XCLK := clk_12M
+
+  //============================================================================
   //I_clk
 
   val g_cnt_vs = Wire(UInt(10.W))
   val tp_pxl_clk = PIXCLK
 
   withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
-  val cnt_vs = RegInit(0.U(10.W))
-  val run_cnt = RegInit(0.U(32.W))
-  val vs_r = Reg(Bool())
+    val cnt_vs = RegInit(0.U(10.W))
+    val run_cnt = RegInit(0.U(32.W))
+    val vs_r = Reg(Bool())
 
-  g_cnt_vs := cnt_vs
+    g_cnt_vs := cnt_vs
 
-  when (run_cnt >= "d27_000_000".U(32.W)) {
-    run_cnt := 0.U(32.W)
-  } .otherwise {
-    run_cnt := run_cnt+"b1".U(1.W)
-  }
-  running := (Mux((run_cnt < "d13_500_000".U(32.W)), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
-  O_led := ~init_calib ## running
-  XCLK := clk_12M
+    //========================================================================
+    //LED test
+    when (run_cnt >= "d27_000_000".U(32.W)) {
+      run_cnt := 0.U(32.W)
+    } .otherwise {
+      run_cnt := run_cnt+"b1".U(1.W)
+    }
+    running := (Mux((run_cnt < "d13_500_000".U(32.W)), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
+    O_led := ~init_calib ## running
 
-  //===========================================================================
-  //testpattern
-  val testpattern_inst = Module(new testpattern(vp))
-  testpattern_inst.io.I_pxl_clk := tp_pxl_clk //pixel clock
-  testpattern_inst.io.I_rst_n := I_rst_n //low active
-  testpattern_inst.io.I_mode := 0.U(1.W) ## cnt_vs(7,6) //data select
-  testpattern_inst.io.I_single_r := 0.U(8.W)
-  testpattern_inst.io.I_single_g := 255.U(8.W)
-  testpattern_inst.io.I_single_b := 0.U(8.W)                             //800x600    //1024x768   //1280x720
-  testpattern_inst.io.I_rd_hres := rd_hres.U(12.W)     //hor resolution  // 16'd800   // 16'd1024  // 16'd1280
-  testpattern_inst.io.I_rd_vres := rd_vres.U(12.W)     //ver resolution  // 16'd600   // 16'd768   // 16'd720
-  testpattern_inst.io.I_hs_pol := syn_hs_pol.U(1.W)    //HS polarity , 0:negetive ploarity，1：positive polarity
-  testpattern_inst.io.I_vs_pol := syn_vs_pol.U(1.W)    //VS polarity , 0:negetive ploarity，1：positive polarity
-  tp0_de_in := testpattern_inst.io.O_de
-  tp0_hs_in := testpattern_inst.io.O_hs
-  tp0_vs_in := testpattern_inst.io.O_vs
-  tp0_data_r := testpattern_inst.io.O_data_r
-  tp0_data_g := testpattern_inst.io.O_data_g
-  tp0_data_b := testpattern_inst.io.O_data_b
-  vs_r := tp0_vs_in
-  when (cnt_vs === "h3ff".U(10.W)) {
-    cnt_vs := cnt_vs
-  } .elsewhen (vs_r && ( !tp0_vs_in)) { //vs24 falling edge
-    cnt_vs := cnt_vs+"b1".U(1.W)
-  } .otherwise {
-    cnt_vs := cnt_vs
-  }
+    //========================================================================
+    //testpattern
+    val testpattern_inst = Module(new testpattern(vp))
+    testpattern_inst.io.I_pxl_clk := tp_pxl_clk //pixel clock
+    testpattern_inst.io.I_rst_n := I_rst_n //low active
+    testpattern_inst.io.I_mode := 0.U(1.W) ## cnt_vs(7,6) //data select
+    testpattern_inst.io.I_single_r := 0.U(8.W)
+    testpattern_inst.io.I_single_g := 255.U(8.W)
+    testpattern_inst.io.I_single_b := 0.U(8.W)                             //800x600    //1024x768   //1280x720
+    testpattern_inst.io.I_rd_hres := rd_hres.U(12.W)     //hor resolution  // 16'd800   // 16'd1024  // 16'd1280
+    testpattern_inst.io.I_rd_vres := rd_vres.U(12.W)     //ver resolution  // 16'd600   // 16'd768   // 16'd720
+    testpattern_inst.io.I_hs_pol := syn_hs_pol.U(1.W)    //HS polarity , 0:negetive ploarity，1：positive polarity
+    testpattern_inst.io.I_vs_pol := syn_vs_pol.U(1.W)    //VS polarity , 0:negetive ploarity，1：positive polarity
+    tp0_de_in := testpattern_inst.io.O_de
+    tp0_hs_in := testpattern_inst.io.O_hs
+    tp0_vs_in := testpattern_inst.io.O_vs
+    tp0_data_r := testpattern_inst.io.O_data_r
+    tp0_data_g := testpattern_inst.io.O_data_g
+    tp0_data_b := testpattern_inst.io.O_data_b
+    vs_r := tp0_vs_in
+    when (cnt_vs === "h3ff".U(10.W)) {
+      cnt_vs := cnt_vs
+    } .elsewhen (vs_r && ( !tp0_vs_in)) { //vs24 falling edge
+      cnt_vs := cnt_vs+"b1".U(1.W)
+    } .otherwise {
+      cnt_vs := cnt_vs
+    }
   } // withClockAndReset(tp_pxl_clk, ~I_rst_n)
 
- //==============================================================================
+  //============================================================================
   withClockAndReset(PIXCLK, ~hdmi_rst_n) {
-  val pixdata_d1 = RegInit(0.U(10.W))
-  val pixdata_d2 = RegInit(0.U(10.W))
-  val hcnt = RegInit(false.B)
-  val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
+    val pixdata_d1 = RegInit(0.U(10.W))
+    val pixdata_d2 = RegInit(0.U(10.W))
+    val hcnt = RegInit(false.B)
+    val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
-  val u_OV2640_Controller = Module(new OV2640_Controller(rd_vp))
-  u_OV2640_Controller.clock := clk_12M
-  u_OV2640_Controller.io.clk := clk_12M // 24Mhz clock signal
-  u_OV2640_Controller.io.resend := "b0".U(1.W) // Reset signal
-  u_OV2640_Controller.io.mode := cam_mode // 08:RGB565  04:RAW10
-  //u_OV2640_Controller.io.config_finished := () // Flag to indicate that the configuration is finished
-  SCL := u_OV2640_Controller.io.sioc // SCCB interface - clock signal
-  SDA := u_OV2640_Controller.io.siod // SCCB interface - data signal
-  //u_OV2640_Controller.io.reset := () // RESET signal for OV7670
-  //u_OV2640_Controller.io.pwdn := () // PWDN signal for OV7670
+    val u_OV2640_Controller = Module(new OV2640_Controller(rd_vp))
+    u_OV2640_Controller.clock := clk_12M
+    u_OV2640_Controller.io.clk := clk_12M // 24Mhz clock signal
+    u_OV2640_Controller.io.resend := "b0".U(1.W) // Reset signal
+    u_OV2640_Controller.io.mode := cam_mode // 08:RGB565  04:RAW10
+    //u_OV2640_Controller.io.config_finished := () // Flag to indicate that the configuration is finished
+    SCL := u_OV2640_Controller.io.sioc // SCCB interface - clock signal
+    SDA := u_OV2640_Controller.io.siod // SCCB interface - data signal
+    //u_OV2640_Controller.io.reset := () // RESET signal for OV7670
+    //u_OV2640_Controller.io.pwdn := () // PWDN signal for OV7670
 
-  //I_clk
-  when (HREF) {
-    when (!hcnt) {
-      pixdata_d1 := PIXDATA
+    //I_clk
+    when (HREF) {
+      when (!hcnt) {
+        pixdata_d1 := PIXDATA
+      } .otherwise {
+        pixdata_d2 := PIXDATA
+      }
+
+      hcnt :=  ~hcnt
     } .otherwise {
-      pixdata_d2 := PIXDATA
+      hcnt := false.B
     }
-
-    hcnt :=  ~hcnt
-  } .otherwise {
-    hcnt := false.B
-  }
 
     when (cam_mode === "h08".U(8.W)) {
       //cam_data := Cat(pixdata_d1(9,5),pixdata_d1(4,2),PIXDATA(9,7),PIXDATA(6,2)) //RGB565
@@ -248,7 +250,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
     }
   } //withClockAndReset(PIXCLK, ~I_rst_n)
 
-  //==============================================
+  //================================================
   //data width 16bit
   ch0_vfb_clk_in := tp_pxl_clk // Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
   ch0_vfb_vs_in := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, VSYNC) //negative
@@ -261,7 +263,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   // assign ch0_vfb_data_in = cam_data; // RGB565
 
 
-  //=====================================================
+  //================================================
   //SRAM 控制模块
   val Video_Frame_Buffer_Top_inst = Module(new Video_Frame_Buffer_Top)
   Video_Frame_Buffer_Top_inst.io.I_rst_n := init_calib //rst_n            ),
@@ -289,7 +291,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   Video_Frame_Buffer_Top_inst.io.I_rd_data := rd_data //[DATA_WIDTH-1:0]
   Video_Frame_Buffer_Top_inst.io.I_init_calib := init_calib
 
- //================================================
+  //================================================
   //HyperRAM ip
   val GW_PLLVR_inst = Module(new GW_PLLVR)
   memory_clk := GW_PLLVR_inst.io.clkout //output clkout
@@ -318,7 +320,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   HyperRAM_Memory_Interface_Top_inst.io.data_mask := data_mask
   init_calib := HyperRAM_Memory_Interface_Top_inst.io.init_calib
 
- //================================================
+  //============================================================================
   withClockAndReset(pix_clk, ~hdmi_rst_n) {
     val hv_sync = Module(new HVSync(vp))
     val out_de = Wire(Bool())
@@ -334,21 +336,21 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
     syn_off0_hs := Mux(syn_hs_pol.B,  ~hv_sync.io.hsync, hv_sync.io.hsync)
     syn_off0_vs := Mux(syn_vs_pol.B,  ~hv_sync.io.vsync, hv_sync.io.vsync)
 
-  val N = 5 //delay N clocks
+    val N = 5 //delay N clocks
 
-  val Pout_hs_dn = RegInit(1.U(N.W))
-  val Pout_vs_dn = RegInit(1.U(N.W))
-  val Pout_de_dn = RegInit(0.U(N.W))
-  Pout_hs_dn := Cat(Pout_hs_dn(N-2,0), syn_off0_hs)
-  Pout_vs_dn := Cat(Pout_vs_dn(N-2,0), syn_off0_vs)
-  Pout_de_dn := Cat(Pout_de_dn(N-2,0), out_de)
+    val Pout_hs_dn = RegInit(1.U(N.W))
+    val Pout_vs_dn = RegInit(1.U(N.W))
+    val Pout_de_dn = RegInit(0.U(N.W))
+    Pout_hs_dn := Cat(Pout_hs_dn(N-2,0), syn_off0_hs)
+    Pout_vs_dn := Cat(Pout_vs_dn(N-2,0), syn_off0_vs)
+    Pout_de_dn := Cat(Pout_de_dn(N-2,0), out_de)
 
-  //==============================================================================
-  //TMDS TX
-  rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11), 0.U(3.W), off0_syn_data(10,5), 0.U(2.W), off0_syn_data(4,0), 0.U(3.W)), "h0000ff".U(24.W)) //{r,g,b}
-  rgb_vs := Pout_vs_dn(4) //syn_off0_vs;
-  rgb_hs := Pout_hs_dn(4) //syn_off0_hs;
-  rgb_de := Pout_de_dn(4) //off0_syn_de;
+    //========================================================================
+    //TMDS TX
+    rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11), 0.U(3.W), off0_syn_data(10,5), 0.U(2.W), off0_syn_data(4,0), 0.U(3.W)), "h0000ff".U(24.W)) //{r,g,b}
+    rgb_vs := Pout_vs_dn(4) //syn_off0_vs;
+    rgb_hs := Pout_hs_dn(4) //syn_off0_hs;
+    rgb_de := Pout_de_dn(4) //off0_syn_de;
 
     /* HDMI interface */
     if(gowinDviTx){
