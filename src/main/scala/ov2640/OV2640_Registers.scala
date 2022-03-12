@@ -32,7 +32,6 @@ class OV2640_Registers(vp: VideoParams) extends Module {
 
   // When register and value is FFFF
   // a flag is asserted indicating the configuration is finished
-
   when(sreg === "hFFFF".U(16.W)) {
     finished_temp := true.B
   } .otherwise {

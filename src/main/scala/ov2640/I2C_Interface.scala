@@ -46,6 +46,7 @@ class I2C_Interface(
   io.siod := siod_temp
   io.sioc := sioc_temp
   io.taken := taken_temp
+
   // when the bus is idle SIOD must be tri-state
   when(((busy_sr(11,10) === "b10".U(2.W)) || (busy_sr(20,19) === "b10".U(2.W))) || (busy_sr(29,28) === "b10".U(2.W))) {
     siod_temp := false.B
@@ -55,15 +56,16 @@ class I2C_Interface(
   }
   taken_temp := false.B
 
-    // If all 31 bits are transmitted
+  // If all 31 bits are transmitted
   when(busy_sr(31) === false.B) {
     // Assert SIOC high for starting new transmission
     sioc_temp := true.B
 
-      // If New data is arrived from LUT
+    // If New data is arrived from LUT
     when(io.send === true.B) {
       when(divider === "b00000000".U(8.W)) {
-        // Create an data to send through the data signal of the SCCB        // The data is created using 3-phase write transmission cycle of SCCB protocol
+        // Create an data to send through the data signal of the SCCB
+        // The data is created using 3-phase write transmission cycle of SCCB protocol
         //
         // Data:
         // 3'b100 --> SIOD will go from 1 to 0 to indicate a start transmission
@@ -84,12 +86,11 @@ class I2C_Interface(
       }
     }
 
-    // Implement two-write data transmission of SCCB protocol
+  // Implement two-write data transmission of SCCB protocol
   } .otherwise {
-    when(Cat(busy_sr(31,29), busy_sr(2,0)) === "b111_111".U(6.W)) { // Checking for the start and stop condition
+    // Checking for the start and stop condition
     // For START condition
-
-    // bit 31th of data_sr is transmitted, SIOC must be high
+    when(Cat(busy_sr(31,29), busy_sr(2,0)) === "b111_111".U(6.W)) { // bit 31th of data_sr is transmitted, SIOC must be high
       when(divider(7,6) === "b00".U(2.W)) { // --> SIOD goes from tri-state to high
         sioc_temp := true.B
       } .elsewhen (divider(7,6) === "b01".U(2.W)) {
@@ -122,7 +123,7 @@ class I2C_Interface(
         sioc_temp := false.B
       }
 
-        // For STOP condition
+    // For STOP condition
     } .elsewhen (Cat(busy_sr(31,29), busy_sr(2,0)) === "b110_000".U(6.W)) { // bit 2nd of data_sr is transmitted (don't care bit)
       when(divider(7,6) === "b00".U(2.W)) { // SIOC waits for 1 clock cyle of 200Khz then go high
         sioc_temp := false.B
@@ -156,7 +157,7 @@ class I2C_Interface(
         sioc_temp := true.B
       }
 
-        // Between START and STOP condition
+    // Between START and STOP condition
     // SIOC is high on 2 cycles of 400Khz and low on 2 cycle of 400Khz
     // --> SIOC is 200Khz
     } .otherwise {
@@ -171,7 +172,7 @@ class I2C_Interface(
       }
     }
 
-      // Create a frequency for SCCB with is 200KHz
+    // Create a frequency for SCCB with is 200KHz
     when(divider === "b11111111".U(8.W)) {
       busy_sr := Cat(busy_sr(30,0), "b0".U(1.W)) // Update number of bit that get transmitted
       data_sr := Cat(data_sr(30,0), "b1".U(1.W)) // Update new bit 31th by bit 30th
