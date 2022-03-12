@@ -30,26 +30,4 @@ class DVI_TX_Top() extends BlackBox {
         val O_tmds_data_p = Output(UInt(3.W))
         val O_tmds_data_n = Output(UInt(3.W))
     })
-  /*val VCC = Wire(Bool()) 
-  val GND = Wire(Bool()) 
-  val rgb2dvi_inst = Module(new \~rgb2dvi.DVI_TX_Top  )
-  rgb2dvi_inst.I_rgb_clk := I_rgb_clk
-  rgb2dvi_inst.I_serial_clk := I_serial_clk
-  rgb2dvi_inst.I_rst_n := I_rst_n
-  rgb2dvi_inst.I_rgb_de := I_rgb_de
-  rgb2dvi_inst.I_rgb_vs := I_rgb_vs
-  rgb2dvi_inst.I_rgb_hs := I_rgb_hs
-  rgb2dvi_inst.I_rgb_r := I_rgb_r(7,0)
-  rgb2dvi_inst.I_rgb_g := I_rgb_g(7,0)
-  rgb2dvi_inst.I_rgb_b := I_rgb_b(7,0)
-  O_tmds_clk_p := rgb2dvi_inst.O_tmds_clk_p.asTypeOf(O_tmds_clk_p)
-  O_tmds_clk_n := rgb2dvi_inst.O_tmds_clk_n.asTypeOf(O_tmds_clk_n)
-  O_tmds_data_p(2,0) := rgb2dvi_inst.O_tmds_data_p.asTypeOf(O_tmds_data_p(2,0))
-  O_tmds_data_n(2,0) := rgb2dvi_inst.O_tmds_data_n.asTypeOf(O_tmds_data_n(2,0))
-  val VCC_cZ = Module(new VCC)
-  VCC_cZ.V <> VCC
-  val GND_cZ = Module(new GND)
-  GND_cZ.G <> GND
-  val GSR = Module(new GSR)
-  GSR.GSRI <> VCC*/
 } /* DVI_TX_Top */
