@@ -116,7 +116,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   //memory interface
   val cmd = Wire(Bool())
   val cmd_en = Wire(Bool())
-  val addr = Wire(UInt(22.W))  //[ADDR_WIDTH-1:0]
+  val addr = Wire(UInt(22.W))     //[ADDR_WIDTH-1:0]
   val wr_data = Wire(UInt(32.W))  //[DATA_WIDTH-1:0]
   val data_mask = Wire(UInt(4.W))
   val rd_data_valid = Wire(Bool())
@@ -218,11 +218,12 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   u_OV2640_Controller.io.clk := clk_12M // 24Mhz clock signal
   u_OV2640_Controller.io.resend := "b0".U(1.W) // Reset signal
   u_OV2640_Controller.io.mode := cam_mode // 08:RGB565  04:RAW10
-  // Flag to indicate that the configuration is finished
+  //u_OV2640_Controller.io.config_finished := () // Flag to indicate that the configuration is finished
   SCL := u_OV2640_Controller.io.sioc // SCCB interface - clock signal
   SDA := u_OV2640_Controller.io.siod // SCCB interface - data signal
-  // RESET signal for OV7670
-  // PWDN signal for OV7670
+  //u_OV2640_Controller.io.reset := () // RESET signal for OV7670
+  //u_OV2640_Controller.io.pwdn := () // PWDN signal for OV7670
+
   //I_clk
   when (HREF) {
     when (!hcnt) {
@@ -239,7 +240,7 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
     when (cam_mode === "h08".U(8.W)) {
       //cam_data := Cat(pixdata_d1(9,5),pixdata_d1(4,2),PIXDATA(9,7),PIXDATA(6,2)) //RGB565
       //cam_data := Cat(PIXDATA(9,5),PIXDATA(4,2),pixdata_d1(9,7),pixdata_d1(6,2)) //RGB565
-      cam_data := Cat(pixdata_d1(9,5), pixdata_d1(4,2) ## pixdata_d2(9,7), pixdata_d2(6,2))
+      cam_data := Cat(pixdata_d1(9,5), pixdata_d1(4,2) ## pixdata_d2(9,7), pixdata_d2(6,2)) //RGB565
       cam_de_in := hcnt
     } .otherwise {
       cam_data := Cat(PIXDATA(9,5), PIXDATA(9,4), PIXDATA(9,5)) //RAW10
@@ -354,9 +355,9 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
       val DVI_TX_Top_inst = Module(new DVI_TX_Top())
 
       /* Clocks and reset */
-      DVI_TX_Top_inst.io.I_rst_n := hdmi_rst_n
+      DVI_TX_Top_inst.io.I_rst_n := hdmi_rst_n //asynchronous reset, low active
       DVI_TX_Top_inst.io.I_serial_clk := serial_clk
-      DVI_TX_Top_inst.io.I_rgb_clk := pix_clk
+      DVI_TX_Top_inst.io.I_rgb_clk := pix_clk //pixel clock
 
       /* video signals connexions */
       DVI_TX_Top_inst.io.I_rgb_vs := rgb_vs
