@@ -394,8 +394,6 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
       serdesBlue.io.fclk := serial_clk
       val buffDiffBlue = Module(new TLVDS_OBUF())
       buffDiffBlue.io.I := serdesBlue.io.q
-      /*io.tmds.data(0).p := buffDiffBlue.io.O
-      io.tmds.data(0).n := buffDiffBlue.io.OB*/
 
       // Green -> data 1
       val serdesGreen = Module(new Oser10Module())
@@ -403,8 +401,6 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
       serdesGreen.io.fclk := serial_clk
       val buffDiffGreen = Module(new TLVDS_OBUF())
       buffDiffGreen.io.I := serdesGreen.io.q
-      /*io.tmds.data(1).p := buffDiffGreen.io.O
-      io.tmds.data(1).n := buffDiffGreen.io.OB*/
 
       // Red -> data 2
       val serdesRed = Module(new Oser10Module())
@@ -412,8 +408,6 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
       serdesRed.io.fclk := serial_clk
       val buffDiffRed = Module(new TLVDS_OBUF())
       buffDiffRed.io.I := serdesRed.io.q
-      /*io.tmds.data(2).p := buffDiffRed.io.O
-      io.tmds.data(2).n := buffDiffRed.io.OB*/
 
       // clock
       val serdesClk = Module(new Oser10Module())
@@ -421,8 +415,6 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
       serdesClk.io.fclk := serial_clk
       val buffDiffClk = Module(new TLVDS_OBUF())
       buffDiffClk.io.I := serdesClk.io.q
-      /*O_tmds_clk_p := buffDiffClk.io.O
-      O_tmds_clk_n := buffDiffClk.io.OB*/
 
       O_tmds.data(0).p := buffDiffBlue.io.O
       O_tmds.data(0).n := buffDiffBlue.io.OB
