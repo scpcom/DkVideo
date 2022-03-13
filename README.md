@@ -11,7 +11,7 @@ Chisel translation of [TangNano-4K-example/dk_video](https://github.com/sipeed/T
 
 We recommend LTS releases Java 8 and Java 11. You can install the JDK as recommended by your operating system, or use the prebuilt binaries from [AdoptOpenJDK](https://adoptopenjdk.net/).
 
-#### JDK setup on Debian/Ubuntu
+##### JDK setup on Debian/Ubuntu
 ```Shell
 sudo apt-get update
 sudo apt install openjdk-11-jdk
