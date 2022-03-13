@@ -54,17 +54,19 @@ published locally:
 - [fpgamacro](https://github.com/Martoni/fpgamacro):
 
 ```Shell
-$ git clone https://github.com/Martoni/fpgamacro
-$ cd fpgamacro
-$ sbt publishLocal
+git clone https://github.com/Martoni/fpgamacro
+cd fpgamacro
+sbt publishLocal
+cd ..
 ```
 
 - [HdmiCore](https://github.com/Martoni/HdmiCore):
 
 ```Shell
-$ git clone https://github.com/Martoni/HdmiCore
-$ cd HdmiCore
-$ sbt publishLocal
+git clone https://github.com/Martoni/HdmiCore
+cd HdmiCore
+sbt publishLocal
+cd ..
 ```
 
 ### How to get started
@@ -72,7 +74,7 @@ $ sbt publishLocal
 #### Clone this repository
 
 ```sh
-git clone git@github.com:scpcom/DkVideo.git
+git clone https://github.com/scpcom/DkVideo
 cd DkVideo
 ```
 
