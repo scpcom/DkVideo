@@ -11,14 +11,33 @@ Chisel translation of [TangNano-4K-example/dk_video](https://github.com/sipeed/T
 
 We recommend LTS releases Java 8 and Java 11. You can install the JDK as recommended by your operating system, or use the prebuilt binaries from [AdoptOpenJDK](https://adoptopenjdk.net/).
 
+#### JDK setup on Debian/Ubuntu
+```Shell
+sudo apt-get update
+sudo apt install openjdk-11-jdk
+```
+
 #### SBT or mill
 
 SBT is the most common built tool in the Scala community. You can download it [here](https://www.scala-sbt.org/download.html).  
 mill is another Scala/Java build tool without obscure DSL like SBT. You can download it [here](https://github.com/com-lihaoyi/mill/releases)
 
+##### SBT setup on Debian/Ubuntu
+
+```Shell
+sudo apt-get update
+sudo apt-get install apt-transport-https curl gnupg -yqq
+echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | sudo tee /etc/apt/sources.list.d/sbt.list
+echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | sudo tee /etc/apt/sources.list.d/sbt_old.list
+curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | sudo -H gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/scalasbt-release.gpg --import
+sudo chmod 644 /etc/apt/trusted.gpg.d/scalasbt-release.gpg
+sudo apt-get update
+sudo apt-get install sbt
+```
+
 #### openFPGALoader
 
-[openFPGALoader](https://github.com/trabucayre/openFPGALoader) Universal utility for programming FPGAs.
+[openFPGALoader](https://github.com/trabucayre/openFPGALoader) Universal utility for programming FPGAs.  
 You can use prebuilt binaries from [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build):
 
 ```Shell
