@@ -16,6 +16,17 @@ We recommend LTS releases Java 8 and Java 11. You can install the JDK as recomme
 SBT is the most common built tool in the Scala community. You can download it [here](https://www.scala-sbt.org/download.html).  
 mill is another Scala/Java build tool without obscure DSL like SBT. You can download it [here](https://github.com/com-lihaoyi/mill/releases)
 
+#### openFPGALoader
+
+[openFPGALoader](https://github.com/trabucayre/openFPGALoader) Universal utility for programming FPGAs.
+You can use prebuilt binaries from [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build):
+
+```Shell
+wget -N "https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2022-02-05/oss-cad-suite-linux-x64-20220205.tgz"
+tar xzf oss-cad-suite-linux-x64-20220205.tgz
+source ./oss-cad-suite/environment
+```
+
 #### Libraries
 
 To generate the core some additionnal Chisel libraries are required to be
