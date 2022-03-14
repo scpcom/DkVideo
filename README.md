@@ -92,6 +92,15 @@ sbt "runMain dkvideo.video_topGen noGowinDviTx"
 sh src/scripts/fix-verilog.sh
 ```
 
+Other options:  
+window size: vga svga hd  
+window position: center top left right bottom  
+Example:
+```sh
+sbt "runMain dkvideo.video_topGen noGowinDviTx vga center bottom"
+sh src/scripts/fix-verilog.sh
+```
+
 Currently the fix-verilog.sh is used as workaround for inout until a real solution is found.
 
 #### Generate the binary fs

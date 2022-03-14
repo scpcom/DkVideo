@@ -35,7 +35,7 @@ import ov2640.OV2640_Controller
 // ----------------------------------------------------------------------------------
 // ==============0ooo===================================================0ooo===========
 
-class video_top(gowinDviTx: Boolean = true) extends RawModule {
+class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0) extends RawModule {
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
@@ -65,10 +65,10 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
   val vp_V_TOTAL = vp.V_DISPLAY+vp.V_TOP+vp.V_SYNC+vp.V_BOTTOM
   /* set val rd_vp = vp for full screen */
   val rd_vp = VideoParams(
-      H_DISPLAY = 800, H_FRONT = 110,
+      H_DISPLAY = rd_width, H_FRONT = 110,
       H_SYNC = 40, H_BACK = 220,
       V_SYNC = 5,  V_BACK = 20,
-      V_TOP = 5, V_DISPLAY = 600,
+      V_TOP = 5, V_DISPLAY = rd_height,
       V_BOTTOM = 20)
   val rd_hres = rd_vp.H_DISPLAY // 800
   val rd_vres = rd_vp.V_DISPLAY // 600
@@ -326,8 +326,8 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
     val out_de = Wire(Bool())
     val Rden_w = Wire(Bool())
     val Rden_dn = RegInit(false.B)
-    val rd_hofs = ((vp.H_DISPLAY-rd_hres)/2).U(12.W)
-    val rd_vofs = 0.U
+    val rd_hofs = Mux(rd_halign.U === 2.U, (vp.H_DISPLAY-rd_hres).U(12.W), Mux(rd_halign.U === 1.U, ((vp.H_DISPLAY-rd_hres)/2).U(12.W), 0.U))
+    val rd_vofs = Mux(rd_valign.U === 2.U, (vp.V_DISPLAY-rd_vres).U(12.W), Mux(rd_valign.U === 1.U, ((vp.V_DISPLAY-rd_vres)/2).U(12.W), 0.U))
     Rden_w := (hv_sync.io.hpos >= rd_hofs) && (hv_sync.io.hpos < (rd_hofs+rd_hres.U(12.W))) &&
               (hv_sync.io.vpos >= rd_vofs) && (hv_sync.io.vpos < (rd_vofs+rd_vres.U(12.W)))
     Rden_dn := Rden_w
@@ -430,14 +430,45 @@ class video_top(gowinDviTx: Boolean = true) extends RawModule {
 
 object video_topGen extends App {
   var gowinDviTx = true
+  var rd_width = 800
+  var rd_height = 600
+  var rd_halign = 0
+  var rd_valign = 0
   for(arg <- args){
     if(arg == "noGowinDviTx")
       gowinDviTx = false
+    else if(arg == "center"){
+      rd_halign = 1
+      rd_valign = 1
+    }
+    else if(arg == "left")
+      rd_halign = 0
+    else if(arg == "right")
+      rd_halign = 2
+    else if(arg == "top")
+      rd_valign = 0
+    else if(arg == "bottom")
+      rd_valign = 2
+    else if((arg == "vga") || (arg == "640x480")){
+      rd_width = 640
+      rd_height = 480
+    }
+    else if((arg == "svga") || (arg == "800x600")){
+      rd_width = 800
+      rd_height = 600
+    }
+    else if((arg == "hd") || (arg == "1280x720") || (arg == "fullscreen")){
+      rd_width = 1280
+      rd_height = 720
+    }
   }
   if(gowinDviTx)
     println("Generate DkVideo with encrypted Gowin DviTx core")
   else
     println("Generate DkVideo with open source HdmiCore core")
+  println(s"rd_hres $rd_width")
+  println(s"rd_vres $rd_height")
   (new ChiselStage).execute(args,
-    Seq(ChiselGeneratorAnnotation(() => new video_top(gowinDviTx))))
+    Seq(ChiselGeneratorAnnotation(() =>
+        new video_top(gowinDviTx, rd_width, rd_height, rd_halign, rd_valign))))
 }
