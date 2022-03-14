@@ -457,7 +457,15 @@ object video_topGen extends App {
       rd_width = 800
       rd_height = 600
     }
-    else if((arg == "hd") || (arg == "1280x720") || (arg == "fullscreen")){
+    else if((arg == "480p") || (arg == "720x480")){
+      rd_width = 720
+      rd_height = 480
+    }
+    else if((arg == "sd") || (arg == "576p") || (arg == "720x576")){
+      rd_width = 720
+      rd_height = 576
+    }
+    else if((arg == "hd") || (arg == "720p") || (arg == "1280x720") || (arg == "fullscreen")){
       rd_width = 1280
       rd_height = 720
     }

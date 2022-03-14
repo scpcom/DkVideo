@@ -93,7 +93,7 @@ sh src/scripts/fix-verilog.sh
 ```
 
 Other options:  
-window size: vga svga hd  
+window size: vga svga sd hd  
 window position: center top left right bottom  
 Example:
 ```sh
