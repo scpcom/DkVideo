@@ -151,15 +151,20 @@ sed -i s/'DVI_TX_Top_inst_I_rgb_de/rgb_de'/g video_top.v
 
 sed -i /'wire  DVI_TX_Top_inst_O_tmds_clk_p'/d video_top.v
 sed -i /'wire  DVI_TX_Top_inst_O_tmds_clk_n'/d video_top.v
-sed -i /'wire .2.0. DVI_TX_Top_inst_O_tmds_data_p'/d video_top.v
-sed -i /'wire .2.0. DVI_TX_Top_inst_O_tmds_data_n'/d video_top.v
 sed -i s/DVI_TX_Top_inst_O_tmds_clk_p/O_tmds_clk_p/g video_top.v
 sed -i s/DVI_TX_Top_inst_O_tmds_clk_n/O_tmds_clk_n/g video_top.v
-sed -i s/DVI_TX_Top_inst_O_tmds_data_p/O_tmds_data_p/g video_top.v
-sed -i s/DVI_TX_Top_inst_O_tmds_data_n/O_tmds_data_n/g video_top.v
-
 sed -i /'assign O_tmds_clk_p = O_tmds_clk_p'/d video_top.v
 sed -i /'assign O_tmds_clk_n = O_tmds_clk_n'/d video_top.v
-sed -i /'assign O_tmds_data_p = O_tmds_data_p'/d video_top.v
-sed -i /'assign O_tmds_data_n = O_tmds_data_n'/d video_top.v
-sed -i /'wire .2.0. O_tmds_data_p;'/d video_top.v
+
+sed -i /'wire .2.0. DVI_TX_Top_inst_O_tmds_data_p'/d video_top.v
+sed -i /'wire .2.0. DVI_TX_Top_inst_O_tmds_data_n'/d video_top.v
+if grep -q 'O_tmds_data_2_p' video_top.v ; then
+  sed -i /'assign O_tmds_data_._. = DVI_TX_Top_inst_O_tmds_data_'/d video_top.v
+  sed -i s/DVI_TX_Top_inst_O_tmds_data_p/'{O_tmds_data_2_p, O_tmds_data_1_p, O_tmds_data_0_p}'/g video_top.v
+  sed -i s/DVI_TX_Top_inst_O_tmds_data_n/'{O_tmds_data_2_n, O_tmds_data_1_n, O_tmds_data_0_n}'/g video_top.v
+else
+  sed -i s/DVI_TX_Top_inst_O_tmds_data_p/O_tmds_data_p/g video_top.v
+  sed -i s/DVI_TX_Top_inst_O_tmds_data_n/O_tmds_data_n/g video_top.v
+  sed -i /'assign O_tmds_data_p = O_tmds_data_p'/d video_top.v
+  sed -i /'assign O_tmds_data_n = O_tmds_data_n'/d video_top.v
+fi
