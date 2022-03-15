@@ -12,10 +12,6 @@ case class PLLParams(
   val DYN_SDIV_SEL: Byte
 )
 
-// Map("IDIV_SEL" -> 3, "FBDIV_SEL" -> 54, "ODIV_SEL" -> 2, "DYN_SDIV_SEL" -> 30) # CLKOUT_FREQ=371.25 / 5 = 74.25
-// Map("IDIV_SEL" -> 0, "FBDIV_SEL" -> 11, "ODIV_SEL" -> 2, "DYN_SDIV_SEL" -> 26) # CLKOUT_FREQ=325    / 5 = 65
-// Map("IDIV_SEL" -> 4, "FBDIV_SEL" -> 36, "ODIV_SEL" -> 4, "DYN_SDIV_SEL" -> 16) # CLKOUT_FREQ=200    / 5 = 40
-
 /* PLLVR */
 class PLLVR(val pm: Map[String, Param]) extends BlackBox(pm){
     val io = IO(new Bundle{
@@ -37,6 +33,10 @@ class PLLVR(val pm: Map[String, Param]) extends BlackBox(pm){
         val VREN = Input(UInt(1.W))
     })
 }
+
+// PLLParams(IDIV_SEL = 3, FBDIV_SEL = 54, ODIV_SEL = 2, DYN_SDIV_SEL = 30) # CLKOUT_FREQ=371.25 / 5 = 74.25 MHz
+// PLLParams(IDIV_SEL = 0, FBDIV_SEL = 11, ODIV_SEL = 2, DYN_SDIV_SEL = 26) # CLKOUT_FREQ=325    / 5 = 65.00 MHz
+// PLLParams(IDIV_SEL = 4, FBDIV_SEL = 36, ODIV_SEL = 4, DYN_SDIV_SEL = 16) # CLKOUT_FREQ=200    / 5 = 40.00 MHz
 
 /* TMDS PLLVR */
 class TMDS_PLLVR(pp: PLLParams = PLLParams(IDIV_SEL = 3, FBDIV_SEL = 54, ODIV_SEL = 2, DYN_SDIV_SEL = 30)) extends RawModule {
