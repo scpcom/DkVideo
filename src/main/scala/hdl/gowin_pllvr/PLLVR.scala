@@ -99,3 +99,65 @@ class TMDS_PLLVR(pp: PLLParams = PLLParams(IDIV_SEL = 3, FBDIV_SEL = 54, ODIV_SE
   pllvr_inst.io.FDLY := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd)
   pllvr_inst.io.VREN := gw_vcc
 }
+
+/* HyperRAM PLLVR (GW1NSR-4C) */
+class GW_PLLVR extends RawModule {
+    val io = IO(new Bundle {
+        val clkin = Input(Clock())
+        val clkout = Output(Clock())
+        val lock = Output(Bool())
+    })
+
+  val pm: Map[String, Param] = Map(
+  "FCLKIN" -> "27",
+  "DYN_IDIV_SEL" -> "false",
+  "IDIV_SEL" -> 8,
+  "DYN_FBDIV_SEL" -> "false",
+  "FBDIV_SEL" -> 52,
+  "DYN_ODIV_SEL" -> "false",
+  "ODIV_SEL" -> 4,
+  "PSDA_SEL" -> "0000",
+  "DYN_DA_EN" -> "true",
+  "DUTYDA_SEL" -> "1000",
+  "CLKOUT_FT_DIR" -> "1'b1",
+  "CLKOUTP_FT_DIR" -> "1'b1",
+  "CLKOUT_DLY_STEP" -> 0,
+  "CLKOUTP_DLY_STEP" -> 0,
+  "CLKFB_SEL" -> "internal",
+  "CLKOUT_BYPASS" -> "false",
+  "CLKOUTP_BYPASS" -> "false",
+  "CLKOUTD_BYPASS" -> "false",
+  "DYN_SDIV_SEL" -> 2,
+  "CLKOUTD_SRC" -> "CLKOUT",
+  "CLKOUTD3_SRC" -> "CLKOUT",
+  "DEVICE" -> "GW1NSR-4C")
+
+  val clkoutp_o = Wire(Clock())
+  val clkoutd_o = Wire(Clock())
+  var clkoutd3_o = Wire(Clock())
+  val gw_vcc = Wire(UInt(1.W))
+  val gw_gnd = Wire(UInt(1.W))
+
+  gw_vcc := 1.U(1.W)
+  gw_gnd := 0.U(1.W)
+
+  val pllvr_inst = Module(new PLLVR(pm))
+
+  io.clkout := pllvr_inst.io.CLKOUT
+  io.lock := pllvr_inst.io.LOCK
+  clkoutp_o := pllvr_inst.io.CLKOUTP
+  clkoutd_o := pllvr_inst.io.CLKOUTD
+  clkoutd3_o := pllvr_inst.io.CLKOUTD3
+
+  pllvr_inst.io.RESET := gw_gnd
+  pllvr_inst.io.RESET_P := gw_gnd
+  pllvr_inst.io.CLKIN := io.clkin
+  pllvr_inst.io.CLKFB := gw_gnd
+  pllvr_inst.io.FBDSEL := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd)
+  pllvr_inst.io.IDSEL := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd)
+  pllvr_inst.io.ODSEL := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd)
+  pllvr_inst.io.PSDA := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd)
+  pllvr_inst.io.DUTYDA := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd)
+  pllvr_inst.io.FDLY := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd)
+  pllvr_inst.io.VREN := gw_vcc
+}
