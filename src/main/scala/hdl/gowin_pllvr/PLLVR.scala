@@ -3,6 +3,7 @@ package gowin_pllvr
 
 import chisel3._
 import chisel3.util._
+import chisel3.experimental.Param
 
 case class PLLParams(
   val IDIV_SEL: Byte,
@@ -16,30 +17,7 @@ case class PLLParams(
 // Map("IDIV_SEL" -> 4, "FBDIV_SEL" -> 36, "ODIV_SEL" -> 4, "DYN_SDIV_SEL" -> 16) # CLKOUT_FREQ=200    / 5 = 40
 
 /* PLLVR */
-class PLLVR(pp: PLLParams = PLLParams(IDIV_SEL = 3, FBDIV_SEL = 54, ODIV_SEL = 2, DYN_SDIV_SEL = 30)) extends BlackBox(Map(
-  "FCLKIN" -> "27",
-  "DYN_IDIV_SEL" -> "false",
-  "IDIV_SEL" -> pp.IDIV_SEL,
-  "DYN_FBDIV_SEL" -> "false",
-  "FBDIV_SEL" -> pp.FBDIV_SEL,
-  "DYN_ODIV_SEL" -> "false",
-  "ODIV_SEL" -> pp.ODIV_SEL,
-  "PSDA_SEL" -> "0000",
-  "DYN_DA_EN" -> "false",
-  "DUTYDA_SEL" -> "1000",
-  "CLKOUT_FT_DIR" -> "1'b1",
-  "CLKOUTP_FT_DIR" -> "1'b1",
-  "CLKOUT_DLY_STEP" -> 0,
-  "CLKOUTP_DLY_STEP" -> 0,
-  "CLKFB_SEL" -> "internal",
-  "CLKOUT_BYPASS" -> "false",
-  "CLKOUTP_BYPASS" -> "false",
-  "CLKOUTD_BYPASS" -> "false",
-  "DYN_SDIV_SEL" -> pp.DYN_SDIV_SEL,
-  "CLKOUTD_SRC" -> "CLKOUT",
-  "CLKOUTD3_SRC" -> "CLKOUT",
-  "DEVICE" -> "GW1NSR-4C")
-){
+class PLLVR(val pm: Map[String, Param]) extends BlackBox(pm){
     val io = IO(new Bundle{
         val CLKOUT = Output(Clock())
         val LOCK = Output(UInt(1.W))
@@ -69,6 +47,30 @@ class TMDS_PLLVR(pp: PLLParams = PLLParams(IDIV_SEL = 3, FBDIV_SEL = 54, ODIV_SE
         val lock = Output(Bool())
     })
 
+  val pm: Map[String, Param] = Map(
+  "FCLKIN" -> "27",
+  "DYN_IDIV_SEL" -> "false",
+  "IDIV_SEL" -> pp.IDIV_SEL,
+  "DYN_FBDIV_SEL" -> "false",
+  "FBDIV_SEL" -> pp.FBDIV_SEL,
+  "DYN_ODIV_SEL" -> "false",
+  "ODIV_SEL" -> pp.ODIV_SEL,
+  "PSDA_SEL" -> "0000",
+  "DYN_DA_EN" -> "false",
+  "DUTYDA_SEL" -> "1000",
+  "CLKOUT_FT_DIR" -> "1'b1",
+  "CLKOUTP_FT_DIR" -> "1'b1",
+  "CLKOUT_DLY_STEP" -> 0,
+  "CLKOUTP_DLY_STEP" -> 0,
+  "CLKFB_SEL" -> "internal",
+  "CLKOUT_BYPASS" -> "false",
+  "CLKOUTP_BYPASS" -> "false",
+  "CLKOUTD_BYPASS" -> "false",
+  "DYN_SDIV_SEL" -> pp.DYN_SDIV_SEL,
+  "CLKOUTD_SRC" -> "CLKOUT",
+  "CLKOUTD3_SRC" -> "CLKOUT",
+  "DEVICE" -> "GW1NSR-4C")
+
   val clkoutp_o = Wire(Clock())
   var clkoutd3_o = Wire(Clock())
   val gw_vcc = Wire(UInt(1.W))
@@ -77,7 +79,7 @@ class TMDS_PLLVR(pp: PLLParams = PLLParams(IDIV_SEL = 3, FBDIV_SEL = 54, ODIV_SE
   gw_vcc := 1.U(1.W)
   gw_gnd := 0.U(1.W)
 
-  val pllvr_inst = Module(new PLLVR(pp))
+  val pllvr_inst = Module(new PLLVR(pm))
 
   io.clkout := pllvr_inst.io.CLKOUT
   io.lock := pllvr_inst.io.LOCK
