@@ -6,13 +6,12 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 
 import fpgamacro.gowin.{CLKDIV, TLVDS_OBUF}
 import fpgamacro.gowin.{Oser10Module}
+import fpgamacro.gowin.{TMDS_PLLVR,GW_PLLVR}
 import hdmicore.video.{VideoParams, HVSync}
 import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair}
 import dkvideo.video.{VideoMode, VideoConsts}
 import hdl.dvi_tx.DVI_TX_Top
 import hdl.video_frame_buffer.Video_Frame_Buffer_Top
-import hdl.gowin_pllvr.GW_PLLVR
-import hdl.gowin_pllvr.{TMDS_PLLVR}
 import hdl.hyperram_memory_interface.HyperRAM_Memory_Interface_Top
 import ov2640.OV2640_Controller
 

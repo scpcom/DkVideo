@@ -2,8 +2,8 @@ package dkvideo
 package video
 
 import chisel3._
+import fpgamacro.gowin.PLLParams
 import hdmicore.video.VideoParams
-import hdl.gowin_pllvr.PLLParams
 
 case class VideoMode(
   val params: VideoParams,
