@@ -8,6 +8,7 @@ import fpgamacro.gowin.{CLKDIV, TLVDS_OBUF}
 import fpgamacro.gowin.{Oser10Module}
 import hdmicore.video.{VideoParams, HVSync}
 import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair}
+import dkvideo.video.{VideoMode, VideoConsts}
 import hdl.dvi_tx.DVI_TX_Top
 import hdl.video_frame_buffer.Video_Frame_Buffer_Top
 import hdl.gowin_pllvr.GW_PLLVR
@@ -36,7 +37,7 @@ import ov2640.OV2640_Controller
 // ----------------------------------------------------------------------------------
 // ==============0ooo===================================================0ooo===========
 
-class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0) extends RawModule {
+class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0, vmode: VideoMode = VideoConsts.m1280x720) extends RawModule {
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
@@ -56,21 +57,16 @@ class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int 
   val O_tmds = IO(Output(new TMDSDiff()))
 
   //==================================================
-  val vp = VideoParams(
-      H_DISPLAY = 1280, H_FRONT = 110,
-      H_SYNC = 40, H_BACK = 220,
-      V_SYNC = 5,  V_BACK = 20,
-      V_TOP = 5, V_DISPLAY = 720,
-      V_BOTTOM = 20)
+  val vp = vmode.params
   val vp_H_TOTAL = vp.H_DISPLAY+vp.H_FRONT+vp.H_SYNC+vp.H_BACK
   val vp_V_TOTAL = vp.V_DISPLAY+vp.V_TOP+vp.V_SYNC+vp.V_BOTTOM
   /* set val rd_vp = vp for full screen */
   val rd_vp = VideoParams(
-      H_DISPLAY = rd_width, H_FRONT = 110,
-      H_SYNC = 40, H_BACK = 220,
-      V_SYNC = 5,  V_BACK = 20,
-      V_TOP = 5, V_DISPLAY = rd_height,
-      V_BOTTOM = 20)
+      H_DISPLAY = rd_width, H_FRONT = vp.H_FRONT,
+      H_SYNC = vp.H_SYNC, H_BACK = vp.H_BACK,
+      V_SYNC = vp.V_SYNC,  V_BACK = vp.V_BACK,
+      V_TOP = vp.V_TOP, V_DISPLAY = rd_height,
+      V_BOTTOM = vp.V_BOTTOM)
   val rd_hres = rd_vp.H_DISPLAY // 800
   val rd_vres = rd_vp.V_DISPLAY // 600
   val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
@@ -142,7 +138,7 @@ class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int 
 
   val clk_12M = Wire(Clock())
 
-  val TMDS_PLLVR_inst = Module(new TMDS_PLLVR)
+  val TMDS_PLLVR_inst = Module(new TMDS_PLLVR(vmode.pll))
   TMDS_PLLVR_inst.io.clkin := I_clk //input clk
   serial_clk := TMDS_PLLVR_inst.io.clkout //output clk
   clk_12M := TMDS_PLLVR_inst.io.clkoutd //output clkoutd
@@ -435,6 +431,8 @@ object video_topGen extends App {
   var rd_height = 600
   var rd_halign = 0
   var rd_valign = 0
+  var fullscreen = 0
+  var vmode: VideoMode = VideoConsts.m1280x720
   for(arg <- args){
     if(arg == "noGowinDviTx")
       gowinDviTx = false
@@ -466,10 +464,18 @@ object video_topGen extends App {
       rd_width = 720
       rd_height = 576
     }
-    else if((arg == "hd") || (arg == "720p") || (arg == "1280x720") || (arg == "fullscreen")){
+    else if((arg == "hd") || (arg == "720p") || (arg == "1280x720")){
       rd_width = 1280
       rd_height = 720
     }
+    else if(arg == "fullscreen")
+      fullscreen = 1
+  }
+  if(fullscreen == 1){
+    /*if((rd_width <= 800) && (rd_height <= 600))
+      vmode = VideoConsts.m800x600
+    else*/ if((rd_width <= 1024) && (rd_height <= 768))
+      vmode = VideoConsts.m1024x768
   }
   if(gowinDviTx)
     println("Generate DkVideo with encrypted Gowin DviTx core")
@@ -479,5 +485,5 @@ object video_topGen extends App {
   println(s"rd_vres $rd_height")
   (new ChiselStage).execute(args,
     Seq(ChiselGeneratorAnnotation(() =>
-        new video_top(gowinDviTx, rd_width, rd_height, rd_halign, rd_valign))))
+        new video_top(gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode))))
 }
