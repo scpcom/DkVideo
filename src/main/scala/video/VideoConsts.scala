@@ -50,6 +50,17 @@ package object VideoConsts {
     pll = PLLParams(IDIV_SEL = 4, FBDIV_SEL = 36, ODIV_SEL = 4, DYN_SDIV_SEL = 16)
   )
 
+  val m1024x600 = VideoMode(
+    params = VideoParams(
+      H_DISPLAY = 1024, H_FRONT = 24,
+      H_SYNC = 136, H_BACK = 160,
+      V_SYNC = 6,  V_BACK = 29,
+      V_TOP = 3, V_DISPLAY = 600,
+      V_BOTTOM = 29
+    ),
+    pll = PLLParams(IDIV_SEL = 1, FBDIV_SEL = 18, ODIV_SEL = 4, DYN_SDIV_SEL = 20)
+  )
+
   // D: 65.00 MHz, H: 48.363 kHz, V: 60.00 Hz
   // timings 15385 160 24 29 3 136 6
   //               hb  hf vb vt hs vs
