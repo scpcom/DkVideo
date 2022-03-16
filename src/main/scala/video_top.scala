@@ -471,9 +471,13 @@ object video_topGen extends App {
       fullscreen = 1
   }
   if(fullscreen == 1){
-    /*if((rd_width <= 800) && (rd_height <= 600))
-      vmode = VideoConsts.m800x600
-    else*/ if((rd_width <= 1024) && (rd_height <= 768))
+    /*if((rd_width <= 720) && (rd_height <= 480))
+      vmode = VideoConsts.m720x480
+    else*/ if((rd_width <= 720) && (rd_height <= 576))
+      vmode = VideoConsts.m720x576
+    /*else if((rd_width <= 800) && (rd_height <= 600))
+      vmode = VideoConsts.m800x600*/
+    else if((rd_width <= 1024) && (rd_height <= 768))
       vmode = VideoConsts.m1024x768
   }
   if(gowinDviTx)
