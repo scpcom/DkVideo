@@ -361,42 +361,24 @@ class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int 
       O_tmds.clk.p := DVI_TX_Top_inst.io.O_tmds_clk_p
       O_tmds.clk.n := DVI_TX_Top_inst.io.O_tmds_clk_n
     } else {
-      val rgb2tmds = Module(new Rgb2Tmds())
-      rgb2tmds.io.videoSig.de := rgb_de
-      rgb2tmds.io.videoSig.hsync := rgb_hs
-      rgb2tmds.io.videoSig.vsync := rgb_vs
-      rgb2tmds.io.videoSig.pixel.red   := rgb_data(23,16)
-      rgb2tmds.io.videoSig.pixel.green := rgb_data(15,8)
-      rgb2tmds.io.videoSig.pixel.blue  := rgb_data(7,0)
+      val hdmiTx = Module(new HdmiTx())
+      hdmiTx.io.serClk := serial_clk
+      hdmiTx.io.videoSig.de := rgb_de
+      hdmiTx.io.videoSig.hsync := rgb_hs
+      hdmiTx.io.videoSig.vsync := rgb_vs
+      hdmiTx.io.videoSig.pixel.red   := rgb_data(23,16)
+      hdmiTx.io.videoSig.pixel.green := rgb_data(15,8)
+      hdmiTx.io.videoSig.pixel.blue  := rgb_data(7,0)
 
-      /* serdes */
-      // Blue -> data 0
-      val serdesBlue = Module(new Oser10Module())
-      serdesBlue.io.data := rgb2tmds.io.tmds_blue
-      serdesBlue.io.fclk := serial_clk
+      /* LVDS output */
       val buffDiffBlue = Module(new TLVDS_OBUF())
-      buffDiffBlue.io.I := serdesBlue.io.q
-
-      // Green -> data 1
-      val serdesGreen = Module(new Oser10Module())
-      serdesGreen.io.data := rgb2tmds.io.tmds_green
-      serdesGreen.io.fclk := serial_clk
+      buffDiffBlue.io.I := hdmiTx.io.tmds.data(0)
       val buffDiffGreen = Module(new TLVDS_OBUF())
-      buffDiffGreen.io.I := serdesGreen.io.q
-
-      // Red -> data 2
-      val serdesRed = Module(new Oser10Module())
-      serdesRed.io.data := rgb2tmds.io.tmds_red
-      serdesRed.io.fclk := serial_clk
+      buffDiffGreen.io.I := hdmiTx.io.tmds.data(1)
       val buffDiffRed = Module(new TLVDS_OBUF())
-      buffDiffRed.io.I := serdesRed.io.q
-
-      // clock
-      val serdesClk = Module(new Oser10Module())
-      serdesClk.io.data := "b1111100000".U(10.W)
-      serdesClk.io.fclk := serial_clk
+      buffDiffRed.io.I := hdmiTx.io.tmds.data(2)
       val buffDiffClk = Module(new TLVDS_OBUF())
-      buffDiffClk.io.I := serdesClk.io.q
+      buffDiffClk.io.I := hdmiTx.io.tmds.clk
 
       O_tmds.data(0).p := buffDiffBlue.io.O
       O_tmds.data(0).n := buffDiffBlue.io.OB
