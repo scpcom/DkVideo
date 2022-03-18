@@ -34,6 +34,7 @@ class OV2640_Controller(vp: VideoParams) extends Module {
 
   // Create an instance of a LUT table
   val LUT = Module(new OV2640_Registers(vp))
+  //val LUT = Module(new GC0328_Registers(vp))
   LUT.io.clk := io.clk // 50Mhz clock signal
   LUT.io.advance := taken // Flag to advance to next register
   LUT.io.mode := io.mode // 08:RGB565  04:RAW10
@@ -44,7 +45,7 @@ class OV2640_Controller(vp: VideoParams) extends Module {
 
   // Create an instance of a SCCB interface
   val I2C = Module(new I2C_Interface(
-      SID = "h60".U(8.W)
+      SID = "h60".U(8.W) // GC0328: "h42".U(8.W), OV2640: "h60".U(8.W)
   ))
   I2C.io.clk := io.clk // 50Mhz clock signal
   taken := I2C.io.taken // Flag to advance to next register
