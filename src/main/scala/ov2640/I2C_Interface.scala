@@ -11,7 +11,7 @@ import chisel3.util.Cat
 //
 // Description:
 // ------------
-// SCCB interface to communicate with OV7670
+// SCCB interface to communicate with Camera
 //  - Implementing two-wire data transmission of SCCB protocol
 //	- Using 3-phase write transmission cycle of SCCB protocol
 //
@@ -39,7 +39,7 @@ class I2C_Interface(
   val taken_temp = Reg(Bool())
   val siod_temp = Wire(Bool())
 
-  // ID of an OV7670 for SCCB protocol
+  // ID of an Camera for SCCB protocol
   val id: UInt = SID //8'h42;
 
   // Assign value for outputs

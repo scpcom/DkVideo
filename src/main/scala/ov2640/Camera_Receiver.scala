@@ -17,8 +17,8 @@ class Camera_Receiver(vp: VideoParams) extends Module {
     val config_finished = Output(Bool()) // Flag to indicate that the configuration is finished
     val sioc = Output(Bool()) // SCCB interface - clock signal
     val siod = Output(Bool()) // Inout SCCB interface - data signal
-    val reset = Output(Bool()) // RESET signal for OV2640
-    val pwdn = Output(Bool()) // PWDN signal for OV2640
+    val reset = Output(Bool()) // RESET signal for Camera
+    val pwdn = Output(Bool()) // PWDN signal for Camera
     val videoSig = Output(new VideoHdmi())
   })
 
@@ -30,16 +30,16 @@ class Camera_Receiver(vp: VideoParams) extends Module {
   val pixdata_d2 = RegInit(0.U(10.W))
   val hcnt = RegInit(false.B)
 
-  val u_OV2640_Controller = Module(new OV2640_Controller(vp))
-  u_OV2640_Controller.clock := io.clk
-  u_OV2640_Controller.io.clk := io.clk // 24Mhz clock signal
-  u_OV2640_Controller.io.resend := io.resend // Reset signal
-  u_OV2640_Controller.io.mode := io.mode // 08:RGB565  04:RAW10
-  io.config_finished := u_OV2640_Controller.io.config_finished // Flag to indicate that the configuration is finished
-  io.sioc := u_OV2640_Controller.io.sioc // SCCB interface - clock signal
-  io.siod := u_OV2640_Controller.io.siod // SCCB interface - data signal
-  io.reset := u_OV2640_Controller.io.reset // RESET signal for OV7670
-  io.pwdn := u_OV2640_Controller.io.pwdn // PWDN signal for OV7670
+  val u_Camera_Controller = Module(new Camera_Controller(vp))
+  u_Camera_Controller.clock := io.clk
+  u_Camera_Controller.io.clk := io.clk // 24Mhz clock signal
+  u_Camera_Controller.io.resend := io.resend // Reset signal
+  u_Camera_Controller.io.mode := io.mode // 08:RGB565  04:RAW10
+  io.config_finished := u_Camera_Controller.io.config_finished // Flag to indicate that the configuration is finished
+  io.sioc := u_Camera_Controller.io.sioc // SCCB interface - clock signal
+  io.siod := u_Camera_Controller.io.siod // SCCB interface - data signal
+  io.reset := u_Camera_Controller.io.reset // RESET signal for Camera
+  io.pwdn := u_Camera_Controller.io.pwdn // PWDN signal for Camera
 
   //I_clk
   when (io.href) {
