@@ -13,7 +13,7 @@ import dkvideo.video.{VideoMode, VideoConsts}
 import hdl.dvi_tx.DVI_TX_Top
 import hdl.video_frame_buffer.Video_Frame_Buffer_Top
 import hdl.hyperram_memory_interface.HyperRAM_Memory_Interface_Top
-import ov2640.OV2640_Controller
+import ov2640.Camera_Receiver
 
 // ==============0ooo===================================================0ooo===========
 // =  Copyright (C) 2014-2020 Gowin Semiconductor Technology Co.,Ltd.
@@ -82,8 +82,11 @@ class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int 
   val tp0_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
 
   //--------------------------
-  val cam_data = Wire(UInt(16.W))
+  val cam_vs_in = Wire(Bool())
   val cam_de_in = Wire(Bool())
+  val cam_data_r = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val cam_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val cam_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
 
   //-------------------------
   //frame buffer in
@@ -206,52 +209,35 @@ class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int 
 
   //============================================================================
   withClockAndReset(PIXCLK, ~hdmi_rst_n) {
-    val pixdata_d1 = RegInit(0.U(10.W))
-    val pixdata_d2 = RegInit(0.U(10.W))
-    val hcnt = RegInit(false.B)
     val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
-    val u_OV2640_Controller = Module(new OV2640_Controller(rd_vp))
-    u_OV2640_Controller.clock := clk_12M
-    u_OV2640_Controller.io.clk := clk_12M // 24Mhz clock signal
-    u_OV2640_Controller.io.resend := "b0".U(1.W) // Reset signal
-    u_OV2640_Controller.io.mode := cam_mode // 08:RGB565  04:RAW10
-    //u_OV2640_Controller.io.config_finished := () // Flag to indicate that the configuration is finished
-    SCL := u_OV2640_Controller.io.sioc // SCCB interface - clock signal
-    SDA := u_OV2640_Controller.io.siod // SCCB interface - data signal
-    //u_OV2640_Controller.io.reset := () // RESET signal for OV7670
-    //u_OV2640_Controller.io.pwdn := () // PWDN signal for OV7670
+    val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp))
+    u_Camera_Receiver.io.clk := clk_12M // 24Mhz clock signal
+    u_Camera_Receiver.io.resend := "b0".U(1.W) // Reset signal
+    u_Camera_Receiver.io.mode := cam_mode // 08:RGB565  04:RAW10
+    u_Camera_Receiver.io.href := HREF
+    u_Camera_Receiver.io.vsync := VSYNC
+    u_Camera_Receiver.io.data := PIXDATA
+    //u_Camera_Receiver.io.config_finished := () // Flag to indicate that the configuration is finished
+    SCL := u_Camera_Receiver.io.sioc // SCCB interface - clock signal
+    SDA := u_Camera_Receiver.io.siod // SCCB interface - data signal
+    //u_Camera_Receiver.io.reset := () // RESET signal for Camera
+    //u_Camera_Receiver.io.pwdn := () // PWDN signal for Camera
 
-    //I_clk
-    when (HREF) {
-      when (!hcnt) {
-        pixdata_d1 := PIXDATA
-      } .otherwise {
-        pixdata_d2 := PIXDATA
-      }
-
-      hcnt :=  ~hcnt
-    } .otherwise {
-      hcnt := false.B
-    }
-
-    when (cam_mode === "h08".U(8.W)) {
-      //cam_data := Cat(pixdata_d1(9,5),pixdata_d1(4,2),PIXDATA(9,7),PIXDATA(6,2)) //RGB565
-      //cam_data := Cat(PIXDATA(9,5),PIXDATA(4,2),pixdata_d1(9,7),pixdata_d1(6,2)) //RGB565
-      cam_data := Cat(pixdata_d1(9,5), pixdata_d1(4,2) ## pixdata_d2(9,7), pixdata_d2(6,2)) //RGB565
-      cam_de_in := hcnt
-    } .otherwise {
-      cam_data := Cat(PIXDATA(9,5), PIXDATA(9,4), PIXDATA(9,5)) //RAW10
-      cam_de_in := HREF
-    }
+    cam_de_in := u_Camera_Receiver.io.videoSig.de
+    cam_vs_in := u_Camera_Receiver.io.videoSig.vsync
+    cam_data_r := u_Camera_Receiver.io.videoSig.pixel.red
+    cam_data_g := u_Camera_Receiver.io.videoSig.pixel.green
+    cam_data_b := u_Camera_Receiver.io.videoSig.pixel.blue
   } //withClockAndReset(PIXCLK, ~I_rst_n)
 
   //================================================
   //data width 16bit
   ch0_vfb_clk_in := tp_pxl_clk // Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
-  ch0_vfb_vs_in := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, VSYNC) //negative
+  ch0_vfb_vs_in := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, cam_vs_in) //negative
   ch0_vfb_de_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_de_in, cam_de_in) //HREF or hcnt
-  ch0_vfb_data_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), Cat(tp0_data_r(7,3), tp0_data_g(7,2), tp0_data_b(7,3)), cam_data) // RGB565
+  ch0_vfb_data_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), Cat(tp0_data_r(7,3), tp0_data_g(7,2), tp0_data_b(7,3)),
+                                                       Cat(cam_data_r(7,3), cam_data_g(7,2), cam_data_b(7,3))) // RGB565
 
   // assign ch0_vfb_clk_in  = PIXCLK;
   // assign ch0_vfb_vs_in   = VSYNC;  //negative
