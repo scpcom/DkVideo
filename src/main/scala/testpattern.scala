@@ -2,6 +2,7 @@ package dkvideo
 
 import chisel3._
 import chisel3.util.Cat
+import hdmicore.{VideoHdmi}
 import hdmicore.video.{VideoParams, HVSync}
 
 // ---------------------------------------------------------------------
@@ -32,12 +33,7 @@ class testpattern(vp: VideoParams) extends Module {
     val I_rd_vres = Input(UInt(12.W)) //ver resolution
     val I_hs_pol = Input(Bool()) //HS polarity , 0:�����ԣ�1��������
     val I_vs_pol = Input(Bool()) //VS polarity , 0:�����ԣ�1��������
-    val O_de = Output(Bool())
-    val O_hs = Output(Bool()) //������
-    val O_vs = Output(Bool()) //������
-    val O_data_r = Output(UInt(8.W))
-    val O_data_g = Output(UInt(8.W))
-    val O_data_b = Output(UInt(8.W))
+    val videoSig = Output(new VideoHdmi())
   })
 
  //====================================================
@@ -113,9 +109,9 @@ class testpattern(vp: VideoParams) extends Module {
   Pout_de_dn := Pout_de_dn(N-2,0) ## Pout_de_w
   Pout_hs_dn := Pout_hs_dn(N-2,0) ## Pout_hs_w
   Pout_vs_dn := Pout_vs_dn(N-2,0) ## Pout_vs_w
-  io.O_de := Pout_de_dn(4) //ע�������ݶ���
-  io.O_hs := Mux(io.I_hs_pol,  ~Pout_hs_dn(3), Pout_hs_dn(3))
-  io.O_vs := Mux(io.I_vs_pol,  ~Pout_vs_dn(3), Pout_vs_dn(3))
+  io.videoSig.de := Pout_de_dn(4) //ע�������ݶ���
+  io.videoSig.hsync := Mux(io.I_hs_pol,  ~Pout_hs_dn(3), Pout_hs_dn(3))
+  io.videoSig.vsync := Mux(io.I_vs_pol,  ~Pout_vs_dn(3), Pout_vs_dn(3))
 
   //=================================================================================
   //Test Pattern
@@ -234,8 +230,8 @@ class testpattern(vp: VideoParams) extends Module {
   //---------------------------------------------------
 
   Data_tmp := Data_sel
-  io.O_data_r := Data_tmp(7,0)
-  io.O_data_g := Data_tmp(15,8)
-  io.O_data_b := Data_tmp(23,16)
+  io.videoSig.pixel.red := Data_tmp(7,0)
+  io.videoSig.pixel.green := Data_tmp(15,8)
+  io.videoSig.pixel.blue := Data_tmp(23,16)
 
 }

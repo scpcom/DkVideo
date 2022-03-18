@@ -188,12 +188,12 @@ class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int 
     testpattern_inst.io.I_rd_vres := rd_vres.U(12.W)     //ver resolution  // 16'd600   // 16'd768   // 16'd720
     testpattern_inst.io.I_hs_pol := syn_hs_pol.U(1.W)    //HS polarity , 0:negetive ploarity，1：positive polarity
     testpattern_inst.io.I_vs_pol := syn_vs_pol.U(1.W)    //VS polarity , 0:negetive ploarity，1：positive polarity
-    tp0_de_in := testpattern_inst.io.O_de
-    tp0_hs_in := testpattern_inst.io.O_hs
-    tp0_vs_in := testpattern_inst.io.O_vs
-    tp0_data_r := testpattern_inst.io.O_data_r
-    tp0_data_g := testpattern_inst.io.O_data_g
-    tp0_data_b := testpattern_inst.io.O_data_b
+    tp0_de_in := testpattern_inst.io.videoSig.de
+    tp0_hs_in := testpattern_inst.io.videoSig.hsync
+    tp0_vs_in := testpattern_inst.io.videoSig.vsync
+    tp0_data_r := testpattern_inst.io.videoSig.pixel.red
+    tp0_data_g := testpattern_inst.io.videoSig.pixel.green
+    tp0_data_b := testpattern_inst.io.videoSig.pixel.blue
     vs_r := tp0_vs_in
     when (cnt_vs === "h3ff".U(10.W)) {
       cnt_vs := cnt_vs
