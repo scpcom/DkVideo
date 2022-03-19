@@ -35,6 +35,18 @@ package object VideoConsts {
     pll = PLLParams(IDIV_SEL = 0, FBDIV_SEL = 4, ODIV_SEL = 8, DYN_SDIV_SEL = 10)
   )
 
+  // D: 25,92 MHz, only for supported displays
+  val m800x480 = VideoMode(
+    params = VideoParams(
+      H_DISPLAY = 800, H_FRONT = 210,
+      H_SYNC = 1, H_BACK = 182,
+      V_SYNC = 5, V_BACK = 0,
+      V_TOP = 45, V_DISPLAY = 480,
+      V_BOTTOM = 0
+    ),
+    pll = PLLParams(IDIV_SEL = 4, FBDIV_SEL = 23, ODIV_SEL = 8, DYN_SDIV_SEL = 4) // DYN_SDIV_SEL = 10
+  )
+
   // to be fixed
   // D: 40.00 MHz, H: 37.879 kHz, V: 60.32 Hz
   // timings 25000 88 40 23 1 128 4

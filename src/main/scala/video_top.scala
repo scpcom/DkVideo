@@ -419,6 +419,10 @@ object video_topGen extends App {
       rd_width = 640
       rd_height = 480
     }
+    else if((arg == "vga-15:9") || (arg == "800x480")){
+      rd_width = 800
+      rd_height = 480
+    }
     else if((arg == "svga") || (arg == "800x600")){
       rd_width = 800
       rd_height = 600
@@ -443,6 +447,8 @@ object video_topGen extends App {
       vmode = VideoConsts.m720x480
     else*/ if((rd_width <= 720) && (rd_height <= 576))
       vmode = VideoConsts.m720x576
+    /*else if((rd_width <= 800) && (rd_height <= 480))
+      vmode = VideoConsts.m800x480*/
     /*else if((rd_width <= 800) && (rd_height <= 600))
       vmode = VideoConsts.m800x600*/
     else if((rd_width <= 1024) && (rd_height <= 600))
