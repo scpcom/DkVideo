@@ -1,5 +1,4 @@
-package hdl
-package dvi_tx
+package hdl.gowin
 
 import chisel3._
 

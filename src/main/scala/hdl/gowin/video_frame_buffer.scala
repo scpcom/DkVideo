@@ -1,5 +1,4 @@
-package hdl
-package video_frame_buffer
+package hdl.gowin
 
 import chisel3._
 

@@ -1,5 +1,4 @@
-package hdl
-package hyperram_memory_interface
+package hdl.gowin
 
 import chisel3._
 
