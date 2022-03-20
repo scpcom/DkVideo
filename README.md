@@ -95,6 +95,7 @@ sh src/scripts/fix-verilog.sh
 Other options:  
 window size/screen resolution: vga svga sd hd (and more)  
 window position: center top left right bottom  
+camera type: ov2640 gc0328  
 Example:
 ```sh
 sbt -J-Xss256m "runMain dkvideo.video_topGen noGowinDviTx vga out hd center bottom"

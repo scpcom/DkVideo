@@ -213,7 +213,7 @@ class video_top(gowinDviTx: Boolean = true,
   withClockAndReset(PIXCLK, ~hdmi_rst_n) {
     val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
-    val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp))
+    val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp, camtype))
     u_Camera_Receiver.io.clk := clk_12M // 24Mhz clock signal
     u_Camera_Receiver.io.resend := "b0".U(1.W) // Reset signal
     u_Camera_Receiver.io.mode := cam_mode // 08:RGB565  04:RAW10
@@ -469,6 +469,10 @@ object video_topGen extends App {
       camtype = ctOV2640
     else if(arg == "gc0328")
       camtype = ctGC0328
+  }
+  if (camtype == ctGC0328){
+    rd_width = 640
+    rd_height = 480
   }
   if(fullscreen == 1){
     /*if((rd_width <= 720) && (rd_height <= 480))
