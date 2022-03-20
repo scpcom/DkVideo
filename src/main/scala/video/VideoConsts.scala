@@ -1,5 +1,4 @@
-package dkvideo
-package video
+package dkvideo.video
 
 import chisel3._
 import fpgamacro.gowin.PLLParams
