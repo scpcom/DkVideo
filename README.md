@@ -93,11 +93,11 @@ sh src/scripts/fix-verilog.sh
 ```
 
 Other options:  
-window size: vga svga sd hd  
+window size/screen resolution: vga svga sd hd (and more)  
 window position: center top left right bottom  
 Example:
 ```sh
-sbt -J-Xss256m "runMain dkvideo.video_topGen noGowinDviTx vga center bottom"
+sbt -J-Xss256m "runMain dkvideo.video_topGen noGowinDviTx vga out hd center bottom"
 sh src/scripts/fix-verilog.sh
 ```
 

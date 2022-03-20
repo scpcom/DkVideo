@@ -399,7 +399,19 @@ object video_topGen extends App {
   var rd_halign = 0
   var rd_valign = 0
   var fullscreen = 0
+  var outmode = false
   var vmode: VideoMode = VideoConsts.m1280x720
+
+  def set_video_mode(w: Integer, h: Integer, m: VideoMode)
+  {
+    if (outmode)
+      vmode = m
+    else {
+      rd_width = w
+      rd_height = h
+    }
+  }
+
   for(arg <- args){
     if(arg == "noGowinDviTx")
       gowinDviTx = false
@@ -420,31 +432,36 @@ object video_topGen extends App {
       rd_height = 480
     }
     else if((arg == "vga-15:9") || (arg == "800x480")){
-      rd_width = 800
-      rd_height = 480
+      set_video_mode(800, 480, VideoConsts.m800x480)
     }
     else if((arg == "svga") || (arg == "800x600")){
-      rd_width = 800
-      rd_height = 600
+      set_video_mode(800, 600, VideoConsts.m800x600)
     }
     else if((arg == "480p") || (arg == "720x480")){
-      rd_width = 720
-      rd_height = 480
+      set_video_mode(720, 480, VideoConsts.m720x480)
     }
     else if((arg == "sd") || (arg == "576p") || (arg == "720x576")){
-      rd_width = 720
-      rd_height = 576
+      set_video_mode(720, 576, VideoConsts.m720x576)
+    }
+    else if((arg == "wsvga") || (arg == "1024x600")){
+      set_video_mode(1024, 600, VideoConsts.m1024x600)
+    }
+    else if((arg == "xga") || (arg == "1024x768")){
+      set_video_mode(1024, 768, VideoConsts.m1024x768)
     }
     else if((arg == "hd") || (arg == "720p") || (arg == "1280x720")){
-      rd_width = 1280
-      rd_height = 720
+      set_video_mode(1280, 720, VideoConsts.m1280x720)
+    }
+    else if((arg == "sxga") || (arg == "1280x1024")){
+      set_video_mode(1280, 1024, VideoConsts.m1280x1024)
     }
     else if((arg == "wsxga") || (arg == "1600x900")){
-      rd_width = 1600
-      rd_height = 900
+      set_video_mode(1600, 900, VideoConsts.m1600x900)
     }
     else if(arg == "fullscreen")
       fullscreen = 1
+    else if((arg == "out") || (arg == "outmode"))
+      outmode = true
   }
   if(fullscreen == 1){
     /*if((rd_width <= 720) && (rd_height <= 480))
@@ -459,6 +476,10 @@ object video_topGen extends App {
       vmode = VideoConsts.m1024x600
     else if((rd_width <= 1024) && (rd_height <= 768))
       vmode = VideoConsts.m1024x768
+    else if((rd_width <= 1280) && (rd_height <= 720))
+      vmode = VideoConsts.m1280x720
+    else if((rd_width <= 1600) && (rd_height <= 900))
+      vmode = VideoConsts.m1600x900
   }
   if(gowinDviTx)
     println("Generate DkVideo with encrypted Gowin DviTx core")
