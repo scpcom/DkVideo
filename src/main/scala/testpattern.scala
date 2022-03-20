@@ -225,7 +225,10 @@ class testpattern(vp: VideoParams) extends Module {
   Single_color := Cat(io.I_single_b, io.I_single_g, io.I_single_r)
 
   //============================================================
-  Data_sel := Mux((io.I_mode(2,0) === "b000".U(3.W)), Color_bar, Mux((io.I_mode(2,0) === "b001".U(3.W)), Net_grid, Mux((io.I_mode(2,0) === "b010".U(3.W)), Gray_d1, Mux((io.I_mode(2,0) === "b011".U(3.W)), Single_color, GREEN))))
+  Data_sel := Mux((io.I_mode(2,0) === "b000".U(3.W)), Color_bar,
+              Mux((io.I_mode(2,0) === "b001".U(3.W)), Net_grid,
+              Mux((io.I_mode(2,0) === "b010".U(3.W)), Gray_d1,
+              Mux((io.I_mode(2,0) === "b011".U(3.W)), Single_color, GREEN))))
 
   //---------------------------------------------------
 
