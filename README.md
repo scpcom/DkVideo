@@ -82,13 +82,13 @@ cd DkVideo
 
 To generate core with gowin DviTx encrypted ip do:
 ```sh
-sbt "runMain dkvideo.video_topGen"
+sbt -J-Xss256m "runMain dkvideo.video_topGen"
 sh src/scripts/fix-verilog.sh
 ```
 
 To use opensource HdmiCore:
 ```sh
-sbt "runMain dkvideo.video_topGen noGowinDviTx"
+sbt -J-Xss256m "runMain dkvideo.video_topGen noGowinDviTx"
 sh src/scripts/fix-verilog.sh
 ```
 
@@ -97,7 +97,7 @@ window size: vga svga sd hd
 window position: center top left right bottom  
 Example:
 ```sh
-sbt "runMain dkvideo.video_topGen noGowinDviTx vga center bottom"
+sbt -J-Xss256m "runMain dkvideo.video_topGen noGowinDviTx vga center bottom"
 sh src/scripts/fix-verilog.sh
 ```
 
