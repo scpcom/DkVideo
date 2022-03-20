@@ -439,6 +439,10 @@ object video_topGen extends App {
       rd_width = 1280
       rd_height = 720
     }
+    else if((arg == "wsxga") || (arg == "1600x900")){
+      rd_width = 1600
+      rd_height = 900
+    }
     else if(arg == "fullscreen")
       fullscreen = 1
   }
