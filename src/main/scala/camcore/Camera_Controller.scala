@@ -1,5 +1,4 @@
-package dkvideo
-package ov2640
+package dkvideo.camcore
 
 import chisel3._
 import hdmicore.video.VideoParams
