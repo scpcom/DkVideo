@@ -5,16 +5,7 @@ import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import hdmicore.video.VideoParams
 
-class GC0328_Registers(vp: VideoParams) extends Module {
-  val io = IO(new Bundle {
-    val clk = Input(Clock())
-    val resend = Input(Bool())
-    val advance = Input(Bool())
-    val mode = Input(UInt(8.W))
-    val command = Output(UInt(16.W))
-    val finished = Output(Bool())
-  })
-
+class GC0328_Registers(vp: VideoParams) extends Camera_Registers {
   // Internal signals
   val sreg = RegInit(0.U(16.W))
   val finished_temp = Wire(Bool())

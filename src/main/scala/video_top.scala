@@ -13,7 +13,7 @@ import dkvideo.video.{VideoMode, VideoConsts}
 import hdl.gowin.DVI_TX_Top
 import hdl.gowin.Video_Frame_Buffer_Top
 import hdl.gowin.HyperRAM_Memory_Interface_Top
-import camcore.Camera_Receiver
+import camcore.{Camera_Receiver, CameraType, ctOV2640, ctGC0328}
 
 // ==============0ooo===================================================0ooo===========
 // =  Copyright (C) 2014-2020 Gowin Semiconductor Technology Co.,Ltd.
@@ -36,7 +36,9 @@ import camcore.Camera_Receiver
 // ----------------------------------------------------------------------------------
 // ==============0ooo===================================================0ooo===========
 
-class video_top(gowinDviTx: Boolean = true, rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0, vmode: VideoMode = VideoConsts.m1280x720) extends RawModule {
+class video_top(gowinDviTx: Boolean = true,
+                rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
+                 vmode: VideoMode = VideoConsts.m1280x720, camtype: CameraType = ctOV2640) extends RawModule {
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
@@ -401,6 +403,7 @@ object video_topGen extends App {
   var fullscreen = 0
   var outmode = false
   var vmode: VideoMode = VideoConsts.m1280x720
+  var camtype: CameraType = ctOV2640
 
   def set_video_mode(w: Integer, h: Integer, m: VideoMode)
   {
@@ -462,6 +465,10 @@ object video_topGen extends App {
       fullscreen = 1
     else if((arg == "out") || (arg == "outmode"))
       outmode = true
+    else if(arg == "ov2640")
+      camtype = ctOV2640
+    else if(arg == "gc0328")
+      camtype = ctGC0328
   }
   if(fullscreen == 1){
     /*if((rd_width <= 720) && (rd_height <= 480))
@@ -485,9 +492,13 @@ object video_topGen extends App {
     println("Generate DkVideo with encrypted Gowin DviTx core")
   else
     println("Generate DkVideo with open source HdmiCore core")
+  if (camtype == ctGC0328)
+    println("camtype GC0328")
+  else
+    println("camtype OV2640")
   println(s"rd_hres $rd_width")
   println(s"rd_vres $rd_height")
   (new ChiselStage).execute(args,
     Seq(ChiselGeneratorAnnotation(() =>
-        new video_top(gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode))))
+        new video_top(gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype))))
 }

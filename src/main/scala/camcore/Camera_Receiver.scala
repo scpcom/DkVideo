@@ -5,7 +5,7 @@ import chisel3.util.Cat
 import hdmicore.{VideoHdmi}
 import hdmicore.video.VideoParams
 
-class Camera_Receiver(vp: VideoParams) extends Module {
+class Camera_Receiver(vp: VideoParams, ct: CameraType = ctOV2640) extends Module {
   val io = IO(new Bundle {
     val clk = Input(Clock()) // 50Mhz clock signal
     val resend = Input(Bool()) // Reset signal
@@ -29,7 +29,7 @@ class Camera_Receiver(vp: VideoParams) extends Module {
   val pixdata_d2 = RegInit(0.U(10.W))
   val hcnt = RegInit(false.B)
 
-  val u_Camera_Controller = Module(new Camera_Controller(vp))
+  val u_Camera_Controller = Module(new Camera_Controller(vp, ct))
   u_Camera_Controller.clock := io.clk
   u_Camera_Controller.io.clk := io.clk // 24Mhz clock signal
   u_Camera_Controller.io.resend := io.resend // Reset signal
