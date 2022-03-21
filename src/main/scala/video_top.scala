@@ -468,8 +468,20 @@ object video_topGen extends App {
     else if((arg == "hd") || (arg == "720p") || (arg == "1280x720")){
       set_video_mode(1280, 720, VideoConsts.m1280x720)
     }
+    else if((arg == "wxga") || (arg == "1280x800")){
+      set_video_mode(1280, 800, VideoConsts.m1280x800)
+    }
     else if((arg == "sxga") || (arg == "1280x1024")){
       set_video_mode(1280, 1024, VideoConsts.m1280x1024)
+    }
+    else if(arg == "1360x768"){
+      set_video_mode(1360, 768, VideoConsts.m1360x768)
+    }
+    else if(arg == "1366x768"){
+      set_video_mode(1366, 768, VideoConsts.m1366x768)
+    }
+    else if(arg == "1440x900"){
+      set_video_mode(1440, 900, VideoConsts.m1440x900)
     }
     else if((arg == "wsxga") || (arg == "1600x900")){
       set_video_mode(1600, 900, VideoConsts.m1600x900)
@@ -504,6 +516,8 @@ object video_topGen extends App {
       vmode = VideoConsts.m1024x768
     else if((rd_width <= 1280) && (rd_height <= 720))
       vmode = VideoConsts.m1280x720
+    else if((rd_width <= 1366) && (rd_height <= 768))
+      vmode = VideoConsts.m1366x768
     else if((rd_width <= 1600) && (rd_height <= 900))
       vmode = VideoConsts.m1600x900
   }
