@@ -10,7 +10,8 @@ case class VideoMode(
 )
 
 package object VideoConsts {
-  // to be fixed
+  // to be checked
+  // D: 27.00 MHz, H: 31.469 kHz, V: 59.94 Hz
   val m720x480 = VideoMode(
     params = VideoParams(
       H_DISPLAY = 720, H_FRONT = 16,
@@ -22,7 +23,7 @@ package object VideoConsts {
     pll = PLLParams(IDIV_SEL = 0, FBDIV_SEL = 4, ODIV_SEL = 8, DYN_SDIV_SEL = 10)
   )
 
-  // D: 27.00 MHz
+  // D: 27.00 MHz, H: 31.250 kHz, V: 50.00 Hz
   val m720x576 = VideoMode(
     params = VideoParams(
       H_DISPLAY = 720, H_FRONT = 12,
@@ -46,10 +47,8 @@ package object VideoConsts {
     pll = PLLParams(IDIV_SEL = 4, FBDIV_SEL = 23, ODIV_SEL = 8, DYN_SDIV_SEL = 4) // DYN_SDIV_SEL = 10
   )
 
-  // to be fixed
+  // to be checked
   // D: 40.00 MHz, H: 37.879 kHz, V: 60.32 Hz
-  // timings 25000 88 40 23 1 128 4
-  //               hb hf vb vt hs vs
   val m800x600 = VideoMode(
     params = VideoParams(
       H_DISPLAY = 800, H_FRONT = 40,
@@ -61,7 +60,7 @@ package object VideoConsts {
     pll = PLLParams(IDIV_SEL = 4, FBDIV_SEL = 36, ODIV_SEL = 4, DYN_SDIV_SEL = 16)
   )
 
-  // D: 51.40 MHz
+  // D: 51.40 MHz, H: 38.280 kHz, V: 60.00 Hz
   val m1024x600 = VideoMode(
     params = VideoParams(
       H_DISPLAY = 1024, H_FRONT = 24,
@@ -74,8 +73,6 @@ package object VideoConsts {
   )
 
   // D: 65.00 MHz, H: 48.363 kHz, V: 60.00 Hz
-  // timings 15385 160 24 29 3 136 6
-  //               hb  hf vb vt hs vs
   val m1024x768 = VideoMode(
     params = VideoParams(
       H_DISPLAY = 1024, H_FRONT = 24,
@@ -87,7 +84,7 @@ package object VideoConsts {
     pll = PLLParams(IDIV_SEL = 0, FBDIV_SEL = 11, ODIV_SEL = 2, DYN_SDIV_SEL = 26)
   )
 
-  // D: 74.25 MHz
+  // D: 74.25 MHz, H: 45.000 kHz, V: 60.00 Hz
   val m1280x720 = VideoMode(
     params = VideoParams(
       H_DISPLAY = 1280, H_FRONT = 110,
@@ -100,8 +97,6 @@ package object VideoConsts {
   )
 
   // D: 108.00 MHz, H: 63.981 kHz, V: 60.02 Hz
-  // timings 9260 248 48 38 1 112 3
-  //              hb  hf vb vt hs vs
   val m1280x1024 = VideoMode(
     params = VideoParams(
       H_DISPLAY = 1280, H_FRONT = 48,
@@ -113,7 +108,7 @@ package object VideoConsts {
     pll = PLLParams(IDIV_SEL = 0, FBDIV_SEL = 19, ODIV_SEL = 2, DYN_SDIV_SEL = 44)
   )
 
-  // D: 108.00 MHz
+  // D: 108.00 MHz, H: 60.000 kHz, V: 60.00 Hz
   val m1600x900 = VideoMode(
     params = VideoParams(
       H_DISPLAY = 1600, H_FRONT = 24,
