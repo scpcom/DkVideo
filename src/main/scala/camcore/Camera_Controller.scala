@@ -4,6 +4,7 @@ import chisel3._
 import hdmicore.video.VideoParams
 
 sealed trait CameraType
+case object ctNone extends CameraType
 case object ctOV2640 extends CameraType
 case object ctGC0328 extends CameraType
 

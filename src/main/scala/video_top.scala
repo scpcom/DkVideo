@@ -13,7 +13,7 @@ import dkvideo.video.{VideoMode, VideoConsts}
 import hdl.gowin.DVI_TX_Top
 import hdl.gowin.Video_Frame_Buffer_Top
 import hdl.gowin.HyperRAM_Memory_Interface_Top
-import camcore.{Camera_Receiver, CameraType, ctOV2640, ctGC0328}
+import camcore.{Camera_Receiver, CameraType, ctNone, ctOV2640, ctGC0328}
 
 // ==============0ooo===================================================0ooo===========
 // =  Copyright (C) 2014-2020 Gowin Semiconductor Technology Co.,Ltd.
@@ -161,7 +161,7 @@ class video_top(gowinDviTx: Boolean = true,
   //I_clk
 
   val g_cnt_vs = Wire(UInt(10.W))
-  val tp_pxl_clk = PIXCLK
+  val tp_pxl_clk = if (camtype == ctNone) I_clk else PIXCLK
 
   withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
     val cnt_vs = RegInit(0.U(10.W))
@@ -201,7 +201,11 @@ class video_top(gowinDviTx: Boolean = true,
     tp0_data_b := testpattern_inst.io.videoSig.pixel.blue
     vs_r := tp0_vs_in
     when (cnt_vs === "h3ff".U(10.W)) {
-      cnt_vs := cnt_vs
+      if (camtype == ctNone) {
+        cnt_vs := 0.U
+      } else {
+        cnt_vs := cnt_vs
+      }
     } .elsewhen (vs_r && ( !tp0_vs_in)) { //vs24 falling edge
       cnt_vs := cnt_vs+"b1".U(1.W)
     } .otherwise {
@@ -210,7 +214,16 @@ class video_top(gowinDviTx: Boolean = true,
   } // withClockAndReset(tp_pxl_clk, ~I_rst_n)
 
   //============================================================================
-  withClockAndReset(PIXCLK, ~hdmi_rst_n) {
+  if (camtype == ctNone) {
+    SCL := false.B
+    SDA := false.B
+
+    cam_vs_in := ~tp0_vs_in
+    cam_de_in := tp0_de_in
+    cam_data_r := tp0_data_r
+    cam_data_g := tp0_data_g
+    cam_data_b := tp0_data_b
+  } else withClockAndReset(PIXCLK, ~hdmi_rst_n) {
     val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
     val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp, camtype))
@@ -465,6 +478,8 @@ object video_topGen extends App {
       fullscreen = 1
     else if((arg == "out") || (arg == "outmode"))
       outmode = true
+    else if(arg == "nocam")
+      camtype = ctNone
     else if(arg == "ov2640")
       camtype = ctOV2640
     else if(arg == "gc0328")
@@ -496,7 +511,9 @@ object video_topGen extends App {
     println("Generate DkVideo with encrypted Gowin DviTx core")
   else
     println("Generate DkVideo with open source HdmiCore core")
-  if (camtype == ctGC0328)
+  if (camtype == ctNone)
+    println("camtype none")
+  else if (camtype == ctGC0328)
     println("camtype GC0328")
   else
     println("camtype OV2640")
