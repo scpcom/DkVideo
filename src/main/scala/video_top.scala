@@ -7,9 +7,8 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import fpgamacro.gowin.{CLKDIV, TLVDS_OBUF}
 import fpgamacro.gowin.{Oser10Module}
 import fpgamacro.gowin.{TMDS_PLLVR,GW_PLLVR}
-import hdmicore.video.{VideoParams, HVSync}
-import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair}
-import dkvideo.video.{VideoMode, VideoConsts}
+import hdmicore.video.{VideoParams, HVSync, VideoMode, VideoConsts}
+import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair, HdmiTx}
 import hdl.gowin.DVI_TX_Top
 import hdl.gowin.Video_Frame_Buffer_Top
 import hdl.gowin.HyperRAM_Memory_Interface_Top
