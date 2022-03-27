@@ -6,7 +6,7 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 
 import fpgamacro.gowin.{CLKDIV, LVDS_OBUF, TLVDS_OBUF, ELVDS_OBUF}
 import fpgamacro.gowin.{Oser10Module}
-import fpgamacro.gowin.{Video_PLL, TMDS_PLLVR, GW_PLLVR, Gowin_rPLL}
+import fpgamacro.gowin.{PLLParams, Video_PLL, TMDS_PLLVR, GW_PLLVR, Gowin_rPLL}
 import hdmicore.video.{VideoParams, HVSync, VideoMode, VideoConsts}
 import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair, HdmiTx}
 import hdl.gowin.DVI_TX_Top
@@ -301,11 +301,17 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
 
   //================================================
   //HyperRAM ip
+  if (dt == dtGW1NSR4C) {
   val GW_PLLVR_inst = Module(new GW_PLLVR)
   memory_clk := GW_PLLVR_inst.io.clkout //output clkout
   mem_pll_lock := GW_PLLVR_inst.io.lock //output lock
   GW_PLLVR_inst.io.clkin := I_clk //input clkin
-
+  } else {
+  val GW_rPLL_inst = Module(new Gowin_rPLL(PLLParams(IDIV_SEL = 8, FBDIV_SEL = 52, ODIV_SEL = 4, DYN_SDIV_SEL = 2)))
+  memory_clk := GW_rPLL_inst.io.clkout //output clkout
+  mem_pll_lock := GW_rPLL_inst.io.lock //output lock
+  GW_rPLL_inst.io.clkin := I_clk //input clkin
+  }
 
   val HyperRAM_Memory_Interface_Top_inst = Module(new HyperRAM_Memory_Interface_Top)
   HyperRAM_Memory_Interface_Top_inst.io.clk := I_clk
