@@ -93,6 +93,7 @@ sh src/scripts/fix-verilog.sh
 ```
 
 Other options:  
+device type: tangnano4k tangnano9k  
 window size/screen resolution: vga svga sd hd (and more)  
 window position: center top left right bottom  
 camera type: ov2640 gc0328 nocam  

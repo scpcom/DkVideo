@@ -4,9 +4,9 @@ import chisel3._
 import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 
-import fpgamacro.gowin.{CLKDIV, TLVDS_OBUF}
+import fpgamacro.gowin.{CLKDIV, LVDS_OBUF, TLVDS_OBUF, ELVDS_OBUF}
 import fpgamacro.gowin.{Oser10Module}
-import fpgamacro.gowin.{TMDS_PLLVR,GW_PLLVR}
+import fpgamacro.gowin.{Video_PLL, TMDS_PLLVR, GW_PLLVR, Gowin_rPLL}
 import hdmicore.video.{VideoParams, HVSync, VideoMode, VideoConsts}
 import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair, HdmiTx}
 import hdl.gowin.DVI_TX_Top
@@ -35,7 +35,13 @@ import camcore.{Camera_Receiver, CameraType, ctNone, ctOV2640, ctGC0328}
 // ----------------------------------------------------------------------------------
 // ==============0ooo===================================================0ooo===========
 
-class video_top(gowinDviTx: Boolean = true,
+sealed trait DeviceType
+case object dtGW1N1 extends DeviceType
+case object dtGW1NZ1 extends DeviceType
+case object dtGW1NSR4C extends DeviceType
+case object dtGW1NR9 extends DeviceType
+
+class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
                  vmode: VideoMode = VideoConsts.m1280x720, camtype: CameraType = ctOV2640) extends RawModule {
   val I_clk = IO(Input(Clock())) //27Mhz
@@ -141,7 +147,13 @@ class video_top(gowinDviTx: Boolean = true,
 
   val clk_12M = Wire(Clock())
 
-  val TMDS_PLLVR_inst = Module(new TMDS_PLLVR(vmode.pll))
+  def get_pll(): Video_PLL = {
+    if (dt == dtGW1NSR4C)
+      Module(new TMDS_PLLVR(vmode.pll))
+    else
+      Module(new Gowin_rPLL(vmode.pll))
+  }
+  val TMDS_PLLVR_inst = get_pll()
   TMDS_PLLVR_inst.io.clkin := I_clk //input clk
   serial_clk := TMDS_PLLVR_inst.io.clkout //output clk
   clk_12M := TMDS_PLLVR_inst.io.clkoutd //output clkoutd
@@ -385,13 +397,19 @@ class video_top(gowinDviTx: Boolean = true,
       hdmiTx.io.videoSig.pixel.blue  := rgb_data(7,0)
 
       /* LVDS output */
-      val buffDiffBlue = Module(new TLVDS_OBUF())
+      def get_obuf(): LVDS_OBUF = {
+        if (dt == dtGW1NSR4C)
+          Module(new TLVDS_OBUF())
+        else
+          Module(new ELVDS_OBUF())
+      }
+      val buffDiffBlue = get_obuf()
       buffDiffBlue.io.I := hdmiTx.io.tmds.data(0)
-      val buffDiffGreen = Module(new TLVDS_OBUF())
+      val buffDiffGreen = get_obuf()
       buffDiffGreen.io.I := hdmiTx.io.tmds.data(1)
-      val buffDiffRed = Module(new TLVDS_OBUF())
+      val buffDiffRed = get_obuf()
       buffDiffRed.io.I := hdmiTx.io.tmds.data(2)
-      val buffDiffClk = Module(new TLVDS_OBUF())
+      val buffDiffClk = get_obuf()
       buffDiffClk.io.I := hdmiTx.io.tmds.clk
 
       O_tmds.data(0).p := buffDiffBlue.io.O
@@ -407,6 +425,7 @@ class video_top(gowinDviTx: Boolean = true,
 }
 
 object video_topGen extends App {
+  var devtype: DeviceType = dtGW1NSR4C
   var gowinDviTx = true
   var rd_width = 800
   var rd_height = 600
@@ -428,6 +447,15 @@ object video_topGen extends App {
   }
 
   for(arg <- args){
+    if ((arg == "GW1N-1") || (arg == "tangnano"))
+      devtype = dtGW1N1
+    else if ((arg == "GW1NZ-1") || (arg == "tangnano1k"))
+      devtype = dtGW1NZ1
+    else if ((arg == "GW1NSR-4C") || (arg == "tangnano4k"))
+      devtype = dtGW1NSR4C
+    else if ((arg == "GW1NR-9") || (arg == "tangnano9k"))
+      devtype = dtGW1NR9
+
     if(arg == "noGowinDviTx")
       gowinDviTx = false
     else if(arg == "center"){
@@ -520,6 +548,16 @@ object video_topGen extends App {
     else if((rd_width <= 1600) && (rd_height <= 900))
       vmode = VideoConsts.m1600x900
   }
+
+  if (devtype == dtGW1N1)
+    println("Building for tangnano")
+  else if (devtype == dtGW1NZ1)
+    println("Building for tangnano1k")
+  else if (devtype == dtGW1NSR4C)
+    println("Building for tangnano4k")
+  else if (devtype == dtGW1NR9)
+    println("Building for tangnano9k")
+
   if(gowinDviTx)
     println("Generate DkVideo with encrypted Gowin DviTx core")
   else
@@ -534,5 +572,5 @@ object video_topGen extends App {
   println(s"rd_vres $rd_height")
   (new ChiselStage).execute(args,
     Seq(ChiselGeneratorAnnotation(() =>
-        new video_top(gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype))))
+        new video_top(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype))))
 }
