@@ -1,0 +1,15 @@
+<?xml version="1" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW1NR-9" pn="GW1NR-LV9QN88PC6/I5">gw1nr9-012</Device>
+    <FileList>
+        <File path="src/verilog/dvi_tx.v" type="file.verilog" enable="1"/>
+        <File path="src/verilog/hyperram_memory_interface.v" type="file.verilog" enable="1"/>
+        <File path="src/verilog/video_frame_buffer.v" type="file.verilog" enable="1"/>
+        <File path="video_top.v" type="file.verilog" enable="1"/>
+        <File path="src/constraints/tangnano9k.cst" type="file.cst" enable="1"/>
+        <File path="src/constraints/tangnano9k.sdc" type="file.sdc" enable="1"/>
+    </FileList>
+</Project>
