@@ -1,6 +1,7 @@
 package hdl.gowin
 
 import chisel3._
+import chisel3.experimental.Analog
 
 //
 //Written by GowinSynthesis
@@ -21,8 +22,8 @@ class HyperRAM_Memory_Interface_Top() extends BlackBox {
         val rst_n = Input(Bool())
         val O_hpram_ck = Output(Bool())
         val O_hpram_ck_n = Output(Bool())
-        val IO_hpram_dq = Input(UInt(8.W)) // Inout
-        val IO_hpram_rwds = Input(Bool()) // Inout
+        val IO_hpram_dq = Analog(8.W)
+        val IO_hpram_rwds = Analog(1.W)
         val O_hpram_cs_n = Output(Bool())
         val O_hpram_reset_n = Output(Bool())
         val wr_data = Input(UInt(32.W))

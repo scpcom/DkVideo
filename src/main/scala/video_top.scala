@@ -3,6 +3,7 @@ package dkvideo
 import chisel3._
 import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
+import chisel3.experimental.Analog
 
 import fpgamacro.gowin.{CLKDIV, TLVDS_OBUF}
 import fpgamacro.gowin.{Oser10Module}
@@ -53,8 +54,8 @@ class video_top(gowinDviTx: Boolean = true,
   val O_hpram_ck_n = IO(Output(UInt(1.W)))
   val O_hpram_cs_n = IO(Output(UInt(1.W)))
   val O_hpram_reset_n = IO(Output(UInt(1.W)))
-  val IO_hpram_dq = IO(Input(UInt(8.W))) // Inout
-  val IO_hpram_rwds = IO(Input(UInt(1.W))) // Inout
+  val IO_hpram_dq = IO(Analog(8.W)) // Inout
+  val IO_hpram_rwds = IO(Analog(1.W)) // Inout
   val O_tmds = IO(Output(new TMDSDiff()))
 
   //==================================================
@@ -303,8 +304,8 @@ class video_top(gowinDviTx: Boolean = true,
   HyperRAM_Memory_Interface_Top_inst.io.rst_n := I_rst_n //rst_n
   O_hpram_ck := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck
   O_hpram_ck_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck_n
-  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds := IO_hpram_rwds
-  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq := IO_hpram_dq
+  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds <> IO_hpram_rwds
+  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq <> IO_hpram_dq
   O_hpram_reset_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_reset_n
   O_hpram_cs_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_cs_n
   HyperRAM_Memory_Interface_Top_inst.io.wr_data := wr_data
