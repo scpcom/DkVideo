@@ -451,6 +451,7 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
     sreg := Cat("h42".U(8.W), Mux(uxga, "h83".U(8.W), "h03".U(8.W)))
   } .elsewhen (address === 206.U) {
     sreg := "hFF_00".U(16.W) /* Set DSP input image size and offset. The sensor output image can be scaled with OUTW/OUTH */
+
   } .elsewhen (address === 207.U) {
     sreg := "h05_01".U(16.W)
   } .elsewhen (address === 208.U) {
@@ -470,9 +471,9 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
   } .elsewhen (address === 215.U) {
     sreg := Cat("h52".U(8.W), rd_vres(9,2)) /* V_SIZE[7:0]= 0x52/4 */ //150
   } .elsewhen (address === 216.U) {
-    sreg := Cat("h55".U(8.W), Mux(uxga, (rd_vres(10,3) & "h80".U(8.W)) | (rd_hres(10,7) & "h8".U(4.W)), "h00".U(8.W))) /* V_SIZE[8]/OFFSET_Y[10:8]/H_SIZE[8]/OFFSET_X[10:8] */
+    sreg := Cat("h55".U(8.W), (rd_vres(10,3) & "h80".U(8.W)) | (rd_hres(10,7) & "h8".U(4.W))) /* V_SIZE[8]/OFFSET_Y[10:8]/H_SIZE[8]/OFFSET_X[10:8] */
   } .elsewhen (address === 217.U) {
-    sreg := Cat("h57".U(8.W), Mux(uxga, rd_hres(11,4) & "h80".U(8.W), "h00".U(8.W))) /* H_SIZE[9] */
+    sreg := Cat("h57".U(8.W), (rd_hres(11,4) & "h80".U(8.W))) /* H_SIZE[9] */
   } .elsewhen (address === 218.U) {
     sreg := "h86_3D".U(16.W)
   } .elsewhen (address === 219.U) {
