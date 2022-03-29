@@ -38,31 +38,33 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
   }
 
   when(address === 0.U) {
-    sreg := "hFF_01".U(16.W)
+    sreg := "hFF_01".U(16.W) // RA_DLMT Sensor address
   } .elsewhen (address === 1.U) {
     sreg := "h12_80".U(16.W)
+
   } .elsewhen (address === 2.U) {
-    sreg := "hFF_00".U(16.W)
+    sreg := "hFF_00".U(16.W) // RA_DLMT DSP address
   } .elsewhen (address === 3.U) {
     sreg := "h2c_ff".U(16.W)
   } .elsewhen (address === 4.U) {
     sreg := "h2e_df".U(16.W)
+
   } .elsewhen (address === 5.U) {
-    sreg := "hFF_01".U(16.W)
+    sreg := "hFF_01".U(16.W) // RA_DLMT Sensor address
   } .elsewhen (address === 6.U) {
     sreg := "h3c_32".U(16.W)
   } .elsewhen (address === 7.U) {
-    sreg := Cat("h11".U(8.W), clkrc) /* Set PCLK divider */
+    sreg := Cat("h11".U(8.W), clkrc)        // CLKRC Set PCLK divider
   } .elsewhen (address === 8.U) {
-    sreg := "h09_02".U(16.W) /* Output drive x2 */
+    sreg := Cat("h09".U(8.W), "h02".U(8.W)) // COM2  Output drive x2
   } .elsewhen (address === 9.U) {
-    sreg := "h04_28".U(16.W)
+    sreg := "h04_28".U(16.W) // REG04
   } .elsewhen (address === 10.U) {
     sreg := "h13_E5".U(16.W)
   } .elsewhen (address === 11.U) {
     sreg := "h14_48".U(16.W)
   } .elsewhen (address === 12.U) {
-    sreg := "h15_00".U(16.W) //Invert VSYNC
+    sreg := "h15_00".U(16.W) // COM10 Invert VSYNC
   } .elsewhen (address === 13.U) {
     sreg := "h2c_0c".U(16.W)
   } .elsewhen (address === 14.U) {
@@ -106,25 +108,25 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
   } .elsewhen (address === 33.U) {
     sreg := "h21_99".U(16.W)
   } .elsewhen (address === 34.U) {
-    sreg := "h24_40".U(16.W)
+    sreg := "h24_40".U(16.W) // AEW   Luminance Signal High Range
   } .elsewhen (address === 35.U) {
-    sreg := "h25_38".U(16.W)
+    sreg := "h25_38".U(16.W) // AEB   Luminance Signal Low  Range
   } .elsewhen (address === 36.U) {
-    sreg := "h26_82".U(16.W) /* AGC/AEC fast mode operating region */
+    sreg := "h26_82".U(16.W) // VV    AGC/AEC fast mode operating region
   } .elsewhen (address === 37.U) {
-    sreg := "h48_00".U(16.W) /* Zoom control 2 MSBs */
+    sreg := "h48_00".U(16.W) // COM19 Zoom control 2 MSBs
   } .elsewhen (address === 38.U) {
-    sreg := "h49_00".U(16.W) /* Zoom control 8 MSBs */
+    sreg := "h49_00".U(16.W) // ZOOMS Zoom control 8 MSBs
   } .elsewhen (address === 39.U) {
     sreg := "h5c_00".U(16.W)
   } .elsewhen (address === 40.U) {
     sreg := "h63_00".U(16.W)
   } .elsewhen (address === 41.U) {
-    sreg := "h46_00".U(16.W)
+    sreg := "h46_00".U(16.W) // FLL   Frame Length Adjustment LSBs
   } .elsewhen (address === 42.U) {
-    sreg := "h47_00".U(16.W)
+    sreg := "h47_00".U(16.W) // FLH   Frame Length Adjustment MSBs
   } .elsewhen (address === 43.U) {
-    sreg := "h0C_3A".U(16.W) /* Set banding filter */
+    sreg := "h0C_3A".U(16.W) // COM3  Set banding filter 60 Hz live video
   } .elsewhen (address === 44.U) {
     sreg := "h5D_55".U(16.W)
   } .elsewhen (address === 45.U) {
@@ -163,8 +165,9 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
     sreg := "h4F_bb".U(16.W)
   } .elsewhen (address === 62.U) {
     sreg := "h50_9c".U(16.W)
+
   } .elsewhen (address === 63.U) {
-    sreg := "hFF_00".U(16.W)
+    sreg := "hFF_00".U(16.W) // RA_DLMT DSP address
   } .elsewhen (address === 64.U) {
     sreg := "he5_7f".U(16.W)
   } .elsewhen (address === 65.U) {
@@ -387,52 +390,57 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
     sreg := "hdd_7f".U(16.W)
   } .elsewhen (address === 174.U) {
     sreg := "hC2_0E".U(16.W)
+
   } .elsewhen (address === 175.U) {
-    sreg := "hFF_01".U(16.W)
+    sreg := "hFF_01".U(16.W) // RA_DLMT Sensor address
+
   } .elsewhen (address === 176.U) {
-    sreg := "hFF_00".U(16.W)
+    sreg := "hFF_00".U(16.W) // RA_DLMT DSP address
   } .elsewhen (address === 177.U) {
     sreg := "hE0_04".U(16.W)
   } .elsewhen (address === 178.U) {
-    sreg := Cat("hDA".U(8.W), io.mode) //08:RGB565  04:RAW10
+    sreg := Cat("hDA".U(8.W), io.mode) // IMAGE_MODE 08:RGB565 04:RAW10
   } .elsewhen (address === 179.U) {
     sreg := "hD7_03".U(16.W)
   } .elsewhen (address === 180.U) {
     sreg := "hE1_77".U(16.W)
   } .elsewhen (address === 181.U) {
     sreg := "hE0_00".U(16.W)
+
   } .elsewhen (address === 182.U) {
-    sreg := "hFF_00".U(16.W)
+    sreg := "hFF_00".U(16.W) // RA_DLMT DSP address
   } .elsewhen (address === 183.U) {
-    sreg := "h05_01".U(16.W)
+    sreg := "h05_01".U(16.W) // R_BYPASS Bypass DSP
   } .elsewhen (address === 184.U) {
-    sreg := Cat("h5A".U(8.W), rd_hres(9,2)) //(w>>2)&0xFF	//28:w=160 //A0:w=640 //C8:w=800
+    sreg := Cat("h5A".U(8.W), rd_hres(9,2)) // ZMOW  (w>>2)&0xFF	//28:w=160 //A0:w=640 //C8:w=800
   } .elsewhen (address === 185.U) {
-    sreg := Cat("h5B".U(8.W), rd_vres(9,2)) //(h>>2)&0xFF	//1E:h=120 //78:h=480 //96:h=600
+    sreg := Cat("h5B".U(8.W), rd_vres(9,2)) // ZMOH  (h>>2)&0xFF	//1E:h=120 //78:h=480 //96:h=600
   } .elsewhen (address === 186.U) {
     sreg := Cat("h5C".U(8.W), 0.U(5.W) ## rd_vres(10) ## rd_hres(11,10)) //((h>>8)&0x04)|((w>>10)&0x03)
+
   } .elsewhen (address === 187.U) {
-    sreg := "hFF_01".U(16.W)
+    sreg := "hFF_01".U(16.W) // RA_DLMT Sensor address
   } .elsewhen (address === 188.U) {
-    sreg := Cat("h11".U(8.W), clkrc) //clkrc=0x83 for resolution <= SVGA
+    sreg := Cat("h11".U(8.W), clkrc) // CLKRC clkrc=0x83 for resolution <= SVGA
+
   } .elsewhen (address === 189.U) {
-    sreg := "hFF_01".U(16.W)
+    sreg := "hFF_01".U(16.W) // RA_DLMT Sensor address
   } .elsewhen (address === 190.U) {
-    sreg := Cat("h12".U(8.W), Mux(uxga, "h00".U(8.W), "h40".U(8.W))) /* DSP input image resoultion and window size control */
+    sreg := Cat("h12".U(8.W), Mux(uxga, "h00".U(8.W), "h40".U(8.W))) // COM7    DSP input image resoultion and window size control
   } .elsewhen (address === 191.U) {
-    sreg := Cat("h03".U(8.W), Mux(uxga, "h0F".U(8.W), "h0A".U(8.W))) /* UXGA=0x0F, SVGA=0x0A, CIF=0x06 */
+    sreg := Cat("h03".U(8.W), Mux(uxga, "h0F".U(8.W), "h0A".U(8.W))) // COM1    UXGA=0x0F, SVGA=0x0A, CIF=0x06
   } .elsewhen (address === 192.U) {
-    sreg := Cat("h32".U(8.W), Mux(uxga, "h36".U(8.W), "h09".U(8.W))) /* UXGA=0x36, SVGA/CIF=0x09 */
+    sreg := Cat("h32".U(8.W), Mux(uxga, "h36".U(8.W), "h09".U(8.W))) // REG32   UXGA=0x36, SVGA/CIF=0x09
   } .elsewhen (address === 193.U) {
-    sreg := Cat("h17".U(8.W), Mux(uxga, "h11".U(8.W), "h11".U(8.W))) /* UXGA=0x11, SVGA/CIF=0x11 */
+    sreg := Cat("h17".U(8.W), Mux(uxga, "h11".U(8.W), "h11".U(8.W))) // HREFST  UXGA=0x11, SVGA/CIF=0x11
   } .elsewhen (address === 194.U) {
-    sreg := Cat("h18".U(8.W), Mux(uxga, "h75".U(8.W), "h43".U(8.W))) /* UXGA=0x75, SVGA/CIF=0x43 */
+    sreg := Cat("h18".U(8.W), Mux(uxga, "h75".U(8.W), "h43".U(8.W))) // HREFEND UXGA=0x75, SVGA/CIF=0x43
   } .elsewhen (address === 195.U) {
-    sreg := Cat("h19".U(8.W), Mux(uxga, "h01".U(8.W), "h00".U(8.W))) /* UXGA=0x01, SVGA/CIF=0x00 */
+    sreg := Cat("h19".U(8.W), Mux(uxga, "h01".U(8.W), "h00".U(8.W))) // VSTRT   UXGA=0x01, SVGA/CIF=0x00
   } .elsewhen (address === 196.U) {
-    sreg := Cat("h1A".U(8.W), Mux(uxga, "h97".U(8.W), "h4b".U(8.W))) /* UXGA=0x97, SVGA/CIF=0x4b */
+    sreg := Cat("h1A".U(8.W), Mux(uxga, "h97".U(8.W), "h4b".U(8.W))) // VEND    UXGA=0x97, SVGA/CIF=0x4b
   } .elsewhen (address === 197.U) {
-    sreg := Cat("h3d".U(8.W), Mux(uxga, "h34".U(8.W), "h38".U(8.W))) /* UXGA=0x34, SVGA/CIF=0x38 */
+    sreg := Cat("h3d".U(8.W), Mux(uxga, "h34".U(8.W), "h38".U(8.W))) //         UXGA=0x34, SVGA/CIF=0x38
   } .elsewhen (address === 198.U) {
     sreg := Cat("h35".U(8.W), Mux(uxga, "h88".U(8.W), "hda".U(8.W)))
   } .elsewhen (address === 199.U) {
@@ -449,51 +457,54 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
     sreg := Cat("h0e".U(8.W), Mux(uxga, "h01".U(8.W), "h41".U(8.W)))
   } .elsewhen (address === 205.U) {
     sreg := Cat("h42".U(8.W), Mux(uxga, "h83".U(8.W), "h03".U(8.W)))
-  } .elsewhen (address === 206.U) {
-    sreg := "hFF_00".U(16.W) /* Set DSP input image size and offset. The sensor output image can be scaled with OUTW/OUTH */
 
+  // Set DSP input image size and offset. The sensor output image can be scaled with OUTW/OUTH
+  } .elsewhen (address === 206.U) {
+    sreg := "hFF_00".U(16.W) // RA_DLMT    DSP address
   } .elsewhen (address === 207.U) {
-    sreg := "h05_01".U(16.W)
+    sreg := "h05_01".U(16.W) // R_BYPASS   Bypass DSP
   } .elsewhen (address === 208.U) {
     sreg := "hE0_04".U(16.W)
   } .elsewhen (address === 209.U) {
-    sreg := Cat("hC0".U(8.W), rd_hres(10,3)) /* Image Horizontal Size 0x51[10:3] */ //11_0010_0000 = 800
+    sreg := Cat("hC0".U(8.W), rd_hres(10,3)) // HSIZE8[7:0] Image Horizontal Size 0x51[10:3] //11_0010_0000 = 800
   } .elsewhen (address === 210.U) {
-    sreg := Cat("hC1".U(8.W), rd_vres(10,3)) /* Image Vertiacl Size 0x52[10:3] */ //10_0101_1000 = 600
+    sreg := Cat("hC1".U(8.W), rd_vres(10,3)) // VSIZE8[7:0] Image Vertiacl   Size 0x52[10:3] //10_0101_1000 = 600
   } .elsewhen (address === 211.U) {
-    sreg := Cat("h8C".U(8.W), 0.U(1.W) ## rd_hres(11) ## rd_hres(2,0) ## rd_vres(2,0)) /* {0x51[11], 0x51[2:0], 0x52[2:0]} */
+    sreg := Cat("h8C".U(8.W), 0.U(1.W) ## rd_hres(11) ## rd_hres(2,0) ## rd_vres(2,0)) // SIZEL[5:0] {0x51[11], 0x51[2:0], 0x52[2:0]}
   } .elsewhen (address === 212.U) {
-    sreg := "h53_00".U(16.W) /* OFFSET_X[7:0] */
+    sreg := "h53_00".U(16.W) // XOFFL[7:0] OFFSET_X[7:0]
   } .elsewhen (address === 213.U) {
-    sreg := "h54_00".U(16.W) /* OFFSET_Y[7:0] */
+    sreg := "h54_00".U(16.W) // YOFFL[7:0] OFFSET_Y[7:0]
   } .elsewhen (address === 214.U) {
-    sreg := Cat("h51".U(8.W), rd_hres(9,2)) /* H_SIZE[7:0]= 0x51/4 */ //200
+    sreg := Cat("h51".U(8.W), rd_hres(9,2)) // H_SIZE[7:0] 0x51/4 //200
   } .elsewhen (address === 215.U) {
-    sreg := Cat("h52".U(8.W), rd_vres(9,2)) /* V_SIZE[7:0]= 0x52/4 */ //150
+    sreg := Cat("h52".U(8.W), rd_vres(9,2)) // V_SIZE[7:0] 0x52/4 //150
   } .elsewhen (address === 216.U) {
-    sreg := Cat("h55".U(8.W), (rd_vres(10,3) & "h80".U(8.W)) | (rd_hres(10,7) & "h8".U(4.W))) /* V_SIZE[8]/OFFSET_Y[10:8]/H_SIZE[8]/OFFSET_X[10:8] */
+    sreg := Cat("h55".U(8.W), (rd_vres(10,3) & "h80".U(8.W)) | (rd_hres(10,7) & "h8".U(4.W))) // VHYX[7:0] V_SIZE[8]/OFFSET_Y[10:8]/H_SIZE[8]/OFFSET_X[10:8]
   } .elsewhen (address === 217.U) {
-    sreg := Cat("h57".U(8.W), (rd_hres(11,4) & "h80".U(8.W))) /* H_SIZE[9] */
+    sreg := Cat("h57".U(8.W), (rd_hres(11,4) & "h80".U(8.W))) // TEST[3:0] H_SIZE[9]
   } .elsewhen (address === 218.U) {
-    sreg := "h86_3D".U(16.W)
+    sreg := "h86_3D".U(16.W) // CTRL2
   } .elsewhen (address === 219.U) {
-    sreg := "h50_80".U(16.W) /* H_DIVIDER/V_DIVIDER */
+    sreg := "h50_80".U(16.W) // CTRLl[7:0] H_DIVIDER/V_DIVIDER
   } .elsewhen (address === 220.U) {
-    sreg := "hD3_80".U(16.W) /* DVP prescalar */
+    sreg := "hD3_80".U(16.W) // R_DVP_SP   DVP prescalar
   } .elsewhen (address === 221.U) {
-    sreg := "h05_00".U(16.W)
+    sreg := "h05_00".U(16.W) // R_BYPASS   Use DSP
   } .elsewhen (address === 222.U) {
     sreg := "hE0_00".U(16.W)
+
   } .elsewhen (address === 223.U) {
-    sreg := "hFF_00".U(16.W)
+    sreg := "hFF_00".U(16.W) // RA_DLMT    DSP address
   } .elsewhen (address === 224.U) {
-    sreg := "h05_00".U(16.W)
+    sreg := "h05_00".U(16.W) // R_BYPASS   Use DSP
+
   } .elsewhen (address === 225.U) {
-    sreg := "hFF_00".U(16.W)
+    sreg := "hFF_00".U(16.W) // RA_DLMT    DSP address
   } .elsewhen (address === 226.U) {
     sreg := "hE0_04".U(16.W)
   } .elsewhen (address === 227.U) {
-    sreg := Cat("hDA".U(8.W), io.mode) //08:RGB565  04:RAW10
+    sreg := Cat("hDA".U(8.W), io.mode) // IMAGE_MODE 08:RGB565 04:RAW10
   } .elsewhen (address === 228.U) {
     sreg := "hD7_03".U(16.W)
   } .elsewhen (address === 229.U) {
