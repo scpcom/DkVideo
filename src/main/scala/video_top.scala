@@ -176,7 +176,9 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
 
   val g_cnt_vs = Wire(UInt(10.W))
   val tp_pxl_clk = if (camtype == ctNone) I_clk else PIXCLK
-  val ptEnabled = ((vp.H_DISPLAY == rd_vp.H_DISPLAY) && (vp.H_DISPLAY == rd_vp.H_DISPLAY))
+  val ptEnabled = ((camtype == ctNone) &&
+                   (vp.H_DISPLAY == rd_vp.H_DISPLAY) &&
+                   (vp.H_DISPLAY == rd_vp.H_DISPLAY))
 
   if (ptEnabled)
     println("with PatternExample")
@@ -232,27 +234,28 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
   } // withClockAndReset(tp_pxl_clk, ~I_rst_n)
 
   //============================================================================
-  if (camtype == ctNone) {
-    SCL := false.B
-    SDA := false.B
+  if (ptEnabled) withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
+    SCL := DontCare
+    SDA := DontCare
 
-    if (ptEnabled) withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
-      val patternExample = Module(new PatternExample(rd_vp))
-      patternExample.io.I_button := I_button
+    val patternExample = Module(new PatternExample(rd_vp))
+    patternExample.io.I_button := I_button
 
-      cam_de_in := patternExample.io.videoSig.de
-      //cam_hs_in := patternExample.io.videoSig.hsync
-      cam_vs_in := patternExample.io.videoSig.vsync
-      cam_data_r := patternExample.io.videoSig.pixel.red
-      cam_data_g := patternExample.io.videoSig.pixel.green
-      cam_data_b := patternExample.io.videoSig.pixel.blue
-    } else {
-      cam_vs_in := ~tp0_vs_in
-      cam_de_in := tp0_de_in
-      cam_data_r := tp0_data_r
-      cam_data_g := tp0_data_g
-      cam_data_b := tp0_data_b
-    }
+    cam_de_in := patternExample.io.videoSig.de
+    //cam_hs_in := patternExample.io.videoSig.hsync
+    cam_vs_in := patternExample.io.videoSig.vsync
+    cam_data_r := patternExample.io.videoSig.pixel.red
+    cam_data_g := patternExample.io.videoSig.pixel.green
+    cam_data_b := patternExample.io.videoSig.pixel.blue
+  } else if (camtype == ctNone) {
+    SCL := DontCare
+    SDA := DontCare
+
+    cam_vs_in := ~tp0_vs_in
+    cam_de_in := tp0_de_in
+    cam_data_r := tp0_data_r
+    cam_data_g := tp0_data_g
+    cam_data_b := tp0_data_b
   } else withClockAndReset(PIXCLK, ~hdmi_rst_n) {
     val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
