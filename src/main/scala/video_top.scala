@@ -9,7 +9,7 @@ import fpgamacro.gowin.{CLKDIV, LVDS_OBUF, TLVDS_OBUF, ELVDS_OBUF}
 import fpgamacro.gowin.{Oser10Module}
 import fpgamacro.gowin.{PLLParams, Video_PLL, TMDS_PLLVR, GW_PLLVR, Gowin_rPLL}
 import hdmicore.video.{VideoParams, HVSync, VideoMode, VideoConsts}
-import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair, HdmiTx}
+import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair, HdmiTx, PatternExample}
 import hdl.gowin.DVI_TX_Top
 import hdl.gowin.Video_Frame_Buffer_Top
 import hdl.gowin.HyperRAM_Memory_Interface_Top
@@ -49,6 +49,7 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
+  val I_button = IO(Input(Bool()))
   val SDA = IO(Output(Bool())) // Inout
   val SCL = IO(Output(Bool())) // Inout
   val VSYNC = IO(Input(Bool()))
@@ -175,6 +176,10 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
 
   val g_cnt_vs = Wire(UInt(10.W))
   val tp_pxl_clk = if (camtype == ctNone) I_clk else PIXCLK
+  val ptEnabled = ((vp.H_DISPLAY == rd_vp.H_DISPLAY) && (vp.H_DISPLAY == rd_vp.H_DISPLAY))
+
+  if (ptEnabled)
+    println("with PatternExample")
 
   withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
     val cnt_vs = RegInit(0.U(10.W))
@@ -214,7 +219,7 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
     tp0_data_b := testpattern_inst.io.videoSig.pixel.blue
     vs_r := tp0_vs_in
     when (cnt_vs === "h3ff".U(10.W)) {
-      if (camtype == ctNone) {
+      if ((camtype == ctNone) && !ptEnabled) {
         cnt_vs := 0.U
       } else {
         cnt_vs := cnt_vs
@@ -231,11 +236,23 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
     SCL := false.B
     SDA := false.B
 
-    cam_vs_in := ~tp0_vs_in
-    cam_de_in := tp0_de_in
-    cam_data_r := tp0_data_r
-    cam_data_g := tp0_data_g
-    cam_data_b := tp0_data_b
+    if (ptEnabled) withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
+      val patternExample = Module(new PatternExample(rd_vp))
+      patternExample.io.I_button := I_button
+
+      cam_de_in := patternExample.io.videoSig.de
+      //cam_hs_in := patternExample.io.videoSig.hsync
+      cam_vs_in := patternExample.io.videoSig.vsync
+      cam_data_r := patternExample.io.videoSig.pixel.red
+      cam_data_g := patternExample.io.videoSig.pixel.green
+      cam_data_b := patternExample.io.videoSig.pixel.blue
+    } else {
+      cam_vs_in := ~tp0_vs_in
+      cam_de_in := tp0_de_in
+      cam_data_r := tp0_data_r
+      cam_data_g := tp0_data_g
+      cam_data_b := tp0_data_b
+    }
   } else withClockAndReset(PIXCLK, ~hdmi_rst_n) {
     val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
