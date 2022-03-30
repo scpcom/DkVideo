@@ -8,7 +8,7 @@ case object ctNone extends CameraType
 case object ctOV2640 extends CameraType
 case object ctGC0328 extends CameraType
 
-class Camera_Controller(vp: VideoParams, ct: CameraType = ctOV2640) extends Module {
+class Camera_Controller(vp: VideoParams, ct: CameraType = ctOV2640, zoom: Boolean = false) extends Module {
   val io = IO(new Bundle {
     val clk = Input(Clock()) // 50Mhz clock signal
     val resend = Input(Bool()) // Reset signal
@@ -37,7 +37,12 @@ class Camera_Controller(vp: VideoParams, ct: CameraType = ctOV2640) extends Modu
   send :=  ~finished
 
   // Create an instance of a LUT table
-  def get_lut(): Camera_Registers = if (ct == ctGC0328) Module(new GC0328_Registers(vp)) else Module(new OV2640_Registers(vp))
+  def get_lut(): Camera_Registers = {
+    if (ct == ctGC0328)
+      Module(new GC0328_Registers(vp, zoom))
+    else
+      Module(new OV2640_Registers(vp, zoom))
+  }
   val LUT = get_lut()
   LUT.io.clk := io.clk // 50Mhz clock signal
   LUT.io.advance := taken // Flag to advance to next register

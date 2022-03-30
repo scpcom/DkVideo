@@ -5,7 +5,7 @@ import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import hdmicore.video.VideoParams
 
-class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
+class OV2640_Registers(vp: VideoParams, zoom: Boolean = false) extends Camera_Registers {
   // Internal signals
   val sreg = Reg(UInt(16.W))
   val finished_temp = Wire(Bool())
@@ -15,6 +15,12 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
   val rd_vres = vp.V_DISPLAY.U(12.W) // 600.U(12.W)
   val uxga = Mux((rd_hres <= 800.U) && (rd_vres <= 600.U), false.B, true.B)
   val clkrc = Mux(uxga, "h81".U(8.W), "h80".U(8.W))
+
+  val zi_hres = Mux(uxga, Mux((rd_hres > 1280.U) || (rd_vres > 720.U), 1600.U(12.W), 1280.U(12.W)), 800.U(12.W))
+  val zi_vres = Mux(uxga, Mux((rd_hres > 1280.U) || (rd_vres > 720.U), 1200.U(12.W), 720.U(12.W)), 600.U(12.W))
+
+  val ci_hres = if (zoom) zi_hres else rd_hres
+  val ci_vres = if (zoom) zi_vres else rd_vres
 
   // Assign values to outputs
   io.command := sreg
@@ -466,11 +472,11 @@ class OV2640_Registers(vp: VideoParams) extends Camera_Registers {
   } .elsewhen (address === 208.U) {
     sreg := "hE0_04".U(16.W)
   } .elsewhen (address === 209.U) {
-    sreg := Cat("hC0".U(8.W), rd_hres(10,3)) // HSIZE8[7:0] Image Horizontal Size 0x51[10:3] //11_0010_0000 = 800
+    sreg := Cat("hC0".U(8.W), ci_hres(10,3)) // HSIZE8[7:0] Image Horizontal Size 0x51[10:3] //11_0010_0000 = 800
   } .elsewhen (address === 210.U) {
-    sreg := Cat("hC1".U(8.W), rd_vres(10,3)) // VSIZE8[7:0] Image Vertiacl   Size 0x52[10:3] //10_0101_1000 = 600
+    sreg := Cat("hC1".U(8.W), ci_vres(10,3)) // VSIZE8[7:0] Image Vertiacl   Size 0x52[10:3] //10_0101_1000 = 600
   } .elsewhen (address === 211.U) {
-    sreg := Cat("h8C".U(8.W), 0.U(1.W) ## rd_hres(11) ## rd_hres(2,0) ## rd_vres(2,0)) // SIZEL[5:0] {0x51[11], 0x51[2:0], 0x52[2:0]}
+    sreg := Cat("h8C".U(8.W), 0.U(1.W) ## ci_hres(11) ## ci_hres(2,0) ## ci_vres(2,0)) // SIZEL[5:0] {0x51[11], 0x51[2:0], 0x52[2:0]}
   } .elsewhen (address === 212.U) {
     sreg := "h53_00".U(16.W) // XOFFL[7:0] OFFSET_X[7:0]
   } .elsewhen (address === 213.U) {

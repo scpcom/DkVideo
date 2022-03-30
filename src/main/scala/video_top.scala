@@ -44,7 +44,8 @@ case object dtGW1NR9 extends DeviceType
 
 class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
-                 vmode: VideoMode = VideoConsts.m1280x720, camtype: CameraType = ctOV2640) extends RawModule {
+                vmode: VideoMode = VideoConsts.m1280x720, camtype: CameraType = ctOV2640,
+                camzoom: Boolean = false) extends RawModule {
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
@@ -238,7 +239,7 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
   } else withClockAndReset(PIXCLK, ~hdmi_rst_n) {
     val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
-    val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp, camtype))
+    val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp, camtype, camzoom))
     u_Camera_Receiver.io.clk := clk_12M // 24Mhz clock signal
     u_Camera_Receiver.io.resend := "b0".U(1.W) // Reset signal
     u_Camera_Receiver.io.mode := cam_mode // 08:RGB565  04:RAW10
@@ -442,6 +443,7 @@ object video_topGen extends App {
   var outmode = false
   var vmode: VideoMode = VideoConsts.m1280x720
   var camtype: CameraType = ctOV2640
+  var camzoom: Boolean = false
 
   def set_video_mode(w: Integer, h: Integer, m: VideoMode)
   {
@@ -530,10 +532,16 @@ object video_topGen extends App {
       camtype = ctOV2640
     else if(arg == "gc0328")
       camtype = ctGC0328
+    else if(arg == "zoom")
+      camzoom = true
   }
   if (camtype == ctGC0328){
     rd_width = 640
     rd_height = 480
+  }
+  if (camtype == ctOV2640){
+    if ((rd_width == 1024) && (rd_height == 600))
+      camzoom = true
   }
   if(fullscreen == 1){
     /*if((rd_width <= 720) && (rd_height <= 480))
@@ -575,9 +583,10 @@ object video_topGen extends App {
     println("camtype GC0328")
   else
     println("camtype OV2640")
+  println(s"camzoom $camzoom")
   println(s"rd_hres $rd_width")
   println(s"rd_vres $rd_height")
   (new ChiselStage).execute(args,
     Seq(ChiselGeneratorAnnotation(() =>
-        new video_top(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype))))
+        new video_top(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
 }
