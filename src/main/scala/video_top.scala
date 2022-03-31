@@ -372,7 +372,7 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
     syn_off0_hs := Mux(syn_hs_pol.B,  ~hv_sync.io.hsync, hv_sync.io.hsync)
     syn_off0_vs := Mux(syn_vs_pol.B,  ~hv_sync.io.vsync, hv_sync.io.vsync)
 
-    val N = 5 //delay N clocks
+    val N = 7 //delay N clocks
 
     val Pout_hs_dn = RegInit(1.U(N.W))
     val Pout_vs_dn = RegInit(1.U(N.W))
@@ -384,9 +384,9 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
     //========================================================================
     //TMDS TX
     rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11), 0.U(3.W), off0_syn_data(10,5), 0.U(2.W), off0_syn_data(4,0), 0.U(3.W)), "h0000ff".U(24.W)) //{r,g,b}
-    rgb_vs := Pout_vs_dn(4) //syn_off0_vs;
-    rgb_hs := Pout_hs_dn(4) //syn_off0_hs;
-    rgb_de := Pout_de_dn(4) //off0_syn_de;
+    rgb_vs := Pout_vs_dn(N-1) //syn_off0_vs;
+    rgb_hs := Pout_hs_dn(N-1) //syn_off0_hs;
+    rgb_de := Pout_de_dn(N-1) //off0_syn_de;
 
     /* HDMI interface */
     if(gowinDviTx){
