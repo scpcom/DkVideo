@@ -100,7 +100,7 @@ class testpattern(vp: VideoParams) extends Module {
   //Generate HS, VS, DE signals
 
   val tp_sync = Module(new HVSync(vp))
-  Pout_de_w := (tp_sync.io.hpos < io.I_rd_hres)&(tp_sync.io.vpos < io.I_rd_vres)
+  Pout_de_w := (tp_sync.io.hpos < io.I_rd_hres) && (tp_sync.io.vpos < io.I_rd_vres)
   Pout_hs_w := tp_sync.io.hsync
   Pout_vs_w := tp_sync.io.vsync
 
@@ -109,9 +109,9 @@ class testpattern(vp: VideoParams) extends Module {
   Pout_de_dn := Pout_de_dn(N-2,0) ## Pout_de_w
   Pout_hs_dn := Pout_hs_dn(N-2,0) ## Pout_hs_w
   Pout_vs_dn := Pout_vs_dn(N-2,0) ## Pout_vs_w
-  io.videoSig.de := Pout_de_dn(4) //ע�������ݶ���
-  io.videoSig.hsync := Mux(io.I_hs_pol,  ~Pout_hs_dn(3), Pout_hs_dn(3))
-  io.videoSig.vsync := Mux(io.I_vs_pol,  ~Pout_vs_dn(3), Pout_vs_dn(3))
+  io.videoSig.de := Pout_de_dn(N-1) //ע�������ݶ���
+  io.videoSig.hsync := Mux(io.I_hs_pol,  ~Pout_hs_dn(N-1), Pout_hs_dn(N-1))
+  io.videoSig.vsync := Mux(io.I_vs_pol,  ~Pout_vs_dn(N-1), Pout_vs_dn(N-1))
 
   //=================================================================================
   //Test Pattern
