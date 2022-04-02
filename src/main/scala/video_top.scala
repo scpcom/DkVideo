@@ -9,7 +9,7 @@ import fpgamacro.gowin.{CLKDIV, LVDS_OBUF, TLVDS_OBUF, ELVDS_OBUF}
 import fpgamacro.gowin.{Oser10Module}
 import fpgamacro.gowin.{PLLParams, Video_PLL, TMDS_PLLVR, GW_PLLVR, Gowin_rPLL}
 import hdmicore.video.{VideoParams, HVSync, VideoMode, VideoConsts}
-import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair, HdmiTx, PatternExample}
+import hdmicore.{Rgb2Tmds, TMDSDiff, DiffPair, HdmiTx, PatternExample, VideoHdmi}
 import hdl.gowin.DVI_TX_Top
 import hdl.gowin.Video_Frame_Buffer_Top
 import hdl.gowin.HyperRAM_Memory_Interface_Top
@@ -42,6 +42,223 @@ case object dtGW1NZ1 extends DeviceType
 case object dtGW1NSR4C extends DeviceType
 case object dtGW1NR9 extends DeviceType
 
+class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
+                rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
+                syn_hs_pol: Int = 1, syn_vs_pol: Int = 1,
+                camtype: CameraType = ctOV2640, camzoom: Boolean = false) extends RawModule {
+  val io = IO(new Bundle {
+    val I_clk = Input(Clock()) //27Mhz
+    val I_rst_n = Input(Bool())
+    val I_button = Input(Bool())
+    val clk_12M = Input(Clock())
+    val init_calib = Input(Bool())
+    val O_led = Output(UInt(2.W))
+    val videoClk = Output(Clock())
+    val videoSig = Output(new VideoHdmi())
+    val SDA = Output(Bool()) // Inout
+    val SCL = Output(Bool()) // Inout
+    val VSYNC = Input(Bool())
+    val HREF = Input(Bool())
+    val PIXDATA = Input(UInt(10.W))
+    val PIXCLK = Input(Clock())
+    //val XCLK = Output(Clock())
+  })
+
+  //==================================================
+  /* set val rd_vp = vp for full screen */
+  val rd_vp = VideoParams(
+      H_DISPLAY = rd_width, H_FRONT = vp.H_FRONT,
+      H_SYNC = vp.H_SYNC, H_BACK = vp.H_BACK,
+      V_SYNC = vp.V_SYNC,  V_BACK = vp.V_BACK,
+      V_TOP = vp.V_TOP, V_DISPLAY = rd_height,
+      V_BOTTOM = vp.V_BOTTOM)
+  val rd_hres = rd_vp.H_DISPLAY // 800
+  val rd_vres = rd_vp.V_DISPLAY // 600
+
+  val running = Wire(Bool())
+
+  //--------------------------
+  val tp0_vs_in = Wire(Bool())
+  val tp0_hs_in = Wire(Bool())
+  val tp0_de_in = Wire(Bool())
+  val tp0_data_r = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val tp0_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val tp0_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+
+  //--------------------------
+  val cam_vs_in = Wire(Bool())
+  val cam_de_in = Wire(Bool())
+  val cam_data_r = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val cam_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val cam_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+
+  //io.XCLK := io.clk_12M
+
+  //============================================================================
+  //I_clk
+
+  val g_cnt_vs = Wire(UInt(10.W))
+  val vmx_pxl_clk = if (camtype == ctNone) io.I_clk else io.PIXCLK
+  val ptEnabled = ((camtype == ctNone) &&
+                   (vp.H_DISPLAY == rd_vp.H_DISPLAY) &&
+                   (vp.H_DISPLAY == rd_vp.H_DISPLAY))
+
+  if (ptEnabled)
+    println("with PatternExample")
+
+  withClockAndReset(vmx_pxl_clk, ~io.I_rst_n) {
+    val cnt_vs = RegInit(0.U(10.W))
+    val run_cnt = RegInit(0.U(32.W))
+    val vs_r = Reg(Bool())
+
+    g_cnt_vs := cnt_vs
+
+    //========================================================================
+    //LED test
+    when (run_cnt >= "d27_000_000".U(32.W)) {
+      run_cnt := 0.U(32.W)
+    } .otherwise {
+      run_cnt := run_cnt+"b1".U(1.W)
+    }
+    running := (Mux((run_cnt < "d13_500_000".U(32.W)), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
+    io.O_led := ~io.init_calib ## running
+
+    //========================================================================
+    //testpattern
+    val testpattern_inst = Module(new testpattern(vp))
+    testpattern_inst.io.I_pxl_clk := vmx_pxl_clk //pixel clock
+    testpattern_inst.io.I_rst_n := io.I_rst_n //low active
+    testpattern_inst.io.I_mode := 0.U(1.W) ## cnt_vs(7,6) //data select
+    testpattern_inst.io.I_single_r := 0.U(8.W)
+    testpattern_inst.io.I_single_g := 255.U(8.W)
+    testpattern_inst.io.I_single_b := 0.U(8.W)                             //800x600    //1024x768   //1280x720
+    testpattern_inst.io.I_rd_hres := rd_hres.U(12.W)     //hor resolution  // 16'd800   // 16'd1024  // 16'd1280
+    testpattern_inst.io.I_rd_vres := rd_vres.U(12.W)     //ver resolution  // 16'd600   // 16'd768   // 16'd720
+    testpattern_inst.io.I_hs_pol := syn_hs_pol.U(1.W)    //HS polarity , 0:negetive ploarity，1：positive polarity
+    testpattern_inst.io.I_vs_pol := syn_vs_pol.U(1.W)    //VS polarity , 0:negetive ploarity，1：positive polarity
+    tp0_de_in := testpattern_inst.io.videoSig.de
+    tp0_hs_in := testpattern_inst.io.videoSig.hsync
+    tp0_vs_in := testpattern_inst.io.videoSig.vsync
+    tp0_data_r := testpattern_inst.io.videoSig.pixel.red
+    tp0_data_g := testpattern_inst.io.videoSig.pixel.green
+    tp0_data_b := testpattern_inst.io.videoSig.pixel.blue
+    vs_r := tp0_vs_in
+    when (cnt_vs === "h3ff".U(10.W)) {
+      if ((camtype == ctNone) && !ptEnabled) {
+        cnt_vs := 0.U
+      } else {
+        cnt_vs := cnt_vs
+      }
+    } .elsewhen (vs_r && ( !tp0_vs_in)) { //vs24 falling edge
+      cnt_vs := cnt_vs+"b1".U(1.W)
+    } .otherwise {
+      cnt_vs := cnt_vs
+    }
+  } // withClockAndReset(vmx_pxl_clk, ~io.I_rst_n)
+
+  //============================================================================
+  if (ptEnabled) withClockAndReset(vmx_pxl_clk, ~io.I_rst_n) {
+    io.SCL := DontCare
+    io.SDA := DontCare
+
+    val patternExample = Module(new PatternExample(rd_vp))
+    patternExample.io.I_button := io.I_button
+
+    cam_de_in := patternExample.io.videoSig.de
+    //cam_hs_in := patternExample.io.videoSig.hsync
+    cam_vs_in := patternExample.io.videoSig.vsync
+    cam_data_r := patternExample.io.videoSig.pixel.red
+    cam_data_g := patternExample.io.videoSig.pixel.green
+    cam_data_b := patternExample.io.videoSig.pixel.blue
+  } else if (camtype == ctNone) {
+    io.SCL := DontCare
+    io.SDA := DontCare
+
+    cam_vs_in := ~tp0_vs_in
+    cam_de_in := tp0_de_in
+    cam_data_r := tp0_data_r
+    cam_data_g := tp0_data_g
+    cam_data_b := tp0_data_b
+  } else withClockAndReset(io.PIXCLK, ~io.I_rst_n) {
+    val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
+
+    val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp, camtype, camzoom))
+    u_Camera_Receiver.io.clk := io.clk_12M // 24Mhz clock signal
+    u_Camera_Receiver.io.resend := "b0".U(1.W) // Reset signal
+    u_Camera_Receiver.io.mode := cam_mode // 08:RGB565  04:RAW10
+    u_Camera_Receiver.io.href := io.HREF
+    u_Camera_Receiver.io.vsync := io.VSYNC
+    u_Camera_Receiver.io.data := io.PIXDATA
+    //u_Camera_Receiver.io.config_finished := () // Flag to indicate that the configuration is finished
+    io.SCL := u_Camera_Receiver.io.sioc // SCCB interface - clock signal
+    io.SDA := u_Camera_Receiver.io.siod // SCCB interface - data signal
+    //u_Camera_Receiver.io.reset := () // RESET signal for Camera
+    //u_Camera_Receiver.io.pwdn := () // PWDN signal for Camera
+
+    cam_de_in := u_Camera_Receiver.io.videoSig.de
+    cam_vs_in := u_Camera_Receiver.io.videoSig.vsync
+    cam_data_r := u_Camera_Receiver.io.videoSig.pixel.red
+    cam_data_g := u_Camera_Receiver.io.videoSig.pixel.green
+    cam_data_b := u_Camera_Receiver.io.videoSig.pixel.blue
+  } //withClockAndReset(PIXCLK, ~io.I_rst_n)
+
+  //================================================
+  //data width 24bit
+  io.videoClk := vmx_pxl_clk // Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
+  io.videoSig.de := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_de_in, cam_de_in) //HREF or hcnt
+  io.videoSig.hsync := true.B //Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_hs_in, cam_hs_in) //negative
+  io.videoSig.vsync := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, cam_vs_in) //negative
+  io.videoSig.pixel.red   := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_data_r, cam_data_r)
+  io.videoSig.pixel.green := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_data_g, cam_data_g)
+  io.videoSig.pixel.blue  := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_data_b, cam_data_b)
+}
+
+class Video_Output_Sync(vp: VideoParams,
+                        rd_width: Int, rd_height: Int, rd_halign: Int, rd_valign: Int,
+                        syn_hs_pol: Int, syn_vs_pol: Int, syn_delay: Int) extends Module {
+  val io = IO(new Bundle {
+      val syn_off0_vs = Output(Bool())
+      val syn_off0_hs = Output(Bool())
+      val syn_off0_re = Output(Bool())  // ofifo read enable signal
+
+      val rgb_vs = Output(Bool())
+      val rgb_hs = Output(Bool())
+      val rgb_de = Output(Bool())
+  })
+
+  val rd_hres = rd_width
+  val rd_vres = rd_height
+
+  val hv_sync = Module(new HVSync(vp))
+  val out_de = Wire(Bool())
+  val Rden_w = Wire(Bool())
+  val Rden_dn = RegInit(false.B)
+  val rd_hofs = Mux(rd_halign.U === 2.U, (vp.H_DISPLAY-rd_hres).U(12.W), Mux(rd_halign.U === 1.U, ((vp.H_DISPLAY-rd_hres)/2).U(12.W), 0.U))
+  val rd_vofs = Mux(rd_valign.U === 2.U, (vp.V_DISPLAY-rd_vres).U(12.W), Mux(rd_valign.U === 1.U, ((vp.V_DISPLAY-rd_vres)/2).U(12.W), 0.U))
+  Rden_w := (hv_sync.io.hpos >= rd_hofs) && (hv_sync.io.hpos < (rd_hofs+rd_hres.U(12.W))) &&
+            (hv_sync.io.vpos >= rd_vofs) && (hv_sync.io.vpos < (rd_vofs+rd_vres.U(12.W)))
+  Rden_dn := Rden_w
+  io.syn_off0_re := Rden_dn
+  out_de := hv_sync.io.display_on
+  io.syn_off0_hs := Mux(syn_hs_pol.B,  ~hv_sync.io.hsync, hv_sync.io.hsync)
+  io.syn_off0_vs := Mux(syn_vs_pol.B,  ~hv_sync.io.vsync, hv_sync.io.vsync)
+
+  val N = syn_delay //delay N clocks
+
+  val Pout_hs_dn = RegInit(1.U(N.W))
+  val Pout_vs_dn = RegInit(1.U(N.W))
+  val Pout_de_dn = RegInit(0.U(N.W))
+  Pout_hs_dn := Cat(Pout_hs_dn(N-2,0), io.syn_off0_hs)
+  Pout_vs_dn := Cat(Pout_vs_dn(N-2,0), io.syn_off0_vs)
+  Pout_de_dn := Cat(Pout_de_dn(N-2,0), out_de)
+
+  //========================================================================
+  //TMDS TX
+  io.rgb_vs := Pout_vs_dn(N-1) //syn_off0_vs;
+  io.rgb_hs := Pout_hs_dn(N-1) //syn_off0_hs;
+  io.rgb_de := Pout_de_dn(N-1) //off0_syn_de;
+}
+
 class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
                 vmode: VideoMode = VideoConsts.m1280x720, camtype: CameraType = ctOV2640,
@@ -65,38 +282,9 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
   val IO_hpram_rwds = IO(Analog(1.W)) // Inout
   val O_tmds = IO(Output(new TMDSDiff()))
 
-  //==================================================
-  val vp = vmode.params
-  val vp_H_TOTAL = vp.H_DISPLAY+vp.H_FRONT+vp.H_SYNC+vp.H_BACK
-  val vp_V_TOTAL = vp.V_DISPLAY+vp.V_TOP+vp.V_SYNC+vp.V_BOTTOM
-  /* set val rd_vp = vp for full screen */
-  val rd_vp = VideoParams(
-      H_DISPLAY = rd_width, H_FRONT = vp.H_FRONT,
-      H_SYNC = vp.H_SYNC, H_BACK = vp.H_BACK,
-      V_SYNC = vp.V_SYNC,  V_BACK = vp.V_BACK,
-      V_TOP = vp.V_TOP, V_DISPLAY = rd_height,
-      V_BOTTOM = vp.V_BOTTOM)
-  val rd_hres = rd_vp.H_DISPLAY // 800
-  val rd_vres = rd_vp.V_DISPLAY // 600
   val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
   val syn_vs_pol = 1   //VS polarity , 0:负极性，1：正极性
-
-  val running = Wire(Bool())
-
-  //--------------------------
-  val tp0_vs_in = Wire(Bool())
-  val tp0_hs_in = Wire(Bool())
-  val tp0_de_in = Wire(Bool())
-  val tp0_data_r = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
-  val tp0_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
-  val tp0_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
-
-  //--------------------------
-  val cam_vs_in = Wire(Bool())
-  val cam_de_in = Wire(Bool())
-  val cam_data_r = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
-  val cam_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
-  val cam_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val syn_delay = 7
 
   //-------------------------
   //frame buffer in
@@ -150,6 +338,8 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
 
   val clk_12M = Wire(Clock())
 
+  //================================================
+  //Clocks
   def get_pll(): Video_PLL = {
     if (dt == dtGW1NSR4C)
       Module(new TMDS_PLLVR(vmode.pll))
@@ -171,127 +361,36 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
 
   XCLK := clk_12M
 
-  //============================================================================
-  //I_clk
-
-  val g_cnt_vs = Wire(UInt(10.W))
-  val tp_pxl_clk = if (camtype == ctNone) I_clk else PIXCLK
-  val ptEnabled = ((camtype == ctNone) &&
-                   (vp.H_DISPLAY == rd_vp.H_DISPLAY) &&
-                   (vp.H_DISPLAY == rd_vp.H_DISPLAY))
-
-  if (ptEnabled)
-    println("with PatternExample")
-
-  withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
-    val cnt_vs = RegInit(0.U(10.W))
-    val run_cnt = RegInit(0.U(32.W))
-    val vs_r = Reg(Bool())
-
-    g_cnt_vs := cnt_vs
-
-    //========================================================================
-    //LED test
-    when (run_cnt >= "d27_000_000".U(32.W)) {
-      run_cnt := 0.U(32.W)
-    } .otherwise {
-      run_cnt := run_cnt+"b1".U(1.W)
-    }
-    running := (Mux((run_cnt < "d13_500_000".U(32.W)), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
-    O_led := ~init_calib ## running
-
-    //========================================================================
-    //testpattern
-    val testpattern_inst = Module(new testpattern(vp))
-    testpattern_inst.io.I_pxl_clk := tp_pxl_clk //pixel clock
-    testpattern_inst.io.I_rst_n := I_rst_n //low active
-    testpattern_inst.io.I_mode := 0.U(1.W) ## cnt_vs(7,6) //data select
-    testpattern_inst.io.I_single_r := 0.U(8.W)
-    testpattern_inst.io.I_single_g := 255.U(8.W)
-    testpattern_inst.io.I_single_b := 0.U(8.W)                             //800x600    //1024x768   //1280x720
-    testpattern_inst.io.I_rd_hres := rd_hres.U(12.W)     //hor resolution  // 16'd800   // 16'd1024  // 16'd1280
-    testpattern_inst.io.I_rd_vres := rd_vres.U(12.W)     //ver resolution  // 16'd600   // 16'd768   // 16'd720
-    testpattern_inst.io.I_hs_pol := syn_hs_pol.U(1.W)    //HS polarity , 0:negetive ploarity，1：positive polarity
-    testpattern_inst.io.I_vs_pol := syn_vs_pol.U(1.W)    //VS polarity , 0:negetive ploarity，1：positive polarity
-    tp0_de_in := testpattern_inst.io.videoSig.de
-    tp0_hs_in := testpattern_inst.io.videoSig.hsync
-    tp0_vs_in := testpattern_inst.io.videoSig.vsync
-    tp0_data_r := testpattern_inst.io.videoSig.pixel.red
-    tp0_data_g := testpattern_inst.io.videoSig.pixel.green
-    tp0_data_b := testpattern_inst.io.videoSig.pixel.blue
-    vs_r := tp0_vs_in
-    when (cnt_vs === "h3ff".U(10.W)) {
-      if ((camtype == ctNone) && !ptEnabled) {
-        cnt_vs := 0.U
-      } else {
-        cnt_vs := cnt_vs
-      }
-    } .elsewhen (vs_r && ( !tp0_vs_in)) { //vs24 falling edge
-      cnt_vs := cnt_vs+"b1".U(1.W)
-    } .otherwise {
-      cnt_vs := cnt_vs
-    }
-  } // withClockAndReset(tp_pxl_clk, ~I_rst_n)
-
-  //============================================================================
-  if (ptEnabled) withClockAndReset(tp_pxl_clk, ~hdmi_rst_n) {
-    SCL := DontCare
-    SDA := DontCare
-
-    val patternExample = Module(new PatternExample(rd_vp))
-    patternExample.io.I_button := I_button
-
-    cam_de_in := patternExample.io.videoSig.de
-    //cam_hs_in := patternExample.io.videoSig.hsync
-    cam_vs_in := patternExample.io.videoSig.vsync
-    cam_data_r := patternExample.io.videoSig.pixel.red
-    cam_data_g := patternExample.io.videoSig.pixel.green
-    cam_data_b := patternExample.io.videoSig.pixel.blue
-  } else if (camtype == ctNone) {
-    SCL := DontCare
-    SDA := DontCare
-
-    cam_vs_in := ~tp0_vs_in
-    cam_de_in := tp0_de_in
-    cam_data_r := tp0_data_r
-    cam_data_g := tp0_data_g
-    cam_data_b := tp0_data_b
-  } else withClockAndReset(PIXCLK, ~hdmi_rst_n) {
-    val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
-
-    val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp, camtype, camzoom))
-    u_Camera_Receiver.io.clk := clk_12M // 24Mhz clock signal
-    u_Camera_Receiver.io.resend := "b0".U(1.W) // Reset signal
-    u_Camera_Receiver.io.mode := cam_mode // 08:RGB565  04:RAW10
-    u_Camera_Receiver.io.href := HREF
-    u_Camera_Receiver.io.vsync := VSYNC
-    u_Camera_Receiver.io.data := PIXDATA
-    //u_Camera_Receiver.io.config_finished := () // Flag to indicate that the configuration is finished
-    SCL := u_Camera_Receiver.io.sioc // SCCB interface - clock signal
-    SDA := u_Camera_Receiver.io.siod // SCCB interface - data signal
-    //u_Camera_Receiver.io.reset := () // RESET signal for Camera
-    //u_Camera_Receiver.io.pwdn := () // PWDN signal for Camera
-
-    cam_de_in := u_Camera_Receiver.io.videoSig.de
-    cam_vs_in := u_Camera_Receiver.io.videoSig.vsync
-    cam_data_r := u_Camera_Receiver.io.videoSig.pixel.red
-    cam_data_g := u_Camera_Receiver.io.videoSig.pixel.green
-    cam_data_b := u_Camera_Receiver.io.videoSig.pixel.blue
-  } //withClockAndReset(PIXCLK, ~I_rst_n)
-
   //================================================
+  //Video input
+  val vidMix = Module(new Video_Input_Mixer(vmode.params,
+                rd_width, rd_height, rd_halign, rd_valign,
+                syn_hs_pol, syn_vs_pol,
+                camtype, camzoom))
+
+  vidMix.io.I_clk := I_clk
+  vidMix.io.I_rst_n := hdmi_rst_n
+  vidMix.io.I_button := I_button
+  vidMix.io.clk_12M := clk_12M
+  vidMix.io.init_calib := init_calib
+  O_led := vidMix.io.O_led
+
+  SDA := vidMix.io.SDA
+  SCL := vidMix.io.SCL
+  vidMix.io.VSYNC := VSYNC
+  vidMix.io.HREF := HREF
+  vidMix.io.PIXDATA := PIXDATA
+  vidMix.io.PIXCLK := PIXCLK
+  //XCLK := vidMix.io.XCLK
+
   //data width 16bit
-  ch0_vfb_clk_in := tp_pxl_clk // Mux((g_cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
-  ch0_vfb_vs_in := Mux((g_cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, cam_vs_in) //negative
-  ch0_vfb_de_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), tp0_de_in, cam_de_in) //HREF or hcnt
-  ch0_vfb_data_in := Mux((g_cnt_vs <= "h1ff".U(10.W)), Cat(tp0_data_r(7,3), tp0_data_g(7,2), tp0_data_b(7,3)),
-                                                       Cat(cam_data_r(7,3), cam_data_g(7,2), cam_data_b(7,3))) // RGB565
-
-  // assign ch0_vfb_clk_in  = PIXCLK;
-  // assign ch0_vfb_vs_in   = VSYNC;  //negative
-  // assign ch0_vfb_de_in   = HREF;//hcnt;
-  // assign ch0_vfb_data_in = cam_data; // RGB565
-
+  ch0_vfb_clk_in := vidMix.io.videoClk
+  //ch0_vfb_hs_in := vidMix.io.videoSig.hsync
+  ch0_vfb_vs_in := vidMix.io.videoSig.vsync
+  ch0_vfb_de_in := vidMix.io.videoSig.de
+  ch0_vfb_data_in := Cat(vidMix.io.videoSig.pixel.red(7,3),
+                         vidMix.io.videoSig.pixel.green(7,2),
+                         vidMix.io.videoSig.pixel.blue(7,3)) // RGB565
 
   //================================================
   //SRAM 控制模块
@@ -358,35 +457,18 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
 
   //============================================================================
   withClockAndReset(pix_clk, ~hdmi_rst_n) {
-    val hv_sync = Module(new HVSync(vp))
-    val out_de = Wire(Bool())
-    val Rden_w = Wire(Bool())
-    val Rden_dn = RegInit(false.B)
-    val rd_hofs = Mux(rd_halign.U === 2.U, (vp.H_DISPLAY-rd_hres).U(12.W), Mux(rd_halign.U === 1.U, ((vp.H_DISPLAY-rd_hres)/2).U(12.W), 0.U))
-    val rd_vofs = Mux(rd_valign.U === 2.U, (vp.V_DISPLAY-rd_vres).U(12.W), Mux(rd_valign.U === 1.U, ((vp.V_DISPLAY-rd_vres)/2).U(12.W), 0.U))
-    Rden_w := (hv_sync.io.hpos >= rd_hofs) && (hv_sync.io.hpos < (rd_hofs+rd_hres.U(12.W))) &&
-              (hv_sync.io.vpos >= rd_vofs) && (hv_sync.io.vpos < (rd_vofs+rd_vres.U(12.W)))
-    Rden_dn := Rden_w
-    syn_off0_re := Rden_dn
-    out_de := hv_sync.io.display_on
-    syn_off0_hs := Mux(syn_hs_pol.B,  ~hv_sync.io.hsync, hv_sync.io.hsync)
-    syn_off0_vs := Mux(syn_vs_pol.B,  ~hv_sync.io.vsync, hv_sync.io.vsync)
+    val vo_sync = Module(new Video_Output_Sync(vmode.params, rd_width, rd_height, rd_halign, rd_valign, syn_hs_pol, syn_vs_pol, syn_delay))
 
-    val N = 7 //delay N clocks
-
-    val Pout_hs_dn = RegInit(1.U(N.W))
-    val Pout_vs_dn = RegInit(1.U(N.W))
-    val Pout_de_dn = RegInit(0.U(N.W))
-    Pout_hs_dn := Cat(Pout_hs_dn(N-2,0), syn_off0_hs)
-    Pout_vs_dn := Cat(Pout_vs_dn(N-2,0), syn_off0_vs)
-    Pout_de_dn := Cat(Pout_de_dn(N-2,0), out_de)
+    syn_off0_vs := vo_sync.io.syn_off0_vs
+    syn_off0_hs := vo_sync.io.syn_off0_hs
+    syn_off0_re := vo_sync.io.syn_off0_re
 
     //========================================================================
     //TMDS TX
+    rgb_hs := vo_sync.io.rgb_hs
+    rgb_vs := vo_sync.io.rgb_vs
+    rgb_de := vo_sync.io.rgb_de
     rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11), 0.U(3.W), off0_syn_data(10,5), 0.U(2.W), off0_syn_data(4,0), 0.U(3.W)), "h0000ff".U(24.W)) //{r,g,b}
-    rgb_vs := Pout_vs_dn(N-1) //syn_off0_vs;
-    rgb_hs := Pout_hs_dn(N-1) //syn_off0_hs;
-    rgb_de := Pout_de_dn(N-1) //off0_syn_de;
 
     /* HDMI interface */
     if(gowinDviTx){
