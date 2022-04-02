@@ -152,51 +152,51 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
       cnt_vs := cnt_vs
     }
 
-  //============================================================================
-  if (ptEnabled) {
-    io.SCL := DontCare
-    io.SDA := DontCare
+    //============================================================================
+    if (ptEnabled) {
+      io.SCL := DontCare
+      io.SDA := DontCare
 
-    val patternExample = Module(new PatternExample(rd_vp))
-    patternExample.io.I_button := io.I_button
+      val patternExample = Module(new PatternExample(rd_vp))
+      patternExample.io.I_button := io.I_button
 
-    cam_de_in := patternExample.io.videoSig.de
-    //cam_hs_in := patternExample.io.videoSig.hsync
-    cam_vs_in := patternExample.io.videoSig.vsync
-    cam_data_r := patternExample.io.videoSig.pixel.red
-    cam_data_g := patternExample.io.videoSig.pixel.green
-    cam_data_b := patternExample.io.videoSig.pixel.blue
-  } else if (camtype == ctNone) {
-    io.SCL := DontCare
-    io.SDA := DontCare
+      cam_de_in := patternExample.io.videoSig.de
+      //cam_hs_in := patternExample.io.videoSig.hsync
+      cam_vs_in := patternExample.io.videoSig.vsync
+      cam_data_r := patternExample.io.videoSig.pixel.red
+      cam_data_g := patternExample.io.videoSig.pixel.green
+      cam_data_b := patternExample.io.videoSig.pixel.blue
+    } else if (camtype == ctNone) {
+      io.SCL := DontCare
+      io.SDA := DontCare
 
-    cam_vs_in := ~tp0_vs_in
-    cam_de_in := tp0_de_in
-    cam_data_r := tp0_data_r
-    cam_data_g := tp0_data_g
-    cam_data_b := tp0_data_b
-  } else {
-    val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
+      cam_vs_in := ~tp0_vs_in
+      cam_de_in := tp0_de_in
+      cam_data_r := tp0_data_r
+      cam_data_g := tp0_data_g
+      cam_data_b := tp0_data_b
+    } else {
+      val cam_mode = "h08".U(8.W) // 08:RGB565  04:RAW10
 
-    val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp, camtype, camzoom))
-    u_Camera_Receiver.io.clk := io.clk_12M // 24Mhz clock signal
-    u_Camera_Receiver.io.resend := "b0".U(1.W) // Reset signal
-    u_Camera_Receiver.io.mode := cam_mode // 08:RGB565  04:RAW10
-    u_Camera_Receiver.io.href := io.HREF
-    u_Camera_Receiver.io.vsync := io.VSYNC
-    u_Camera_Receiver.io.data := io.PIXDATA
-    //u_Camera_Receiver.io.config_finished := () // Flag to indicate that the configuration is finished
-    io.SCL := u_Camera_Receiver.io.sioc // SCCB interface - clock signal
-    io.SDA := u_Camera_Receiver.io.siod // SCCB interface - data signal
-    //u_Camera_Receiver.io.reset := () // RESET signal for Camera
-    //u_Camera_Receiver.io.pwdn := () // PWDN signal for Camera
+      val u_Camera_Receiver = Module(new Camera_Receiver(rd_vp, camtype, camzoom))
+      u_Camera_Receiver.io.clk := io.clk_12M // 24Mhz clock signal
+      u_Camera_Receiver.io.resend := "b0".U(1.W) // Reset signal
+      u_Camera_Receiver.io.mode := cam_mode // 08:RGB565  04:RAW10
+      u_Camera_Receiver.io.href := io.HREF
+      u_Camera_Receiver.io.vsync := io.VSYNC
+      u_Camera_Receiver.io.data := io.PIXDATA
+      //u_Camera_Receiver.io.config_finished := () // Flag to indicate that the configuration is finished
+      io.SCL := u_Camera_Receiver.io.sioc // SCCB interface - clock signal
+      io.SDA := u_Camera_Receiver.io.siod // SCCB interface - data signal
+      //u_Camera_Receiver.io.reset := () // RESET signal for Camera
+      //u_Camera_Receiver.io.pwdn := () // PWDN signal for Camera
 
-    cam_de_in := u_Camera_Receiver.io.videoSig.de
-    cam_vs_in := u_Camera_Receiver.io.videoSig.vsync
-    cam_data_r := u_Camera_Receiver.io.videoSig.pixel.red
-    cam_data_g := u_Camera_Receiver.io.videoSig.pixel.green
-    cam_data_b := u_Camera_Receiver.io.videoSig.pixel.blue
-  }
+      cam_de_in := u_Camera_Receiver.io.videoSig.de
+      cam_vs_in := u_Camera_Receiver.io.videoSig.vsync
+      cam_data_r := u_Camera_Receiver.io.videoSig.pixel.red
+      cam_data_g := u_Camera_Receiver.io.videoSig.pixel.green
+      cam_data_b := u_Camera_Receiver.io.videoSig.pixel.blue
+    }
 
     //================================================
     //data width 24bit
