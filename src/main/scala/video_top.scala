@@ -87,6 +87,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
 
   //--------------------------
   val cam_vs_in = Wire(Bool())
+  val cam_hs_in = Wire(Bool())
   val cam_de_in = Wire(Bool())
   val cam_data_r = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
   val cam_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
@@ -161,7 +162,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
       patternExample.io.I_button := io.I_button
 
       cam_de_in := patternExample.io.videoSig.de
-      //cam_hs_in := patternExample.io.videoSig.hsync
+      cam_hs_in := patternExample.io.videoSig.hsync
       cam_vs_in := patternExample.io.videoSig.vsync
       cam_data_r := patternExample.io.videoSig.pixel.red
       cam_data_g := patternExample.io.videoSig.pixel.green
@@ -170,8 +171,9 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
       io.SCL := DontCare
       io.SDA := DontCare
 
-      cam_vs_in := ~tp0_vs_in
       cam_de_in := tp0_de_in
+      cam_hs_in := ~tp0_hs_in
+      cam_vs_in := ~tp0_vs_in
       cam_data_r := tp0_data_r
       cam_data_g := tp0_data_g
       cam_data_b := tp0_data_b
@@ -192,6 +194,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
       //u_Camera_Receiver.io.pwdn := () // PWDN signal for Camera
 
       cam_de_in := u_Camera_Receiver.io.videoSig.de
+      cam_hs_in := u_Camera_Receiver.io.videoSig.hsync
       cam_vs_in := u_Camera_Receiver.io.videoSig.vsync
       cam_data_r := u_Camera_Receiver.io.videoSig.pixel.red
       cam_data_g := u_Camera_Receiver.io.videoSig.pixel.green
@@ -202,7 +205,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
     //data width 24bit
     io.videoClk := vmx_pxl_clk // Mux((cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
     io.videoSig.de := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_de_in, cam_de_in) //HREF or hcnt
-    io.videoSig.hsync := true.B //Mux((cnt_vs <= "h1ff".U(10.W)),  ~tp0_hs_in, cam_hs_in) //negative
+    io.videoSig.hsync := Mux((cnt_vs <= "h1ff".U(10.W)),  ~tp0_hs_in, cam_hs_in) //negative
     io.videoSig.vsync := Mux((cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, cam_vs_in) //negative
     io.videoSig.pixel.red   := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_data_r, cam_data_r)
     io.videoSig.pixel.green := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_data_g, cam_data_g)
