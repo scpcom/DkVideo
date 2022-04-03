@@ -188,7 +188,9 @@ object video_topGen extends App {
   println(s"camzoom $camzoom")
   println(s"rd_hres $rd_width")
   println(s"rd_vres $rd_height")
-  (new ChiselStage).execute(args,
+  val stage_name = "video_top"
+  val stage_args = args ++ Array("--output-file", stage_name, "--output-annotation-file", stage_name, "--chisel-output-file", stage_name)
+  (new ChiselStage).execute(stage_args,
     Seq(ChiselGeneratorAnnotation(() =>
-        new video_top(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
+        new video_hpram(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
 }

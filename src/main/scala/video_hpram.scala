@@ -15,7 +15,7 @@ import hdl.gowin.HyperRAM_Memory_Interface_Top
 import camcore.{CameraType, ctNone, ctOV2640, ctGC0328}
 import video.Video_Output_Sync
 
-class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
+class video_hpram(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
                 vmode: VideoMode = VideoConsts.m1280x720, camtype: CameraType = ctOV2640,
                 camzoom: Boolean = false) extends RawModule {
