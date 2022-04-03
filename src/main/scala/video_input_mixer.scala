@@ -64,7 +64,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
   val vmx_pxl_clk = if (camtype == ctNone) io.I_clk else io.PIXCLK
   val ptEnabled = ((camtype == ctNone) &&
                    (vp.H_DISPLAY == rd_vp.H_DISPLAY) &&
-                   (vp.H_DISPLAY == rd_vp.H_DISPLAY))
+                   (vp.V_DISPLAY == rd_vp.V_DISPLAY))
 
   if (ptEnabled)
     println("with PatternExample")
