@@ -11,7 +11,7 @@ class Video_Output_Sync(vp: VideoParams,
       val syn_off0_vs = Output(Bool())
       val syn_off0_hs = Output(Bool())
       val syn_off0_re = Output(Bool())  // ofifo read enable signal
-
+      val out_de = Output(Bool())
       val rgb_vs = Output(Bool())
       val rgb_hs = Output(Bool())
       val rgb_de = Output(Bool())
@@ -21,7 +21,7 @@ class Video_Output_Sync(vp: VideoParams,
   val rd_vres = rd_height
 
   val hv_sync = Module(new HVSync(vp))
-  val out_de = Wire(Bool())
+  //val out_de = Wire(Bool())
   val Rden_w = Wire(Bool())
   val Rden_dn = RegInit(false.B)
   val rd_hofs = Mux(rd_halign.U === 2.U, (vp.H_DISPLAY-rd_hres).U(12.W), Mux(rd_halign.U === 1.U, ((vp.H_DISPLAY-rd_hres)/2).U(12.W), 0.U))
@@ -30,7 +30,7 @@ class Video_Output_Sync(vp: VideoParams,
             (hv_sync.io.vpos >= rd_vofs) && (hv_sync.io.vpos < (rd_vofs+rd_vres.U(12.W)))
   Rden_dn := Rden_w
   io.syn_off0_re := Rden_dn
-  out_de := hv_sync.io.display_on
+  io.out_de := hv_sync.io.display_on
   io.syn_off0_hs := Mux(syn_hs_pol.B,  ~hv_sync.io.hsync, hv_sync.io.hsync)
   io.syn_off0_vs := Mux(syn_vs_pol.B,  ~hv_sync.io.vsync, hv_sync.io.vsync)
 
@@ -41,7 +41,7 @@ class Video_Output_Sync(vp: VideoParams,
   val Pout_de_dn = RegInit(0.U(N.W))
   Pout_hs_dn := Cat(Pout_hs_dn(N-2,0), io.syn_off0_hs)
   Pout_vs_dn := Cat(Pout_vs_dn(N-2,0), io.syn_off0_vs)
-  Pout_de_dn := Cat(Pout_de_dn(N-2,0), out_de)
+  Pout_de_dn := Cat(Pout_de_dn(N-2,0), io.out_de)
 
   //========================================================================
   //TMDS TX
