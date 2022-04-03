@@ -130,18 +130,18 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
     else
       Module(new Gowin_rPLL(vmode.pll))
   }
-  val TMDS_PLLVR_inst = get_pll()
-  TMDS_PLLVR_inst.io.clkin := I_clk //input clk
-  serial_clk := TMDS_PLLVR_inst.io.clkout //output clk
-  clk_12M := TMDS_PLLVR_inst.io.clkoutd //output clkoutd
-  pll_lock := TMDS_PLLVR_inst.io.lock //output lock
+  val tmdsPLL = get_pll()
+  tmdsPLL.io.clkin := I_clk //input clk
+  serial_clk := tmdsPLL.io.clkout //output clk
+  clk_12M := tmdsPLL.io.clkoutd //output clkoutd
+  pll_lock := tmdsPLL.io.lock //output lock
   hdmi_rst_n := I_rst_n & pll_lock
 
-  val u_clkdiv = Module(new CLKDIV)
-  u_clkdiv.io.RESETN := hdmi_rst_n
-  u_clkdiv.io.HCLKIN := serial_clk //clk  x5
-  pix_clk := u_clkdiv.io.CLKOUT //clk  x1
-  u_clkdiv.io.CALIB := "b1".U(1.W)
+  val uClkDiv = Module(new CLKDIV)
+  uClkDiv.io.RESETN := hdmi_rst_n
+  uClkDiv.io.HCLKIN := serial_clk //clk  x5
+  pix_clk := uClkDiv.io.CLKOUT //clk  x1
+  uClkDiv.io.CALIB := "b1".U(1.W)
 
   XCLK := clk_12M
 
@@ -178,108 +178,108 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
 
   //================================================
   //SRAM 控制模块
-  val Video_Frame_Buffer_Top_inst = Module(new Video_Frame_Buffer_Top)
-  Video_Frame_Buffer_Top_inst.io.I_rst_n := init_calib //rst_n            ),
-  Video_Frame_Buffer_Top_inst.io.I_dma_clk := dma_clk //sram_clk         ),
-  Video_Frame_Buffer_Top_inst.io.I_wr_halt := 0.U(1.W) //1:halt,  0:no halt
-  Video_Frame_Buffer_Top_inst.io.I_rd_halt := 0.U(1.W) //1:halt,  0:no halt
+  val videoFrameBuffer = Module(new Video_Frame_Buffer_Top)
+  videoFrameBuffer.io.I_rst_n := init_calib //rst_n            ),
+  videoFrameBuffer.io.I_dma_clk := dma_clk //sram_clk         ),
+  videoFrameBuffer.io.I_wr_halt := 0.U(1.W) //1:halt,  0:no halt
+  videoFrameBuffer.io.I_rd_halt := 0.U(1.W) //1:halt,  0:no halt
   // video data input
-  Video_Frame_Buffer_Top_inst.io.I_vin0_clk := ch0_vfb_clk_in
-  Video_Frame_Buffer_Top_inst.io.I_vin0_vs_n := ch0_vfb_vs_in
-  Video_Frame_Buffer_Top_inst.io.I_vin0_de := ch0_vfb_de_in
-  Video_Frame_Buffer_Top_inst.io.I_vin0_data := ch0_vfb_data_in
+  videoFrameBuffer.io.I_vin0_clk := ch0_vfb_clk_in
+  videoFrameBuffer.io.I_vin0_vs_n := ch0_vfb_vs_in
+  videoFrameBuffer.io.I_vin0_de := ch0_vfb_de_in
+  videoFrameBuffer.io.I_vin0_data := ch0_vfb_data_in
   // video data output
-  Video_Frame_Buffer_Top_inst.io.I_vout0_clk := pix_clk
-  Video_Frame_Buffer_Top_inst.io.I_vout0_vs_n :=  ~syn_off0_vs
-  Video_Frame_Buffer_Top_inst.io.I_vout0_de := syn_off0_re
-  off0_syn_de := Video_Frame_Buffer_Top_inst.io.O_vout0_den
-  off0_syn_data := Video_Frame_Buffer_Top_inst.io.O_vout0_data
+  videoFrameBuffer.io.I_vout0_clk := pix_clk
+  videoFrameBuffer.io.I_vout0_vs_n :=  ~syn_off0_vs
+  videoFrameBuffer.io.I_vout0_de := syn_off0_re
+  off0_syn_de := videoFrameBuffer.io.O_vout0_den
+  off0_syn_data := videoFrameBuffer.io.O_vout0_data
   // ddr write request
-  cmd := Video_Frame_Buffer_Top_inst.io.O_cmd
-  cmd_en := Video_Frame_Buffer_Top_inst.io.O_cmd_en
-  addr := Video_Frame_Buffer_Top_inst.io.O_addr //[ADDR_WIDTH-1:0]
-  wr_data := Video_Frame_Buffer_Top_inst.io.O_wr_data //[DATA_WIDTH-1:0]
-  data_mask := Video_Frame_Buffer_Top_inst.io.O_data_mask
-  Video_Frame_Buffer_Top_inst.io.I_rd_data_valid := rd_data_valid
-  Video_Frame_Buffer_Top_inst.io.I_rd_data := rd_data //[DATA_WIDTH-1:0]
-  Video_Frame_Buffer_Top_inst.io.I_init_calib := init_calib
+  cmd := videoFrameBuffer.io.O_cmd
+  cmd_en := videoFrameBuffer.io.O_cmd_en
+  addr := videoFrameBuffer.io.O_addr //[ADDR_WIDTH-1:0]
+  wr_data := videoFrameBuffer.io.O_wr_data //[DATA_WIDTH-1:0]
+  data_mask := videoFrameBuffer.io.O_data_mask
+  videoFrameBuffer.io.I_rd_data_valid := rd_data_valid
+  videoFrameBuffer.io.I_rd_data := rd_data //[DATA_WIDTH-1:0]
+  videoFrameBuffer.io.I_init_calib := init_calib
 
   //================================================
   //HyperRAM ip
   if (dt == dtGW1NSR4C) {
-  val GW_PLLVR_inst = Module(new GW_PLLVR)
-  memory_clk := GW_PLLVR_inst.io.clkout //output clkout
-  mem_pll_lock := GW_PLLVR_inst.io.lock //output lock
-  GW_PLLVR_inst.io.clkin := I_clk //input clkin
+  val memPLL = Module(new GW_PLLVR)
+  memory_clk := memPLL.io.clkout //output clkout
+  mem_pll_lock := memPLL.io.lock //output lock
+  memPLL.io.clkin := I_clk //input clkin
   } else {
-  val GW_rPLL_inst = Module(new Gowin_rPLL(PLLParams(IDIV_SEL = 8, FBDIV_SEL = 52, ODIV_SEL = 4, DYN_SDIV_SEL = 2)))
-  memory_clk := GW_rPLL_inst.io.clkout //output clkout
-  mem_pll_lock := GW_rPLL_inst.io.lock //output lock
-  GW_rPLL_inst.io.clkin := I_clk //input clkin
+  val memPLL = Module(new Gowin_rPLL(PLLParams(IDIV_SEL = 8, FBDIV_SEL = 52, ODIV_SEL = 4, DYN_SDIV_SEL = 2)))
+  memory_clk := memPLL.io.clkout //output clkout
+  mem_pll_lock := memPLL.io.lock //output lock
+  memPLL.io.clkin := I_clk //input clkin
   }
 
-  val HyperRAM_Memory_Interface_Top_inst = Module(new HyperRAM_Memory_Interface_Top)
-  HyperRAM_Memory_Interface_Top_inst.io.clk := I_clk
-  HyperRAM_Memory_Interface_Top_inst.io.memory_clk := memory_clk
-  HyperRAM_Memory_Interface_Top_inst.io.pll_lock := mem_pll_lock
-  HyperRAM_Memory_Interface_Top_inst.io.rst_n := I_rst_n //rst_n
-  O_hpram_ck := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck
-  O_hpram_ck_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_ck_n
-  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_rwds <> IO_hpram_rwds
-  HyperRAM_Memory_Interface_Top_inst.io.IO_hpram_dq <> IO_hpram_dq
-  O_hpram_reset_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_reset_n
-  O_hpram_cs_n := HyperRAM_Memory_Interface_Top_inst.io.O_hpram_cs_n
-  HyperRAM_Memory_Interface_Top_inst.io.wr_data := wr_data
-  rd_data := HyperRAM_Memory_Interface_Top_inst.io.rd_data
-  rd_data_valid := HyperRAM_Memory_Interface_Top_inst.io.rd_data_valid
-  HyperRAM_Memory_Interface_Top_inst.io.addr := addr
-  HyperRAM_Memory_Interface_Top_inst.io.cmd := cmd
-  HyperRAM_Memory_Interface_Top_inst.io.cmd_en := cmd_en
-  dma_clk := HyperRAM_Memory_Interface_Top_inst.io.clk_out
-  HyperRAM_Memory_Interface_Top_inst.io.data_mask := data_mask
-  init_calib := HyperRAM_Memory_Interface_Top_inst.io.init_calib
+  val memoryInterface = Module(new HyperRAM_Memory_Interface_Top)
+  memoryInterface.io.clk := I_clk
+  memoryInterface.io.memory_clk := memory_clk
+  memoryInterface.io.pll_lock := mem_pll_lock
+  memoryInterface.io.rst_n := I_rst_n //rst_n
+  O_hpram_ck := memoryInterface.io.O_hpram_ck
+  O_hpram_ck_n := memoryInterface.io.O_hpram_ck_n
+  memoryInterface.io.IO_hpram_rwds <> IO_hpram_rwds
+  memoryInterface.io.IO_hpram_dq <> IO_hpram_dq
+  O_hpram_reset_n := memoryInterface.io.O_hpram_reset_n
+  O_hpram_cs_n := memoryInterface.io.O_hpram_cs_n
+  memoryInterface.io.wr_data := wr_data
+  rd_data := memoryInterface.io.rd_data
+  rd_data_valid := memoryInterface.io.rd_data_valid
+  memoryInterface.io.addr := addr
+  memoryInterface.io.cmd := cmd
+  memoryInterface.io.cmd_en := cmd_en
+  dma_clk := memoryInterface.io.clk_out
+  memoryInterface.io.data_mask := data_mask
+  init_calib := memoryInterface.io.init_calib
 
   //============================================================================
   withClockAndReset(pix_clk, ~hdmi_rst_n) {
-    val vo_sync = Module(new Video_Output_Sync(vmode.params, rd_width, rd_height, rd_halign, rd_valign, syn_hs_pol, syn_vs_pol, syn_delay))
+    val voSync = Module(new Video_Output_Sync(vmode.params, rd_width, rd_height, rd_halign, rd_valign, syn_hs_pol, syn_vs_pol, syn_delay))
 
-    syn_off0_vs := vo_sync.io.syn_off0_vs
-    syn_off0_hs := vo_sync.io.syn_off0_hs
-    syn_off0_re := vo_sync.io.syn_off0_re
+    syn_off0_vs := voSync.io.syn_off0_vs
+    syn_off0_hs := voSync.io.syn_off0_hs
+    syn_off0_re := voSync.io.syn_off0_re
 
     //========================================================================
     //TMDS TX
-    rgb_hs := vo_sync.io.rgb_hs
-    rgb_vs := vo_sync.io.rgb_vs
-    rgb_de := vo_sync.io.rgb_de
+    rgb_hs := voSync.io.rgb_hs
+    rgb_vs := voSync.io.rgb_vs
+    rgb_de := voSync.io.rgb_de
     rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11), 0.U(3.W), off0_syn_data(10,5), 0.U(2.W), off0_syn_data(4,0), 0.U(3.W)), "h0000ff".U(24.W)) //{r,g,b}
 
     /* HDMI interface */
     if(gowinDviTx){
-      val DVI_TX_Top_inst = Module(new DVI_TX_Top())
+      val dviTx = Module(new DVI_TX_Top())
 
       /* Clocks and reset */
-      DVI_TX_Top_inst.io.I_rst_n := hdmi_rst_n //asynchronous reset, low active
-      DVI_TX_Top_inst.io.I_serial_clk := serial_clk
-      DVI_TX_Top_inst.io.I_rgb_clk := pix_clk //pixel clock
+      dviTx.io.I_rst_n := hdmi_rst_n //asynchronous reset, low active
+      dviTx.io.I_serial_clk := serial_clk
+      dviTx.io.I_rgb_clk := pix_clk //pixel clock
 
       /* video signals connexions */
-      DVI_TX_Top_inst.io.I_rgb_vs := rgb_vs
-      DVI_TX_Top_inst.io.I_rgb_hs := rgb_hs
-      DVI_TX_Top_inst.io.I_rgb_de := rgb_de
-      DVI_TX_Top_inst.io.I_rgb_r := rgb_data(23,16)
-      DVI_TX_Top_inst.io.I_rgb_g := rgb_data(15,8)
-      DVI_TX_Top_inst.io.I_rgb_b := rgb_data(7,0)
+      dviTx.io.I_rgb_vs := rgb_vs
+      dviTx.io.I_rgb_hs := rgb_hs
+      dviTx.io.I_rgb_de := rgb_de
+      dviTx.io.I_rgb_r := rgb_data(23,16)
+      dviTx.io.I_rgb_g := rgb_data(15,8)
+      dviTx.io.I_rgb_b := rgb_data(7,0)
 
       /* tmds connexions */
-      O_tmds.data(0).p := DVI_TX_Top_inst.io.O_tmds_data_p(0)
-      O_tmds.data(0).n := DVI_TX_Top_inst.io.O_tmds_data_n(0)
-      O_tmds.data(1).p := DVI_TX_Top_inst.io.O_tmds_data_p(1)
-      O_tmds.data(1).n := DVI_TX_Top_inst.io.O_tmds_data_n(1)
-      O_tmds.data(2).p := DVI_TX_Top_inst.io.O_tmds_data_p(2)
-      O_tmds.data(2).n := DVI_TX_Top_inst.io.O_tmds_data_n(2)
-      O_tmds.clk.p := DVI_TX_Top_inst.io.O_tmds_clk_p
-      O_tmds.clk.n := DVI_TX_Top_inst.io.O_tmds_clk_n
+      O_tmds.data(0).p := dviTx.io.O_tmds_data_p(0)
+      O_tmds.data(0).n := dviTx.io.O_tmds_data_n(0)
+      O_tmds.data(1).p := dviTx.io.O_tmds_data_p(1)
+      O_tmds.data(1).n := dviTx.io.O_tmds_data_n(1)
+      O_tmds.data(2).p := dviTx.io.O_tmds_data_p(2)
+      O_tmds.data(2).n := dviTx.io.O_tmds_data_n(2)
+      O_tmds.clk.p := dviTx.io.O_tmds_clk_p
+      O_tmds.clk.n := dviTx.io.O_tmds_clk_n
     } else {
       val hdmiTx = Module(new HdmiTx())
       hdmiTx.io.serClk := serial_clk
