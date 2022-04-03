@@ -270,7 +270,7 @@ class video_hpram(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
 
       /* LVDS output */
       def get_obuf(): LVDS_OBUF = {
-        if (dt == dtGW1NSR4C)
+        if ((dt == dtGW1NSR4C) || (dt == dtGW2AR18C))
           Module(new TLVDS_OBUF())
         else
           Module(new ELVDS_OBUF())

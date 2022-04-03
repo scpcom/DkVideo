@@ -33,6 +33,7 @@ case object dtGW1N1 extends DeviceType
 case object dtGW1NZ1 extends DeviceType
 case object dtGW1NSR4C extends DeviceType
 case object dtGW1NR9 extends DeviceType
+case object dtGW2AR18C extends DeviceType
 
 sealed trait MemoryType
 case object mtNone extends MemoryType
@@ -73,6 +74,9 @@ object video_topGen extends App {
     else if ((arg == "GW1NR-9") || (arg == "tangnano9k")) {
       devtype = dtGW1NR9
       //memtype = mtPSRAM // to be checked
+    } else if ((arg == "GW2AR-18C") || (arg == "gw2ar18c")) {
+      devtype = dtGW2AR18C
+      memtype = mtPSRAM
     }
 
     if ((arg == "hpram") || (arg == "hyperram"))
@@ -189,6 +193,8 @@ object video_topGen extends App {
     println("Building for tangnano4k")
   else if (devtype == dtGW1NR9)
     println("Building for tangnano9k")
+  else if (devtype == dtGW2AR18C)
+    println("Building for gw2ar18c")
 
   if(gowinDviTx)
     println("Generate DkVideo with encrypted Gowin DviTx core")
