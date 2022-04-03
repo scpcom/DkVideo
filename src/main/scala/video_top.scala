@@ -47,6 +47,12 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
                 vmode: VideoMode = VideoConsts.m1280x720, camtype: CameraType = ctOV2640,
                 camzoom: Boolean = false) extends RawModule {
+  val DQ_WIDTH = if (dt == dtGW1NSR4C) 8 else 16
+  val ADDR_WIDTH = if (dt == dtGW1NSR4C) 22 else 21
+  val DATA_WIDTH = if (dt == dtGW1NSR4C) 32 else 64
+  val CS_WIDTH = if (dt == dtGW1NSR4C) 1 else 2
+  val MASK_WIDTH = if (dt == dtGW1NSR4C) 4 else 8
+
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
@@ -58,12 +64,12 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
   val PIXDATA = IO(Input(UInt(10.W)))
   val PIXCLK = IO(Input(Clock()))
   val XCLK = IO(Output(Clock()))
-  val O_hpram_ck = IO(Output(UInt(1.W)))
-  val O_hpram_ck_n = IO(Output(UInt(1.W)))
-  val O_hpram_cs_n = IO(Output(UInt(1.W)))
-  val O_hpram_reset_n = IO(Output(UInt(1.W)))
-  val IO_hpram_dq = IO(Analog(8.W)) // Inout
-  val IO_hpram_rwds = IO(Analog(1.W)) // Inout
+  val O_hpram_ck = IO(Output(UInt(CS_WIDTH.W)))
+  val O_hpram_ck_n = IO(Output(UInt(CS_WIDTH.W)))
+  val O_hpram_cs_n = IO(Output(UInt(CS_WIDTH.W)))
+  val O_hpram_reset_n = IO(Output(UInt(CS_WIDTH.W)))
+  val IO_hpram_dq = IO(Analog(DQ_WIDTH.W)) // Inout
+  val IO_hpram_rwds = IO(Analog(CS_WIDTH.W)) // Inout
   val O_tmds = IO(Output(new TMDSDiff()))
 
   val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
@@ -97,11 +103,11 @@ class video_top(dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
   //memory interface
   val cmd = Wire(Bool())
   val cmd_en = Wire(Bool())
-  val addr = Wire(UInt(22.W))     //[ADDR_WIDTH-1:0]
-  val wr_data = Wire(UInt(32.W))  //[DATA_WIDTH-1:0]
-  val data_mask = Wire(UInt(4.W))
+  val addr = Wire(UInt(ADDR_WIDTH.W))     //[ADDR_WIDTH-1:0]
+  val wr_data = Wire(UInt(DATA_WIDTH.W))  //[DATA_WIDTH-1:0]
+  val data_mask = Wire(UInt(MASK_WIDTH.W))
   val rd_data_valid = Wire(Bool())
-  val rd_data = Wire(UInt(32.W))  //[DATA_WIDTH-1:0]
+  val rd_data = Wire(UInt(DATA_WIDTH.W))  //[DATA_WIDTH-1:0]
   val init_calib = Wire(Bool())
 
   //------------------------------------------
