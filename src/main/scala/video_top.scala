@@ -34,8 +34,14 @@ case object dtGW1NZ1 extends DeviceType
 case object dtGW1NSR4C extends DeviceType
 case object dtGW1NR9 extends DeviceType
 
+sealed trait MemoryType
+case object mtNone extends MemoryType
+case object mtHyperRAM extends MemoryType
+case object mtPSRAM extends MemoryType
+
 object video_topGen extends App {
   var devtype: DeviceType = dtGW1NSR4C
+  var memtype: MemoryType = mtHyperRAM
   var gowinDviTx = true
   var rd_width = 800
   var rd_height = 600
@@ -64,8 +70,17 @@ object video_topGen extends App {
       devtype = dtGW1NZ1
     else if ((arg == "GW1NSR-4C") || (arg == "tangnano4k"))
       devtype = dtGW1NSR4C
-    else if ((arg == "GW1NR-9") || (arg == "tangnano9k"))
+    else if ((arg == "GW1NR-9") || (arg == "tangnano9k")) {
       devtype = dtGW1NR9
+      //memtype = mtPSRAM // to be checked
+    }
+
+    if ((arg == "hpram") || (arg == "hyperram"))
+      memtype = mtHyperRAM
+    else if (arg == "psram")
+      memtype = mtPSRAM
+    else if (arg == "noram")
+      memtype = mtNone
 
     if(arg == "noGowinDviTx")
       gowinDviTx = false
@@ -190,7 +205,20 @@ object video_topGen extends App {
   println(s"rd_vres $rd_height")
   val stage_name = "video_top"
   val stage_args = args ++ Array("--output-file", stage_name, "--output-annotation-file", stage_name, "--chisel-output-file", stage_name)
-  (new ChiselStage).execute(stage_args,
-    Seq(ChiselGeneratorAnnotation(() =>
-        new video_hpram(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
+  if (memtype == mtHyperRAM) {
+    println("memtype hpram")
+    (new ChiselStage).execute(stage_args,
+      Seq(ChiselGeneratorAnnotation(() =>
+          new video_hpram(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
+  } else if (memtype == mtPSRAM) {
+    println("memtype psram")
+    (new ChiselStage).execute(stage_args,
+      Seq(ChiselGeneratorAnnotation(() =>
+          new video_psram(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
+  } else {
+    println("memtype noram")
+    (new ChiselStage).execute(stage_args,
+      Seq(ChiselGeneratorAnnotation(() =>
+          new video_noram(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
+  }
 }
