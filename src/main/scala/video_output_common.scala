@@ -5,6 +5,7 @@ import chisel3.util.Cat
 
 import fpgamacro.gowin.{LVDS_OBUF, TLVDS_OBUF, ELVDS_OBUF}
 import fpgamacro.gowin.{Video_PLL, TMDS_PLLVR, GW_PLLVR, Gowin_rPLL}
+import hdmicore.{TMDSDiff}
 import hdmicore.video.{VideoMode, VideoConsts}
 import camcore.{CameraType, ctNone, ctOV2640, ctGC0328}
 
@@ -20,11 +21,16 @@ case object mtNone extends MemoryType
 case object mtHyperRAM extends MemoryType
 case object mtPSRAM extends MemoryType
 
+sealed trait OutputType
+case object otHDMI extends OutputType
+case object otLCD extends OutputType
+
 case class VideoOutParams(
                 dt: DeviceType = dtGW1NSR4C, gowinDviTx: Boolean = true,
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
-                vmode: VideoMode = VideoConsts.m1280x720, camtype: CameraType = ctOV2640,
-                camzoom: Boolean = false
+                vmode: VideoMode = VideoConsts.m1280x720,
+                camtype: CameraType = ctOV2640, camzoom: Boolean = false,
+                ot: OutputType = otHDMI
 )
 
 class VideoOutModule(vop: VideoOutParams) extends RawModule {
@@ -38,6 +44,7 @@ class VideoOutModule(vop: VideoOutParams) extends RawModule {
   def get_out_type(b: Boolean, n: Int) = if (b) IO(Output(UInt(n.W))) else WireDefault(UInt(n.W), 0.U(n.W))
   def get_clk_in_type(b: Boolean) = if (b) IO(Input(Clock())) else WireDefault(Clock(), 0.U(1.W).asTypeOf(Clock()))
   def get_clk_out_type(b: Boolean) = if (b) IO(Output(Clock())) else WireDefault(Clock(), 0.U(1.W).asTypeOf(Clock()))
+  def get_tmds_out(b: Boolean) = if (b) IO(Output(new TMDSDiff())) else WireDefault(new TMDSDiff(), 0.U(8.W).asTypeOf(new TMDSDiff()))
 
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
@@ -53,6 +60,17 @@ class VideoOutModule(vop: VideoOutParams) extends RawModule {
   val PIXDATA = get_cam_in(10)
   val PIXCLK = get_clk_in_type(vop.camtype != ctNone)
   val XCLK = get_clk_out_type(vop.camtype != ctNone)
+  // HDMI
+  val O_tmds = get_tmds_out(vop.ot == otHDMI)
+  // LCD
+  def get_lcd_out(n: Int) = get_out_type(vop.ot == otLCD, n)
+  val LCD_CLK = get_clk_out_type(vop.ot == otLCD)
+  val LCD_HYNC = get_lcd_out(1)
+  val LCD_SYNC = get_lcd_out(1)
+  val LCD_DEN = get_lcd_out(1)
+  val LCD_R = get_lcd_out(5)
+  val LCD_G = get_lcd_out(6)
+  val LCD_B = get_lcd_out(5)
 
   val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
   val syn_vs_pol = 1   //VS polarity , 0:负极性，1：正极性

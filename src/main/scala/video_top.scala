@@ -31,6 +31,7 @@ import camcore.{CameraType, ctNone, ctOV2640, ctGC0328}
 object video_topGen extends App {
   var devtype: DeviceType = dtGW1NSR4C
   var memtype: MemoryType = mtHyperRAM
+  var outtype: OutputType = otHDMI
   var gowinDviTx = true
   var rd_width = 800
   var rd_height = 600
@@ -66,6 +67,9 @@ object video_topGen extends App {
       devtype = dtGW2AR18C
       memtype = mtPSRAM
     }
+
+    if (arg == "lcd")
+      outtype = otLCD
 
     if ((arg == "hpram") || (arg == "hyperram"))
       memtype = mtHyperRAM
@@ -184,7 +188,9 @@ object video_topGen extends App {
   else if (devtype == dtGW2AR18C)
     println("Building for gw2ar18c")
 
-  if(gowinDviTx)
+  if(outtype == otLCD)
+    println("Generate DkVideo with LCD core")
+  else   if(gowinDviTx)
     println("Generate DkVideo with encrypted Gowin DviTx core")
   else
     println("Generate DkVideo with open source HdmiCore core")
@@ -201,7 +207,7 @@ object video_topGen extends App {
                 dt = devtype, gowinDviTx = gowinDviTx,
                 rd_width = rd_width, rd_height = rd_height, rd_halign = rd_halign, rd_valign = rd_valign,
                 vmode = vmode, camtype = camtype,
-                camzoom = camzoom)
+                camzoom = camzoom, ot = outtype)
   val stage_name = "video_top"
   val stage_args = args ++ Array("--output-file", stage_name, "--output-annotation-file", stage_name, "--chisel-output-file", stage_name)
   if (memtype == mtHyperRAM) {

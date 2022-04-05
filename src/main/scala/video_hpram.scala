@@ -22,7 +22,6 @@ class video_hpram(vop: VideoOutParams) extends VideoOutModule(vop) {
   val O_hpram_reset_n = IO(Output(UInt(CS_WIDTH.W)))
   val IO_hpram_dq = IO(Analog(DQ_WIDTH.W)) // Inout
   val IO_hpram_rwds = IO(Analog(CS_WIDTH.W)) // Inout
-  val O_tmds = IO(Output(new TMDSDiff()))
 
   val syn_delay = 7
 
@@ -167,8 +166,17 @@ class video_hpram(vop: VideoOutParams) extends VideoOutModule(vop) {
     rgb_de := voSync.io.rgb_de
     rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11), 0.U(3.W), off0_syn_data(10,5), 0.U(2.W), off0_syn_data(4,0), 0.U(3.W)), "h0000ff".U(24.W)) //{r,g,b}
 
+    if (vop.ot == otLCD) {
+      LCD_CLK := clk_12M //pix_clk
+      LCD_HYNC := rgb_hs
+      LCD_SYNC := rgb_vs
+      LCD_DEN := rgb_de
+      LCD_R := rgb_data(23,19)
+      LCD_G := rgb_data(15,10)
+      LCD_B := rgb_data(7,3)
+
     /* HDMI interface */
-    if(vop.gowinDviTx){
+    } else if (vop.gowinDviTx) {
       val dviTx = Module(new DVI_TX_Top())
 
       /* Clocks and reset */
