@@ -34,17 +34,25 @@ class VideoOutModule(vop: VideoOutParams) extends RawModule {
   val CS_WIDTH = if (vop.dt == dtGW1NSR4C) 1 else 2
   val MASK_WIDTH = if (vop.dt == dtGW1NSR4C) 4 else 8
 
+  def get_in_type(b: Boolean, n: Int) = if (b) IO(Input(UInt(n.W))) else WireDefault(UInt(n.W), 0.U(n.W))
+  def get_out_type(b: Boolean, n: Int) = if (b) IO(Output(UInt(n.W))) else WireDefault(UInt(n.W), 0.U(n.W))
+  def get_clk_in_type(b: Boolean) = if (b) IO(Input(Clock())) else WireDefault(Clock(), 0.U(1.W).asTypeOf(Clock()))
+  def get_clk_out_type(b: Boolean) = if (b) IO(Output(Clock())) else WireDefault(Clock(), 0.U(1.W).asTypeOf(Clock()))
+
   val I_clk = IO(Input(Clock())) //27Mhz
   val I_rst_n = IO(Input(Bool()))
   val O_led = IO(Output(UInt(2.W)))
   val I_button = IO(Input(Bool()))
-  val SDA = IO(Output(Bool())) // Inout
-  val SCL = IO(Output(Bool())) // Inout
-  val VSYNC = IO(Input(Bool()))
-  val HREF = IO(Input(Bool()))
-  val PIXDATA = IO(Input(UInt(10.W)))
-  val PIXCLK = IO(Input(Clock()))
-  val XCLK = IO(Output(Clock()))
+  // Camera
+  def get_cam_in(n: Int) = get_in_type(vop.camtype != ctNone, n)
+  def get_cam_out(n: Int) = get_out_type(vop.camtype != ctNone, n)
+  val SDA = get_cam_out(1) // Inout
+  val SCL = get_cam_out(1) // Inout
+  val VSYNC = get_cam_in(1)
+  val HREF = get_cam_in(1)
+  val PIXDATA = get_cam_in(10)
+  val PIXCLK = get_clk_in_type(vop.camtype != ctNone)
+  val XCLK = get_clk_out_type(vop.camtype != ctNone)
 
   val syn_hs_pol = 1   //HS polarity , 0:负极性，1：正极性
   val syn_vs_pol = 1   //VS polarity , 0:负极性，1：正极性
