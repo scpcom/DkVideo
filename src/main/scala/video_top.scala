@@ -54,11 +54,15 @@ object video_topGen extends App {
   }
 
   for(arg <- args){
-    if ((arg == "GW1N-1") || (arg == "tangnano"))
+    if ((arg == "GW1N-1") || (arg == "tangnano")) {
       devtype = dtGW1N1
-    else if ((arg == "GW1NZ-1") || (arg == "tangnano1k"))
+      memtype = mtNone
+      outtype = otLCD
+    } else if ((arg == "GW1NZ-1") || (arg == "tangnano1k")) {
       devtype = dtGW1NZ1
-    else if ((arg == "GW1NSR-4C") || (arg == "tangnano4k"))
+      memtype = mtNone
+      outtype = otLCD
+    } else if ((arg == "GW1NSR-4C") || (arg == "tangnano4k"))
       devtype = dtGW1NSR4C
     else if ((arg == "GW1NR-9") || (arg == "tangnano9k")) {
       devtype = dtGW1NR9
