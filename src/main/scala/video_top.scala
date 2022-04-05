@@ -28,18 +28,6 @@ import camcore.{CameraType, ctNone, ctOV2640, ctGC0328}
 // ----------------------------------------------------------------------------------
 // ==============0ooo===================================================0ooo===========
 
-sealed trait DeviceType
-case object dtGW1N1 extends DeviceType
-case object dtGW1NZ1 extends DeviceType
-case object dtGW1NSR4C extends DeviceType
-case object dtGW1NR9 extends DeviceType
-case object dtGW2AR18C extends DeviceType
-
-sealed trait MemoryType
-case object mtNone extends MemoryType
-case object mtHyperRAM extends MemoryType
-case object mtPSRAM extends MemoryType
-
 object video_topGen extends App {
   var devtype: DeviceType = dtGW1NSR4C
   var memtype: MemoryType = mtHyperRAM
@@ -209,22 +197,27 @@ object video_topGen extends App {
   println(s"camzoom $camzoom")
   println(s"rd_hres $rd_width")
   println(s"rd_vres $rd_height")
+  val vop = VideoOutParams(
+                dt = devtype, gowinDviTx = gowinDviTx,
+                rd_width = rd_width, rd_height = rd_height, rd_halign = rd_halign, rd_valign = rd_valign,
+                vmode = vmode, camtype = camtype,
+                camzoom = camzoom)
   val stage_name = "video_top"
   val stage_args = args ++ Array("--output-file", stage_name, "--output-annotation-file", stage_name, "--chisel-output-file", stage_name)
   if (memtype == mtHyperRAM) {
     println("memtype hpram")
     (new ChiselStage).execute(stage_args,
       Seq(ChiselGeneratorAnnotation(() =>
-          new video_hpram(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
+          new video_hpram(vop))))
   } else if (memtype == mtPSRAM) {
     println("memtype psram")
     (new ChiselStage).execute(stage_args,
       Seq(ChiselGeneratorAnnotation(() =>
-          new video_psram(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
+          new video_psram(vop))))
   } else {
     println("memtype noram")
     (new ChiselStage).execute(stage_args,
       Seq(ChiselGeneratorAnnotation(() =>
-          new video_noram(devtype, gowinDviTx, rd_width, rd_height, rd_halign, rd_valign, vmode, camtype, camzoom))))
+          new video_noram(vop))))
   }
 }
