@@ -9,7 +9,7 @@
         <File path="src/verilog/psram_memory_interface_hs.v" type="file.verilog" enable="1"/>
         <File path="src/verilog/vfb_psram.v" type="file.verilog" enable="1"/>
         <File path="video_top.v" type="file.verilog" enable="1"/>
-        <File path="src/constraints/dk_video_18k.cst" type="file.cst" enable="1"/>
-        <File path="src/constraints/dk_video_18k.sdc" type="file.sdc" enable="1"/>
+        <File path="src/constraints/gw2ar18c.cst" type="file.cst" enable="1"/>
+        <File path="src/constraints/gw2ar18c.sdc" type="file.sdc" enable="1"/>
     </FileList>
 </Project>
