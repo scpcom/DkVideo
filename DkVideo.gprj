@@ -9,7 +9,7 @@
         <File path="src/verilog/hyperram_memory_interface.v" type="file.verilog" enable="1"/>
         <File path="src/verilog/video_frame_buffer.v" type="file.verilog" enable="1"/>
         <File path="video_top.v" type="file.verilog" enable="1"/>
-        <File path="src/constraints/dk_video.cst" type="file.cst" enable="1"/>
-        <File path="src/constraints/dk_video.sdc" type="file.sdc" enable="1"/>
+        <File path="src/constraints/tangnano4k.cst" type="file.cst" enable="1"/>
+        <File path="src/constraints/tangnano4k.sdc" type="file.sdc" enable="1"/>
     </FileList>
 </Project>
