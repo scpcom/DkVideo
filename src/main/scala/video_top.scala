@@ -29,6 +29,8 @@ import camcore.{CameraType, ctNone, ctOV2640, ctGC0328}
 // ==============0ooo===================================================0ooo===========
 
 object video_topGen extends App {
+  var project_name = "DkVideo"
+  var dvitx_name = "dvi_tx"
   var devtype: DeviceType = dtGW1NSR4C
   var memtype: MemoryType = mtHyperRAM
   var outtype: OutputType = otHDMI
@@ -55,19 +57,25 @@ object video_topGen extends App {
 
   for(arg <- args){
     if ((arg == "GW1N-1") || (arg == "tangnano")) {
+      project_name = "DkVideoN"
       devtype = dtGW1N1
       memtype = mtNone
       outtype = otLCD
     } else if ((arg == "GW1NZ-1") || (arg == "tangnano1k")) {
+      project_name = "DkVideo1K"
       devtype = dtGW1NZ1
       memtype = mtNone
       outtype = otLCD
-    } else if ((arg == "GW1NSR-4C") || (arg == "tangnano4k"))
+    } else if ((arg == "GW1NSR-4C") || (arg == "tangnano4k")) {
+      project_name = "DkVideo4K"
       devtype = dtGW1NSR4C
-    else if ((arg == "GW1NR-9") || (arg == "tangnano9k")) {
+    } else if ((arg == "GW1NR-9") || (arg == "tangnano9k")) {
+      project_name = "DkVideo9K"
+      dvitx_name = "dvi_tx_elvds"
       devtype = dtGW1NR9
       memtype = mtPSRAM
     } else if ((arg == "GW2AR-18C") || (arg == "gw2ar18c")) {
+      project_name = "DkVideo18K"
       devtype = dtGW2AR18C
       memtype = mtPSRAM
     }
@@ -194,7 +202,7 @@ object video_topGen extends App {
 
   if(outtype == otLCD)
     println("Generate DkVideo with LCD core")
-  else   if(gowinDviTx)
+  else if(gowinDviTx)
     println("Generate DkVideo with encrypted Gowin DviTx core")
   else
     println("Generate DkVideo with open source HdmiCore core")
@@ -230,4 +238,9 @@ object video_topGen extends App {
       Seq(ChiselGeneratorAnnotation(() =>
           new video_noram(vop))))
   }
+  println("To generate the binary fs:")
+  println(s"Open the $project_name project in GOWIN FPGA Designer.")
+  if(!gowinDviTx)
+    println(s"Disable the file src/verilog/$dvitx_name.v.")
+  println("Push the \"Run All\" button")
 }
