@@ -30,15 +30,15 @@ case class VideoOutParams(
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
                 vmode: VideoMode = VideoConsts.m1280x720,
                 camtype: CameraType = ctOV2640, camzoom: Boolean = false,
-                ot: OutputType = otHDMI
+                mt: MemoryType = mtHyperRAM, ot: OutputType = otHDMI
 )
 
 class VideoOutModule(vop: VideoOutParams) extends RawModule {
-  val DQ_WIDTH = if (vop.dt == dtGW1NSR4C) 8 else 16
-  val ADDR_WIDTH = if (vop.dt == dtGW1NSR4C) 22 else 21
-  val DATA_WIDTH = if (vop.dt == dtGW1NSR4C) 32 else 64
-  val CS_WIDTH = if (vop.dt == dtGW1NSR4C) 1 else 2
-  val MASK_WIDTH = if (vop.dt == dtGW1NSR4C) 4 else 8
+  val DQ_WIDTH = if (vop.mt != mtPSRAM) 8 else 16
+  val ADDR_WIDTH = if (vop.mt != mtPSRAM) 22 else 21
+  val DATA_WIDTH = if (vop.mt != mtPSRAM) 32 else 64
+  val CS_WIDTH = if (vop.mt != mtPSRAM) 1 else 2
+  val MASK_WIDTH = if (vop.mt != mtPSRAM) 4 else 8
 
   def get_in_type(b: Boolean, n: Int) = if (b) IO(Input(UInt(n.W))) else WireDefault(UInt(n.W), 0.U(n.W))
   def get_out_type(b: Boolean, n: Int) = if (b) IO(Output(UInt(n.W))) else WireDefault(UInt(n.W), 0.U(n.W))

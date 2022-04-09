@@ -211,7 +211,7 @@ object video_topGen extends App {
                 dt = devtype, gowinDviTx = gowinDviTx,
                 rd_width = rd_width, rd_height = rd_height, rd_halign = rd_halign, rd_valign = rd_valign,
                 vmode = vmode, camtype = camtype,
-                camzoom = camzoom, ot = outtype)
+                camzoom = camzoom, mt = memtype, ot = outtype)
   val stage_name = "video_top"
   val stage_args = args ++ Array("--output-file", stage_name, "--output-annotation-file", stage_name, "--chisel-output-file", stage_name)
   if (memtype == mtHyperRAM) {
