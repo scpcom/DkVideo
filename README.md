@@ -83,13 +83,11 @@ cd DkVideo
 To generate core with gowin DviTx encrypted ip do:
 ```sh
 sbt -J-Xss256m "runMain dkvideo.video_topGen"
-sh src/scripts/fix-verilog.sh
 ```
 
 To use opensource HdmiCore:
 ```sh
 sbt -J-Xss256m "runMain dkvideo.video_topGen noGowinDviTx"
-sh src/scripts/fix-verilog.sh
 ```
 
 Other options:  
@@ -101,7 +99,6 @@ camera type: ov2640 gc0328 nocam
 Example:
 ```sh
 sbt -J-Xss256m "runMain dkvideo.video_topGen noGowinDviTx vga out hd center bottom"
-sh src/scripts/fix-verilog.sh
 ```
 
 Currently the fix-verilog.sh is used as workaround for one bit array [0:0] until a real solution is found.

@@ -1,5 +1,6 @@
 package dkvideo
 
+import sys.process.Process
 import chisel3._
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 
@@ -227,6 +228,7 @@ object video_topGen extends App {
     (new ChiselStage).execute(stage_args,
       Seq(ChiselGeneratorAnnotation(() =>
           new video_hpram(vop))))
+    val fixres = Process("sh ./src/scripts/fix-verilog.sh")
   } else if (memtype == mtPSRAM) {
     println("memtype psram")
     (new ChiselStage).execute(stage_args,
