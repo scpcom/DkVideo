@@ -66,7 +66,7 @@ object video_topGen extends App {
       devtype = dtGW1NSR4C
     else if ((arg == "GW1NR-9") || (arg == "tangnano9k")) {
       devtype = dtGW1NR9
-      //memtype = mtPSRAM // to be checked
+      memtype = mtPSRAM
     } else if ((arg == "GW2AR-18C") || (arg == "gw2ar18c")) {
       devtype = dtGW2AR18C
       memtype = mtPSRAM
