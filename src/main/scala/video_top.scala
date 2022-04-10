@@ -228,7 +228,9 @@ object video_topGen extends App {
     (new ChiselStage).execute(stage_args,
       Seq(ChiselGeneratorAnnotation(() =>
           new video_hpram(vop))))
-    val fixres = Process("sh ./src/scripts/fix-verilog.sh")
+    val fixres = Process("sh ./src/scripts/fix-verilog.sh").run().exitValue()
+    if (fixres != 0)
+      println("fix-verilog failed")
   } else if (memtype == mtPSRAM) {
     println("memtype psram")
     (new ChiselStage).execute(stage_args,
