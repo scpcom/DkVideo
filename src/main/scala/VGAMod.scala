@@ -64,9 +64,9 @@ class VGAMod(vp: VideoParams) extends RawModule {
 
 
   val vga_sync = Module(new HVSync(vp))
-  /*VGA_DE := (vga_sync.io.hpos < io.I_rd_hres)&(vga_sync.io.vpos < io.I_rd_vres)
-  VGA_HSYNC := vga_sync.io.hsync
-  VGA_VSYNC := vga_sync.io.vsync*/
+  VGA_DE := (vga_sync.io.hpos < io.I_rd_hres)&(vga_sync.io.vpos < io.I_rd_vres)
+  VGA_HSYNC := ~vga_sync.io.hsync
+  VGA_VSYNC := ~vga_sync.io.vsync
   PixelCount := H_BackPorch+vga_sync.io.hpos
   LineCount := V_BackPorch+vga_sync.io.vpos
 
@@ -88,6 +88,7 @@ class VGAMod(vp: VideoParams) extends RawModule {
   val Data_G = RegInit("b0".U(10.W))
   val Data_B = RegInit("b0".U(10.W))
 
+    /*
     //注意这里HSYNC和VSYNC负极性
     VGA_HSYNC := (Mux(((PixelCount >= H_Pluse) && (PixelCount <= (WidthPixel+H_BackPorch))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
     //VGA_VSYNC := (Mux((((LineCount >= 0.U) && (LineCount <= (V_Pluse-1.U)))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U) //这里不减一的话，图片底部会往下拖尾？
@@ -99,6 +100,7 @@ class VGAMod(vp: VideoParams) extends RawModule {
                       (LineCount >= V_BackPorch)) &&
                       (LineCount <= ((io.I_rd_vres+V_BackPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
                                                //这里不减一，会抖动
+    */
 
     /*VGA_R := Mux(PixelCount < 200.U, "b00000".U(5.W),
             (Mux(PixelCount < 240.U, "b00001".U(5.W),
