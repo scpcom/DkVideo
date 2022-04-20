@@ -124,7 +124,10 @@ class video_psram(vop: VideoOutParams) extends VideoOutModule(vop) {
   mem_pll_lock := memPLL.io.lock //output lock
   memPLL.io.clkin := I_clk //input clkin
   } else {
-  val memPLL = Module(new Gowin_rPLL(PLLParams(IDIV_SEL = 8, FBDIV_SEL = 52, ODIV_SEL = 4, DYN_SDIV_SEL = 2)))
+  // 159 MHz
+  //val memPLL = Module(new Gowin_rPLL(PLLParams(IDIV_SEL = 8, FBDIV_SEL = 52, ODIV_SEL = 4, DYN_SDIV_SEL = 2)))
+  // 162 MHz
+  val memPLL = Module(new Gowin_rPLL(PLLParams(IDIV_SEL = 0, FBDIV_SEL = 5, ODIV_SEL = 4, DYN_SDIV_SEL = 2)))
   memory_clk := memPLL.io.clkout //output clkout
   mem_pll_lock := memPLL.io.lock //output lock
   memPLL.io.clkin := I_clk //input clkin
