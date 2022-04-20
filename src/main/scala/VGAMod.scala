@@ -27,82 +27,22 @@ class VGAMod(vp: VideoParams) extends RawModule {
   val PixelCount = RegInit("b0".U(16.W))
   val LineCount = RegInit("b0".U(16.W))
 
-  //pluse include in back pluse; t=pluse, sync act; t=bp, data act; t=bp+height, data end
-  /*val V_BackPorch = 12.U(16.W)
-  val V_Pluse = 11.U(16.W)
-  val HightPixel = 272.U(16.W)
-  val V_FrontPorch = 8.U(16.W)
-
-  val H_BackPorch = 50.U(16.W)
-  val H_Pluse = 10.U(16.W)
-  val WidthPixel = 480.U(16.W)
-  val H_FrontPorch = 8.U(16.W)*/
-
-
-  /*val V_BackPorch = 0.U(16.W) //6
-  val V_Pluse = 5.U(16.W)
-  val HightPixel = 480.U(16.W)
-  val V_FrontPorch = 45.U(16.W) //62
-
-  val H_BackPorch = 182.U(16.W) //NOTE: 高像素时钟时，增加这里的延迟，方便K210加入中断
-  val H_Pluse = 1.U(16.W)
-  val WidthPixel = 800.U(16.W)
-  val H_FrontPorch = 210.U(16.W)*/
-
-  val V_BackPorch = vp.V_BACK.U(16.W)
-  val V_Pluse = vp.V_SYNC.U(16.W)
-  val HightPixel = vp.V_DISPLAY.U(16.W)
-  val V_FrontPorch = vp.V_TOP.U(16.W) //62
-
-  val H_BackPorch = vp.H_BACK.U(16.W) //NOTE: 高像素时钟时，增加这里的延迟，方便K210加入中断
-  val H_Pluse = vp.H_SYNC.U(16.W)
-  val WidthPixel = vp.H_DISPLAY.U(16.W)
-  val H_FrontPorch = vp.H_FRONT.U(16.W)
-
   val BarCount = RegInit(5.U(9.W))
-  val Width_bar = (io.I_rd_hres+H_BackPorch) / (BarCount+17.U) //45.U
-
+  val Width_bar = (io.I_rd_hres+vp.H_BACK.U(12.W)) / (BarCount+17.U) //45.U
 
   val vga_sync = Module(new HVSync(vp))
   VGA_DE := (vga_sync.io.hpos < io.I_rd_hres)&(vga_sync.io.vpos < io.I_rd_vres)
   VGA_HSYNC := ~vga_sync.io.hsync
   VGA_VSYNC := ~vga_sync.io.vsync
-  PixelCount := H_BackPorch+vga_sync.io.hpos
-  LineCount := V_BackPorch+vga_sync.io.vpos
-
-  val PixelForHS = (WidthPixel+H_BackPorch)+H_FrontPorch
-  val LineForVS = (HightPixel+V_BackPorch)+V_FrontPorch
-  /*
-  when (PixelCount === PixelForHS) {
-    PixelCount := "b0".U(16.W)
-    LineCount := LineCount+"b1".U(1.W)
-  } .elsewhen (LineCount === LineForVS) {
-    LineCount := "b0".U(16.W)
-    PixelCount := "b0".U(16.W)
-  } .otherwise {
-    PixelCount := PixelCount+"b1".U(1.W)
-  }
-  */
+  PixelCount := vp.H_BACK.U(12.W)+vga_sync.io.hpos
+  LineCount := vp.V_BACK.U(12.W)+vga_sync.io.vpos
 
   val Data_R = RegInit("b0".U(10.W))
   val Data_G = RegInit("b0".U(10.W))
   val Data_B = RegInit("b0".U(10.W))
 
     /*
-    //注意这里HSYNC和VSYNC负极性
-    VGA_HSYNC := (Mux(((PixelCount >= H_Pluse) && (PixelCount <= (WidthPixel+H_BackPorch))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
-    //VGA_VSYNC := (Mux((((LineCount >= 0.U) && (LineCount <= (V_Pluse-1.U)))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U) //这里不减一的话，图片底部会往下拖尾？
-    VGA_VSYNC := (Mux((((LineCount >= V_Pluse) && (LineCount <= (HightPixel+V_BackPorch+V_FrontPorch)))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
-    //FIFO_RST := Mux(((PixelCount === 0.U)), "b1".U(1.W), "b0".U(1.W)) //留给主机H_BackPorch的时间进入中断，发送数据
-
-    VGA_DE := (Mux(((((PixelCount >= H_BackPorch) &&
-                      (PixelCount <= (io.I_rd_hres+H_BackPorch))) &&
-                      (LineCount >= V_BackPorch)) &&
-                      (LineCount <= ((io.I_rd_vres+V_BackPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
-                                               //这里不减一，会抖动
-    */
-
-    /*VGA_R := Mux(PixelCount < 200.U, "b00000".U(5.W),
+    VGA_R := Mux(PixelCount < 200.U, "b00000".U(5.W),
             (Mux(PixelCount < 240.U, "b00001".U(5.W),
             (Mux(PixelCount < 280.U, "b00010".U(5.W),
             (Mux(PixelCount < 320.U, "b00100".U(5.W),
@@ -122,7 +62,8 @@ class VGAMod(vp: VideoParams) extends RawModule {
             (Mux(PixelCount < 720.U, "b00010".U(5.W),
             (Mux(PixelCount < 760.U, "b00100".U(5.W),
             (Mux(PixelCount < 800.U, "b01000".U(5.W),
-            (Mux(PixelCount < 840.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))*/
+            (Mux(PixelCount < 840.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))
+    */
 
     VGA_R := Mux(PixelCount < (Width_bar*(BarCount+0.U)), "b00000".U(5.W),
             (Mux(PixelCount < (Width_bar*(BarCount+1.U)), "b00001".U(5.W),
