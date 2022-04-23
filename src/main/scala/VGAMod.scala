@@ -32,8 +32,8 @@ class VGAMod(vp: VideoParams) extends RawModule {
 
   val vga_sync = Module(new HVSync(vp))
   VGA_DE := (vga_sync.io.hpos < io.I_rd_hres)&(vga_sync.io.vpos < io.I_rd_vres)
-  VGA_HSYNC := ~vga_sync.io.hsync
-  VGA_VSYNC := ~vga_sync.io.vsync
+  VGA_HSYNC := vga_sync.io.hsync
+  VGA_VSYNC := vga_sync.io.vsync
   PixelCount := vp.H_BACK.U(12.W)+vga_sync.io.hpos
   LineCount := vp.V_BACK.U(12.W)+vga_sync.io.vpos
 
