@@ -12,6 +12,8 @@ class VGAMod(vp: VideoParams) extends RawModule {
     val I_pxl_clk = Input(Clock())
     val I_rd_hres = Input(UInt(12.W)) //hor resolution
     val I_rd_vres = Input(UInt(12.W)) //ver resolution
+    val I_hs_pol = Input(Bool()) //HS polarity , 0:�����ԣ�1��������
+    val I_vs_pol = Input(Bool()) //VS polarity , 0:�����ԣ�1��������
     val videoSig = Output(new VideoHdmi())
   })
 
@@ -88,8 +90,8 @@ class VGAMod(vp: VideoParams) extends RawModule {
             (Mux(PixelCount < (Width_bar*(BarCount+16.U)), "b10000".U(5.W), "b00000".U(5.W))))))))))))
 
     io.videoSig.de := VGA_DE
-    io.videoSig.hsync := VGA_HSYNC
-    io.videoSig.vsync := VGA_VSYNC
+    io.videoSig.hsync := Mux(io.I_hs_pol, ~VGA_HSYNC, VGA_HSYNC)
+    io.videoSig.vsync := Mux(io.I_vs_pol, ~VGA_VSYNC, VGA_VSYNC)
     io.videoSig.pixel.red   := Mux(VGA_DE, Cat(VGA_R, 0.U(3.W)), "h00".U(8.W))
     io.videoSig.pixel.green := Mux(VGA_DE, Cat(VGA_G, 0.U(2.W)), "h00".U(8.W))
     io.videoSig.pixel.blue  := Mux(VGA_DE, Cat(VGA_B, 0.U(3.W)), "hff".U(8.W))
