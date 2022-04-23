@@ -21,7 +21,7 @@ import hdmicore.video.{VideoParams, HVSync}
 //   1.0   | 24-Sep-2009 | Caojie  |    initial
 // --------------------------------------------------------------------
 
-class testpattern(vp: VideoParams) extends Module {
+class testpattern(vp: VideoParams) extends RawModule {
   val io = IO(new Bundle {
     val I_pxl_clk = Input(Clock()) //pixel clock
     val I_rst_n = Input(Bool()) //low active
@@ -36,8 +36,9 @@ class testpattern(vp: VideoParams) extends Module {
     val videoSig = Output(new VideoHdmi())
   })
 
+  withClockAndReset(io.I_pxl_clk, ~io.I_rst_n) {
  //====================================================
-  val N = 5 //delay N clocks
+  val N = 3 //delay N clocks
 
   val WHITE   = Cat(255.U(8.W), 255.U(8.W), 255.U(8.W)) //{B,G,R}
   val YELLOW  = Cat(0.U(8.W),   255.U(8.W), 255.U(8.W))
@@ -49,24 +50,11 @@ class testpattern(vp: VideoParams) extends Module {
   val BLACK   = Cat(0.U(8.W),   0.U(8.W),   0.U(8.W)  )
 
   //====================================================
-  val V_cnt = RegInit(0.U(12.W))
-  val H_cnt = RegInit(0.U(12.W))
-
-  val Pout_de_w = Wire(Bool())
+  val Pout_de_w = Reg(Bool())
   val Pout_hs_w = Wire(Bool())
   val Pout_vs_w = Wire(Bool())
 
   val Pout_de_dn = RegInit(0.U(N.W))
-  val Pout_hs_dn = RegInit(1.U(N.W))
-  val Pout_vs_dn = RegInit(1.U(N.W))
-
-  //----------------------------
-  val De_pos = Wire(Bool())
-  val De_neg = Wire(Bool())
-  val Vs_pos = Wire(Bool())
-
-  val De_vcnt = RegInit(0.U(12.W))
-  val De_hcnt = RegInit(0.U(12.W))
 
   //-------------------------
   //Color bar //8ɫ����
@@ -106,33 +94,13 @@ class testpattern(vp: VideoParams) extends Module {
 
   //-------------------------------------------------------------
 
-  Pout_de_dn := Pout_de_dn(N-2,0) ## Pout_de_w
-  Pout_hs_dn := Pout_hs_dn(N-2,0) ## Pout_hs_w
-  Pout_vs_dn := Pout_vs_dn(N-2,0) ## Pout_vs_w
-  io.videoSig.de := Pout_de_dn(N-1) //ע�������ݶ���
-  io.videoSig.hsync := Mux(io.I_hs_pol,  ~Pout_hs_dn(N-1), Pout_hs_dn(N-1))
-  io.videoSig.vsync := Mux(io.I_vs_pol,  ~Pout_vs_dn(N-1), Pout_vs_dn(N-1))
+  Pout_de_dn := RegNext(RegNext(Pout_de_w)) ## RegNext(Pout_de_w) ## Pout_de_w
 
   //=================================================================================
   //Test Pattern
-  De_pos := ( !Pout_de_dn(1))&Pout_de_dn(0) //de rising edge
-  De_neg := Pout_de_dn(1) && ( !Pout_de_dn(0)) //de falling edge
-  Vs_pos := ( !Pout_vs_dn(1)) && Pout_vs_dn(0) //vs rising edge
-
-  when (De_pos === true.B) {
-    De_hcnt := 0.U(12.W)
-  } .elsewhen (Pout_de_dn(1) === true.B) {
-    De_hcnt := De_hcnt+"b1".U(1.W)
-  } .otherwise {
-    De_hcnt := De_hcnt
-  }
-  when (Vs_pos === true.B) {
-    De_vcnt := 0.U(12.W)
-  } .elsewhen (De_neg === true.B) {
-    De_vcnt := De_vcnt+"b1".U(1.W)
-  } .otherwise {
-    De_vcnt := De_vcnt
-  }
+  val De_delay = (N).U(3.W)
+  val De_hcnt = tp_sync.io.hpos
+  val De_vcnt = tp_sync.io.vpos
 
   //---------------------------------------------------
   //Color bar
@@ -185,7 +153,7 @@ class testpattern(vp: VideoParams) extends Module {
   //Net grid
   //---------------------------------------------------
 
-  when (((De_hcnt(4,0) === 0.U(5.W)) || (De_hcnt === (io.I_rd_hres-"b1".U(1.W)))) && (Pout_de_dn(1) === true.B)) {
+  when (((De_hcnt(4,0) === De_delay) || (De_hcnt >= (io.I_rd_hres-"b1".U(1.W)-De_delay))) && (Pout_de_dn(1) === true.B)) {
     Net_h_trig := true.B
   } .otherwise {
     Net_h_trig := false.B
@@ -216,7 +184,8 @@ class testpattern(vp: VideoParams) extends Module {
   //Gray
   //---------------------------------------------------
 
-  Gray := Cat(De_hcnt(7,0), De_hcnt(7,0), De_hcnt(7,0))
+  val Gray_ch = Mux(tp_sync.io.hpos < io.I_rd_hres, De_hcnt(7,0), 0.U(8.W))
+  Gray := Cat(Gray_ch, Gray_ch, Gray_ch)
   Gray_d1 := Gray
 
   //---------------------------------------------------
@@ -233,8 +202,12 @@ class testpattern(vp: VideoParams) extends Module {
   //---------------------------------------------------
 
   Data_tmp := Data_sel
-  io.videoSig.pixel.red := Data_tmp(7,0)
-  io.videoSig.pixel.green := Data_tmp(15,8)
-  io.videoSig.pixel.blue := Data_tmp(23,16)
 
+  io.videoSig.de := Pout_de_w
+  io.videoSig.hsync := Mux(io.I_hs_pol, ~Pout_hs_w, Pout_hs_w)
+  io.videoSig.vsync := Mux(io.I_vs_pol, ~Pout_vs_w, Pout_vs_w)
+  io.videoSig.pixel.red   := Mux(Pout_de_w, Data_tmp(7,0), "h00".U(8.W))
+  io.videoSig.pixel.green := Mux(Pout_de_w, Data_tmp(15,8), "h00".U(8.W))
+  io.videoSig.pixel.blue  := Mux(Pout_de_w, Data_tmp(23,16), "hff".U(8.W))
+  } // withClockAndReset(io.I_pxl_clk, ~io.I_rst_n)
 }
