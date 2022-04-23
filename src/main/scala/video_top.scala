@@ -32,6 +32,8 @@ import camcore.{CameraType, ctNone, ctOV2640, ctGC0328}
 object video_topGen extends App {
   var project_name = "DkVideo"
   var dvitx_name = "dvi_tx"
+  var devname = "tangnano4k"
+  var outname = "hdmi"
   var devtype: DeviceType = dtGW1NSR4C
   var memtype: MemoryType = mtHyperRAM
   var outtype: OutputType = otHDMI
@@ -191,19 +193,21 @@ object video_topGen extends App {
   }
 
   if (devtype == dtGW1N1)
-    println("Building for tangnano")
+    devname = "tangnano"
   else if (devtype == dtGW1NZ1)
-    println("Building for tangnano1k")
+    devname = "tangnano1k"
   else if (devtype == dtGW1NSR4C)
-    println("Building for tangnano4k")
+    devname = "tangnano4k"
   else if (devtype == dtGW1NR9)
-    println("Building for tangnano9k")
+    devname = "tangnano9k"
   else if (devtype == dtGW2AR18C)
-    println("Building for gw2ar18c")
+    devname = "gw2ar18c"
+  println(s"Building for $devname")
 
-  if(outtype == otLCD)
+  if(outtype == otLCD) {
+    outname = "lcd"
     println("Generate DkVideo with LCD core")
-  else if(gowinDviTx)
+  } else if(gowinDviTx)
     println("Generate DkVideo with encrypted Gowin DviTx core")
   else
     println("Generate DkVideo with open source HdmiCore core")
@@ -242,6 +246,9 @@ object video_topGen extends App {
       Seq(ChiselGeneratorAnnotation(() =>
           new video_noram(vop))))
   }
+  val fixsdc = Process(s"sh ./src/scripts/fix-sdc.sh $devname $outname").run().exitValue()
+  if (fixsdc != 0)
+    println("fix-sdc failed")
   println("To generate the binary fs:")
   println(s"Open the $project_name project in GOWIN FPGA Designer.")
   if(!gowinDviTx)
