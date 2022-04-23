@@ -6,6 +6,7 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 
 import hdmicore.video.{VideoMode, VideoConsts}
 import camcore.{CameraType, ctNone, ctOV2640, ctGC0328}
+import video.LCDConsts
 
 // Based on:
 // ==============0ooo===================================================0ooo===========
@@ -107,6 +108,9 @@ object video_topGen extends App {
       rd_valign = 0
     else if(arg == "bottom")
       rd_valign = 2
+    else if((arg == "wqvga") || (arg == "480x272")){
+      set_video_mode(480, 272, LCDConsts.m480x272)
+    }
     else if((arg == "vga") || (arg == "640x480")){
       rd_width = 640
       rd_height = 480

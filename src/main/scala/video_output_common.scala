@@ -4,10 +4,11 @@ import chisel3._
 import chisel3.util.Cat
 
 import fpgamacro.gowin.{LVDS_OBUF, TLVDS_OBUF, ELVDS_OBUF}
-import fpgamacro.gowin.{Video_PLL, TMDS_PLLVR, GW_PLLVR, Gowin_rPLL}
+import fpgamacro.gowin.{PLLParams, Video_PLL, TMDS_PLLVR, GW_PLLVR, Gowin_rPLL}
 import hdmicore.{TMDSDiff}
 import hdmicore.video.{VideoMode, VideoConsts}
 import camcore.{CameraType, ctNone, ctOV2640, ctGC0328}
+import video.LCDConsts
 
 sealed trait DeviceType
 case object dtGW1N1 extends DeviceType
@@ -93,6 +94,12 @@ class VideoOutModule(vop: VideoOutParams) extends RawModule {
 
   //================================================
   //Helpers
+  def get_pll_par(): PLLParams = {
+    if (vop.vmode == VideoConsts.m800x480)
+      LCDConsts.m800x480.pll
+    else
+      vop.vmode.pll
+  }
   def get_pll(): Video_PLL = {
     if (vop.dt == dtGW1NSR4C)
       Module(new TMDS_PLLVR(vop.vmode.pll))
