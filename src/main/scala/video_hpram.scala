@@ -167,7 +167,7 @@ class video_hpram(vop: VideoOutParams) extends VideoOutModule(vop) {
     rgb_data := Mux(off0_syn_de, Cat(off0_syn_data(15,11), 0.U(3.W), off0_syn_data(10,5), 0.U(2.W), off0_syn_data(4,0), 0.U(3.W)), "h0000ff".U(24.W)) //{r,g,b}
 
     if (vop.ot == otLCD) {
-      LCD_CLK := clk_12M //pix_clk
+      LCD_CLK := pix_clk
       LCD_HYNC := rgb_hs
       LCD_SYNC := rgb_vs
       LCD_DEN := rgb_de
