@@ -157,14 +157,13 @@ val io = IO(new Bundle {
     }
 
     out_axis_tvalid_out_reg := next_out_fifo_rdaddr =/= out_fifo_wraddr
-    // NOTE: The following statements are auto generated due to the use of concatenation: you may hence want to refactor it
-    val auto_concat = Wire(new Bundle { 
-      val out_axis_tuser_out_reg = UInt(4.W)
-      val out_axis_tdata_out_reg = UInt(sp.SVO_BITS_PER_PIXEL.W)
+    val out_axis_concat = Wire(new Bundle {
+      val tuser = UInt(4.W)
+      val tdata = UInt(sp.SVO_BITS_PER_PIXEL.W)
     }) 
-    auto_concat := out_fifo(next_out_fifo_rdaddr).asTypeOf(auto_concat)
-    out_axis_tuser_out_reg := auto_concat.out_axis_tuser_out_reg
-    out_axis_tdata_out_reg := auto_concat.out_axis_tdata_out_reg
+    out_axis_concat := out_fifo(next_out_fifo_rdaddr).asTypeOf(out_axis_concat)
+    out_axis_tuser_out_reg := out_axis_concat.tuser
+    out_axis_tdata_out_reg := out_axis_concat.tdata
 
     out_fifo_rdaddr := next_out_fifo_rdaddr
   }
