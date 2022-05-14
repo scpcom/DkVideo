@@ -4,6 +4,7 @@ import chisel3._
 import hdmicore.video.{VideoParams, VideoMode, VideoConsts}
 import hdmicore.{VideoHdmi, PatternExample}
 import camcore.{Camera_Receiver, CameraType, ctNone, ctOV2640, ctGC0328}
+import svo.svo_hdmi_top
 
 class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
@@ -58,6 +59,14 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
   val d1_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
 
   //--------------------------
+  val svo_vs_in = Wire(Bool())
+  val svo_hs_in = Wire(Bool())
+  val svo_de_in = Wire(Bool())
+  val svo_data_r = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val svo_data_g = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+  val svo_data_b = Wire(UInt(8.W))  /*synthesis syn_keep=1*/
+
+  //--------------------------
   val cam_vs_in = Wire(Bool())
   val cam_hs_in = Wire(Bool())
   val cam_de_in = Wire(Bool())
@@ -79,7 +88,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
     println("with PatternExample")
 
   withClockAndReset(vmx_pxl_clk, ~io.I_rst_n) {
-    val cnt_vs = RegInit(0.U(10.W))
+    val cnt_vs = RegInit(0.U(11.W))
     val run_cnt = RegInit(0.U(32.W))
     val vs_r = Reg(Bool())
 
@@ -113,7 +122,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
     tp0_data_g := testpattern_inst.io.videoSig.pixel.green
     tp0_data_b := testpattern_inst.io.videoSig.pixel.blue
     vs_r := tp0_vs_in
-    when (cnt_vs === "h3ff".U(10.W)) {
+    when (cnt_vs === "h4ff".U(11.W)) {
       if ((camtype == ctNone) && !ptEnabled) {
         cnt_vs := 0.U
       } else {
@@ -134,12 +143,29 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
     D1.io.I_rd_vres := rd_vres.U(12.W)
     D1.io.I_hs_pol := syn_hs_pol.U(1.W)
     D1.io.I_vs_pol := syn_vs_pol.U(1.W)
+
     d1_de_in := D1.io.videoSig.de
     d1_hs_in := D1.io.videoSig.hsync
     d1_vs_in := D1.io.videoSig.vsync
     d1_data_r := D1.io.videoSig.pixel.blue
     d1_data_g := D1.io.videoSig.pixel.green
     d1_data_b := D1.io.videoSig.pixel.red
+
+    //========================================================================
+    val u_svo = Module(new svo_hdmi_top(vp))
+    u_svo.io.clk := vmx_pxl_clk
+    u_svo.io.resetn := io.I_rst_n
+    u_svo.io.clk_pixel := vmx_pxl_clk
+    u_svo.io.locked := io.I_lock
+    u_svo.io.term_in_tvalid := false.B //svo_term_valid
+    u_svo.io.term_in_tdata := 0.U(8.W) //uart_wdata(7,0)
+
+    svo_de_in := u_svo.io.videoSig.de
+    svo_hs_in := u_svo.io.videoSig.hsync
+    svo_vs_in := u_svo.io.videoSig.vsync
+    svo_data_r := u_svo.io.videoSig.pixel.blue
+    svo_data_g := u_svo.io.videoSig.pixel.green
+    svo_data_b := u_svo.io.videoSig.pixel.red
 
     //============================================================================
     if (ptEnabled) {
@@ -192,12 +218,12 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
     //================================================
     //data width 24bit
     io.videoClk := vmx_pxl_clk // Mux((cnt_vs <= "h1ff".U(10.W)), I_clk, PIXCLK)
-    io.videoSig.de := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_de_in, Mux((cnt_vs <= "h2ff".U(10.W)), d1_de_in, cam_de_in)) //HREF or hcnt
-    io.videoSig.hsync := Mux((cnt_vs <= "h1ff".U(10.W)),  ~tp0_hs_in, Mux((cnt_vs <= "h2ff".U(10.W)), ~d1_hs_in, cam_hs_in)) //negative
-    io.videoSig.vsync := Mux((cnt_vs <= "h1ff".U(10.W)),  ~tp0_vs_in, Mux((cnt_vs <= "h2ff".U(10.W)), ~d1_vs_in, cam_vs_in)) //negative
-    io.videoSig.pixel.red   := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_data_r, Mux((cnt_vs <= "h2ff".U(10.W)), d1_data_r, cam_data_r))
-    io.videoSig.pixel.green := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_data_g, Mux((cnt_vs <= "h2ff".U(10.W)), d1_data_g, cam_data_g))
-    io.videoSig.pixel.blue  := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_data_b, Mux((cnt_vs <= "h2ff".U(10.W)), d1_data_b, cam_data_b))
+    io.videoSig.de          := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_de_in,  Mux((cnt_vs <= "h2ff".U(10.W)), d1_de_in,  Mux((cnt_vs <= "h3ff".U(10.W)), svo_de_in,  cam_de_in))) //HREF or hcnt
+    io.videoSig.hsync       := Mux((cnt_vs <= "h1ff".U(10.W)), ~tp0_hs_in, Mux((cnt_vs <= "h2ff".U(10.W)), ~d1_hs_in, Mux((cnt_vs <= "h3ff".U(10.W)), ~svo_hs_in, cam_hs_in))) //negative
+    io.videoSig.vsync       := Mux((cnt_vs <= "h1ff".U(10.W)), ~tp0_vs_in, Mux((cnt_vs <= "h2ff".U(10.W)), ~d1_vs_in, Mux((cnt_vs <= "h3ff".U(10.W)), ~svo_vs_in, cam_vs_in))) //negative
+    io.videoSig.pixel.red   := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_data_r, Mux((cnt_vs <= "h2ff".U(10.W)), d1_data_r, Mux((cnt_vs <= "h3ff".U(10.W)), svo_data_r, cam_data_r)))
+    io.videoSig.pixel.green := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_data_g, Mux((cnt_vs <= "h2ff".U(10.W)), d1_data_g, Mux((cnt_vs <= "h3ff".U(10.W)), svo_data_g, cam_data_g)))
+    io.videoSig.pixel.blue  := Mux((cnt_vs <= "h1ff".U(10.W)), tp0_data_b, Mux((cnt_vs <= "h2ff".U(10.W)), d1_data_b, Mux((cnt_vs <= "h3ff".U(10.W)), svo_data_b, cam_data_b)))
   } // withClockAndReset(vmx_pxl_clk, ~io.I_rst_n)
 }
 
