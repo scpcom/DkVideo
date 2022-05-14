@@ -61,6 +61,7 @@ class video_noram(vop: VideoOutParams) extends VideoOutModule(vop) {
 
   vidMix.io.I_clk := pix_clk //I_clk
   vidMix.io.I_rst_n := hdmi_rst_n
+  vidMix.io.I_lock := pll_lock
   //vidMix.io.I_button := I_button
   vidMix.io.clk_12M := clk_12M
   vidMix.io.init_calib := init_calib

@@ -12,6 +12,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
   val io = IO(new Bundle {
     val I_clk = Input(Clock()) //27Mhz
     val I_rst_n = Input(Bool())
+    val I_lock = Input(Bool())
     val I_button = Input(Bool())
     val clk_12M = Input(Clock())
     val init_calib = Input(Bool())
