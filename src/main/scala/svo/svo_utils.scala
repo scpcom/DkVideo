@@ -24,8 +24,6 @@ import hdmicore.video.{VideoParams, VideoConsts}
 
 // `timescale1ns/1ps
 
-//import "svo_defines.vh"._
-
 
 // ----------------------------------------------------------------------
 // module svo_axis_pipe
@@ -42,19 +40,19 @@ val io = IO(new Bundle {
   val clk = Input(Clock())
   val resetn = Input(Bool())
 
-	// axis input stream
+  // axis input stream
   val in_axis_tvalid = Input(Bool())
   val in_axis_tready = Output(Bool())
   val in_axis_tdata = Input(UInt(TDATA_WIDTH.W))
   val in_axis_tuser = Input(UInt(TUSER_WIDTH.W))
 
-	// axis output stream
+  // axis output stream
   val out_axis_tvalid = Output(Bool())
   val out_axis_tready = Input(Bool())
   val out_axis_tdata = Output(UInt(TDATA_WIDTH.W))
   val out_axis_tuser = Output(UInt(TUSER_WIDTH.W))
 
-	// pipeline i/o
+  // pipeline i/o
   val pipe_in_tdata = Output(UInt(TDATA_WIDTH.W))
   val pipe_out_tdata = Input(UInt(TDATA_WIDTH.W))
   val pipe_in_tuser = Output(UInt(TUSER_WIDTH.W))
@@ -188,14 +186,14 @@ val io = IO(new Bundle {
   val resetn = Input(Bool())
   val enable = Input(Bool())
 
-	// input stream
+  // input stream
   //   tuser[0] ... start of frame
   val in_axis_tvalid = Input(Bool())
   val in_axis_tready = Output(Bool())
   val in_axis_tdata = Input(UInt(sp.SVO_BITS_PER_PIXEL.W))
   val in_axis_tuser = Input(UInt(1.W))
 
-	// output stream
+  // output stream
   //   tuser[0] ... start of frame
   val out_axis_tvalid = Output(Bool())
   val out_axis_tready = Input(Bool())
@@ -215,51 +213,28 @@ val io = IO(new Bundle {
   def idx_mux(c: Boolean, a: Int, b: Int) = if (c) a else b
   def svo_max(a: Int, b: Int) = idx_mux(a > b, a, b) //if (a > b) a else b
 
-  //function [sp.SVO_BITS_PER_RED-1:0] svo_r;
   def svo_r(rgba: UInt): UInt = {
-    //val svo_r = Wire(UInt(sp.SVO_BITS_PER_RED.W))
-    //val rgba = IO(Input(Vec(sp.SVO_BITS_PER_PIXEL, Bool())))
     rgba(0+(sp.SVO_BITS_PER_RED-1),0).asTypeOf(UInt(sp.SVO_BITS_PER_RED.W))
   }
-  //endfunction
 
-  //function [SVO_BITS_PER_RED-1:0] svo_g;
   def svo_g(rgba: UInt): UInt = {
-    //val svo_g = Wire(UInt(SVO_BITS_PER_RED.W))
-    //val rgba = IO(Input(Vec(SVO_BITS_PER_PIXEL, Bool())))
     rgba(sp.SVO_BITS_PER_RED+(sp.SVO_BITS_PER_GREEN-1),sp.SVO_BITS_PER_RED).asTypeOf(UInt(sp.SVO_BITS_PER_RED.W))
   }
-  //endfunction
 
-  //function [SVO_BITS_PER_RED-1:0] svo_b;
   def svo_b(rgba: UInt): UInt = {
-    //val svo_b = Wire(UInt(SVO_BITS_PER_RED.W))
-    //val rgba = IO(Input(Vec(SVO_BITS_PER_PIXEL, Bool())))
     rgba((sp.SVO_BITS_PER_RED+sp.SVO_BITS_PER_GREEN)+(sp.SVO_BITS_PER_BLUE-1),sp.SVO_BITS_PER_RED+sp.SVO_BITS_PER_GREEN).asTypeOf(UInt(sp.SVO_BITS_PER_RED.W))
   }
-  //endfunction
 
-  //function [SVO_BITS_PER_RED-1:0] svo_a;
   def svo_a(rgba: UInt): UInt = {
-    //val svo_a = Wire(UInt(SVO_BITS_PER_RED.W))
-    //val rgba = IO(Input(Vec(SVO_BITS_PER_PIXEL, Bool())))
     rgba(
       idx_mux((sp.SVO_BITS_PER_ALPHA > 0), (sp.SVO_BITS_PER_RED+sp.SVO_BITS_PER_GREEN)+sp.SVO_BITS_PER_BLUE, 0)+(svo_max(sp.SVO_BITS_PER_ALPHA, 1)-1),
       idx_mux((sp.SVO_BITS_PER_ALPHA > 0), (sp.SVO_BITS_PER_RED+sp.SVO_BITS_PER_GREEN)+sp.SVO_BITS_PER_BLUE, 0)
     ).asTypeOf(UInt(sp.SVO_BITS_PER_RED.W))
   }
-  //endfunction
 
-  //function [SVO_BITS_PER_PIXEL-1:0] svo_rgba;
   def svo_rgba(r: UInt, g: UInt, b: UInt, a: UInt): UInt = {
-    //val svo_rgba = Wire(UInt(SVO_BITS_PER_PIXEL.W))
-    //val r = IO(Input(UInt(SVO_BITS_PER_RED.W)))
-    //val g = IO(Input(UInt(SVO_BITS_PER_GREEN.W)))
-    //val b = IO(Input(UInt(SVO_BITS_PER_BLUE.W)))
-    //val a = IO(Input(UInt((SVO_BITS_PER_ALPHA.S.asTypeOf(???)).W)))
     Cat(a(sp.SVO_BITS_PER_ALPHA-1,0), b(sp.SVO_BITS_PER_BLUE-1,0), g(sp.SVO_BITS_PER_GREEN-1,0), r(sp.SVO_BITS_PER_RED-1,0))
   }
-  //endfunction
 
   when (pipe_enable) {
     pipe_out_tdata := Mux(io.enable, svo_rgba(svo_r(pipe_in_tdata) >> 1, svo_g(pipe_in_tdata) >> 1, svo_b(pipe_in_tdata) >> 1, svo_a(pipe_in_tdata)), pipe_in_tdata)
@@ -310,14 +285,14 @@ val io = IO(new Bundle {
   val resetn = Input(Bool())
   val enable = Input(Bool())
 
-	// input stream
+  // input stream
   //   tuser[0] ... start of frame
   val in_axis_tvalid = Input(Bool())
   val in_axis_tready = Output(Bool())
   val in_axis_tdata = Input(UInt(sp.SVO_BITS_PER_PIXEL.W))
   val in_axis_tuser = Input(UInt(1.W))
 
-	// overlay stream
+  // overlay stream
   //   tuser[0] ... start of frame
   //   tuser[1] ... use overlay pixel
   val over_axis_tvalid = Input(Bool())
@@ -325,7 +300,7 @@ val io = IO(new Bundle {
   val over_axis_tdata = Input(UInt(sp.SVO_BITS_PER_PIXEL.W))
   val over_axis_tuser = Input(UInt(2.W))
 
-	// output stream
+  // output stream
   //   tuser[0] ... start of frame
   val out_axis_tvalid = Output(Bool())
   val out_axis_tready = Input(Bool())
@@ -348,7 +323,7 @@ val io = IO(new Bundle {
   val buf_out_axis_tdata = Wire(UInt(sp.SVO_BITS_PER_PIXEL.W))
   val buf_out_axis_tuser = Wire(UInt(1.W)) 
 
-	// -------------------------------------------------------------------
+  // -------------------------------------------------------------------
 
   val active = WireDefault(Bool(), buf_in_axis_tvalid && buf_over_axis_tvalid) 
   val skip_in = WireDefault(Bool(), ( !buf_in_axis_tuser(0)) && buf_over_axis_tuser(0)) 
@@ -359,7 +334,7 @@ val io = IO(new Bundle {
   buf_out_axis_tdata := Mux(io.enable && buf_over_axis_tuser(1), buf_over_axis_tdata, buf_in_axis_tdata)
   buf_out_axis_tuser := Mux(io.enable && buf_over_axis_tuser(1), buf_over_axis_tuser.asTypeOf(UInt(1.W)), buf_in_axis_tuser)
 
-	// -------------------------------------------------------------------
+  // -------------------------------------------------------------------
 
   val svo_buf_in = Module(new svo_buf(
     vp = vp,
@@ -434,7 +409,7 @@ val io = IO(new Bundle {
   val x2 = Input(Bool())
   val y2 = Input(Bool())
 
-	// output stream
+  // output stream
   //   tuser[0] ... start of frame
   //   tuser[1] ... pixel in rectange
   //   tuser[2] ... pixel on rect. border
@@ -445,7 +420,6 @@ val io = IO(new Bundle {
 })
 
   withClockAndReset(io.clk, ~io.resetn) {
-  // NOTE: The following statements are auto generated based on existing output reg of the original verilog source
   val out_axis_tvalid_out_reg = Reg(Bool()) 
   io.out_axis_tvalid := out_axis_tvalid_out_reg
   val out_axis_tdata_out_reg = Reg(UInt(sp.SVO_BITS_PER_PIXEL.W))

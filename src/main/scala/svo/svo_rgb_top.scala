@@ -26,8 +26,6 @@ import hdmicore.video.{VideoParams, VideoConsts}
 
 // `timescale1ns/1ps
 
-//import "svo_defines.vh"._
-
 case class SvoParams(
     val SVO_FRAMERATE: Int,
     val SVO_BITS_PER_PIXEL: Int,
@@ -84,7 +82,7 @@ val io = IO(new Bundle {
 
   val term_in_tready = Wire(Bool())
   val term_out_tvalid = Wire(Bool()) 
-  // wire term_out_tready;
+  //val term_out_tready = Wire(Bool())
   val term_out_tdata = Wire(UInt(2.W)) 
   val term_out_tuser = Wire(UInt(1.W)) 
   val video_enc_tvalid = Wire(Bool()) 

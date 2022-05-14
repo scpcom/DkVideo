@@ -24,8 +24,6 @@ import hdmicore.video.{VideoParams, VideoConsts}
 
 // `timescale1ns/1ps
 
-//import "svo_defines.vh"._
-
 class svo_tcard(
     val vp: VideoParams = VideoConsts.m800x600.params,
     val sp: SvoParams = SvoConsts.DefaultParams
@@ -56,7 +54,6 @@ val io = IO(new Bundle {
   val X4 = (HOR_CELLS-4).U
 
   withClockAndReset(io.clk, ~io.resetn) {
-  // NOTE: The following statements are auto generated based on existing output reg of the original verilog source
   val out_axis_tvalid_out_reg = RegInit(false.B)
   io.out_axis_tvalid := out_axis_tvalid_out_reg
   val out_axis_tdata_out_reg = RegInit(0.U(sp.SVO_BITS_PER_PIXEL.W))
@@ -64,16 +61,12 @@ val io = IO(new Bundle {
   val out_axis_tuser_out_reg = RegInit(0.U(1.W))
   io.out_axis_tuser := out_axis_tuser_out_reg
 
-  //function integer best_y_params
-  //val best_y_params = Wire(UInt(64.W))
-  //val n = IO(Input(UInt(64.W)))
-  //val which = IO(Input(UInt(64.W)))
   def best_y_params(n: UInt, which: UInt): UInt = {
   val out_y_params = Wire(UInt(4.W))
   val best_y_blk = Wire(UInt(4.W))
   val best_y_off = Wire(UInt(4.W))
   val best_y_gap = Wire(UInt(4.W))
-  //begin
+
   best_y_blk := 0.U
   best_y_gap := 0.U
   best_y_off := 0.U
@@ -117,10 +110,8 @@ val io = IO(new Bundle {
   .otherwise {
     out_y_params := best_y_off
   }
-  //end
   out_y_params
   }
-  //endfunction
 
   val Y_BLK = best_y_params(VER_CELLS.U, 1.U)
   val Y_GAP = best_y_params(VER_CELLS.U, 2.U)

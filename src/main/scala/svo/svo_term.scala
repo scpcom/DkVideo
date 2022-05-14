@@ -24,8 +24,6 @@ import hdmicore.video.{VideoParams, VideoConsts}
 
 // `timescale1ns/1ps
 
-//import "svo_defines.vh"._
-
 class svo_term(
     val vp: VideoParams = VideoConsts.m800x600.params,
     val sp: SvoParams = SvoConsts.DefaultParams,

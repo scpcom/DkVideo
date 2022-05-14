@@ -24,8 +24,6 @@ import hdmicore.video.{VideoParams, VideoConsts}
 
 // `timescale1ns/1ps
 
-//import "svo_defines.vh"._
-
 class svo_enc(
     val vp: VideoParams = VideoConsts.m800x600.params,
     val sp: SvoParams = SvoConsts.DefaultParams
@@ -56,7 +54,6 @@ val io = IO(new Bundle {
   val SVO_VER_TOTAL = vp.V_TOP + vp.V_SYNC + vp.V_BOTTOM + vp.V_DISPLAY
 
   withClockAndReset(io.clk, ~io.resetn) {
-  // NOTE: The following statements are auto generated based on existing output reg of the original verilog source
   val in_axis_tready_out_reg = RegInit(false.B)
   io.in_axis_tready := in_axis_tready_out_reg
   val out_axis_tvalid_out_reg = RegInit(false.B)
