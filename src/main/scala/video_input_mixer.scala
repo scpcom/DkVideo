@@ -4,7 +4,7 @@ import chisel3._
 import hdmicore.video.{VideoParams, VideoMode, VideoConsts}
 import hdmicore.{VideoHdmi, PatternExample}
 import camcore.{Camera_Receiver, CameraType, ctNone, ctOV2640, ctGC0328}
-import svo.svo_hdmi_top
+import svo.svo_rgb_top
 
 class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
                 rd_width: Int = 800, rd_height: Int = 600, rd_halign: Int = 0, rd_valign: Int = 0,
@@ -152,7 +152,7 @@ class Video_Input_Mixer(vp: VideoParams = VideoConsts.m1280x720.params,
     d1_data_b := D1.io.videoSig.pixel.red
 
     //========================================================================
-    val u_svo = Module(new svo_hdmi_top(vp))
+    val u_svo = Module(new svo_rgb_top(vp))
     u_svo.io.clk := vmx_pxl_clk
     u_svo.io.resetn := io.I_rst_n
     u_svo.io.clk_pixel := vmx_pxl_clk

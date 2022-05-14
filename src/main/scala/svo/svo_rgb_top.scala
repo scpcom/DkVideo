@@ -50,7 +50,7 @@ package object SvoConsts {
   )
 }
 
-class svo_hdmi_top(vp: VideoParams = VideoConsts.m800x600.params) extends RawModule {
+class svo_rgb_top(vp: VideoParams = VideoConsts.m800x600.params) extends RawModule {
 val io = IO(new Bundle {
   val clk = Input(Clock())
   val resetn = Input(Bool())
