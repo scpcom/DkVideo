@@ -351,19 +351,12 @@ val io = IO(new Bundle {
   // --------------------------------------------------------------
 
   //withClockAndReset(io.oclk, ~io.resetn) {
-  val oresetn_q = Reg(UInt(4.W)) 
-  val oresetn = Reg(Bool()) 
-  // NOTE: The following statements are auto generated due to the use of concatenation: you may hence want to refactor it
-  val auto_concat = Wire(new Bundle { 
-    val oresetn = Bool()
-    val oresetn_q = UInt(4.W)
-  }) 
+  val oresetn_q = Reg(UInt(5.W))
+  val oresetn = Reg(Bool())
 
-	// synchronize oresetn with oclk
-
-  auto_concat := Cat(oresetn_q, io.resetn).asTypeOf(auto_concat)
-  oresetn := auto_concat.oresetn
-  oresetn_q := auto_concat.oresetn_q
+  // synchronize oresetn with oclk
+  oresetn_q := oresetn_q(3,0) ## io.resetn
+  oresetn := oresetn_q(4)
 
   // --------------------------------------------------------------
   // Pipeline stage 1: basic video timing
